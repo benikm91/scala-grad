@@ -52,6 +52,30 @@ abstract class DeriverReversePlan[
     import primaryMatrixAlgebra.*
     import derivativeMatrixAlgebra.*
 
+    given scalar2Scalar: DeriverFromTo[DualScalar => DualScalar, PScalar => PScalar] with
+        override def derive(f: DualScalar => DualScalar): PScalar => PScalar = x => 
+            val delta = f(createDualScalar(x, DeltaScalar.Val(0))).dv
+            val res = eval.evalScalar(oneOps.oneHotScalar, delta)
+            res.scalars.get(0).getOrElse(zeroScalar)
+
+    given columnVector2Scalar: DeriverFromTo[DualColumnVector => DualScalar, PColumnVector => PColumnVector] with
+        override def derive(f: DualColumnVector => DualScalar): PColumnVector => PColumnVector = x => 
+            val delta = f(createDualColumnVector(x, DeltaColumnVector.Val(0))).dv
+            val res = eval.evalScalar(oneOps.oneHotScalar, delta)
+            res.columnVectors.get(0).getOrElse(zeroColumnVector(x.length))
+
+    given rowVector2Scalar: DeriverFromTo[DualRowVector => DualScalar, PRowVector => PRowVector] with
+        override def derive(f: DualRowVector => DualScalar): PRowVector => PRowVector = x => 
+            val delta = f(createDualRowVector(x, DeltaRowVector.Val(0))).dv
+            val res = eval.evalScalar(oneOps.oneHotScalar, delta)
+            res.rowVectors.get(0).getOrElse(zeroRowVector(x.length))
+
+    given matrix2Scalar: DeriverFromTo[DualMatrix => DualScalar, PMatrix => PMatrix] with
+        override def derive(f: DualMatrix => DualScalar): PMatrix => PMatrix = x => 
+            val delta = f(createDualMatrix(x, DeltaMatrix.Val(0))).dv
+            val res = eval.evalScalar(oneOps.oneHotScalar, delta)
+            res.matrices.get(0).getOrElse(zeroMatrix(x.nRows, x.nCols))
+
     given tuple2Scalar[T <: Tuple : DualTuple]: DeriverFromTo[T => DualScalar, DualTupleToPTuple[T] => DualTupleToPTuple[T]] with
 
         private val ids = (0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22)

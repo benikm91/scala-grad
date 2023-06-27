@@ -12,6 +12,14 @@ def forward =
     import scalagrad.auto.forward.breeze.DeriverBreezeForwardPlan.given
     import scalagrad.auto.forward.breeze.DeriverBreezeForwardPlan.algebra.*
     import scalagrad.api.forward.dual.*
+    
+    def e(
+        x1: DualNumberScalar[Double],
+    ): DualNumberScalar[Double] = x1
+
+    val de = ScalaGrad.derive(e)
+    println(de(1.0))
+
     def f(
         x1: DualNumberScalar[Double],
         x2: DualNumberScalar[Double]

@@ -1,10 +1,39 @@
 package scalagrad.util.test
 
 import org.scalacheck.Gen
-import breeze.linalg.DenseVector
-import breeze.linalg.DenseMatrix
+import breeze.linalg.{DenseVector, Transpose, DenseMatrix}
+import scalagrad.api.dual
+import scalagrad.api.matrixalgebra.MatrixAlgebra
+
+import scalagrad.numerical.DeriverBreezeNumericalPlan
+import scalagrad.api.test.GlobalTestSuitParams
 
 object BreezeTestUtil:
+
+    def createGlobalTestSuitParams[
+      DScalar, DColumnVector, DRowVector, DMatrix,
+      DualScalar <: dual.DualScalar[Double, DScalar],
+      DualColumnVector <: dual.DualColumnVector[DenseVector[Double], DColumnVector],
+      DualRowVector <: dual.DualRowVector[Transpose[DenseVector[Double]], DRowVector],
+      DualMatrix <: dual.DualMatrix[DenseMatrix[Double], DMatrix],
+    ](
+      testName: String,
+      dualAlgebra: MatrixAlgebra[DualScalar, DualColumnVector, DualRowVector, DualMatrix],
+    ): GlobalTestSuitParams[
+      Double, DenseVector[Double], Transpose[DenseVector[Double]], DenseMatrix[Double],
+      DScalar, DColumnVector, DRowVector, DMatrix,
+      DualScalar, DualColumnVector, DualRowVector, DualMatrix,
+    ] =
+      GlobalTestSuitParams(
+        testName,
+        dualAlgebra,
+        DeriverBreezeNumericalPlan.algebra,
+        BreezeTestUtil.reasonableDenseMatrixDoubleGenerator,
+        BreezeTestUtil.reasonableDenseVectorDoubleGenerator,
+        (x: Gen[Int]) => for { cv <- BreezeTestUtil.reasonableDenseVectorDoubleGenerator(x) } yield cv.t,
+        BreezeTestUtil.reasonableDoubleGenerator,
+        DeriverBreezeNumericalPlan,
+      )
 
     val (min, max) = (1e-3, 1e+1)
     def reasonableDoubleGenerator: Gen[Double] = 

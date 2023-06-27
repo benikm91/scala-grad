@@ -30,14 +30,11 @@ trait BasicOpsTestSuit[
     DualRowVector <: dual.DualRowVector[PRowVector, DRowVector],
     DualMatrix <: dual.DualMatrix[PMatrix, DMatrix],
 ](
-    testName: String,
-    dualAlgebra: MatrixAlgebra[DualScalar, DualColumnVector, DualRowVector, DualMatrix],
-    primaryAlgebra: MatrixAlgebra[PScalar, PColumnVector, PRowVector, PMatrix],
-    mGen: (Gen[Int], Gen[Int]) => Gen[PMatrix],
-    cvGen: (Gen[Int]) => Gen[PColumnVector],
-    rvGen: (Gen[Int]) => Gen[PRowVector],
-    sGen: Gen[PScalar],
-    deriverNumericalPlan: DeriverNumericalPlan[PScalar, PColumnVector, PRowVector, PMatrix],
+    globalTestSuitParams: GlobalTestSuitParams[
+        PScalar, PColumnVector, PRowVector, PMatrix,
+        DScalar, DColumnVector, DRowVector, DMatrix,
+        DualScalar, DualColumnVector, DualRowVector, DualMatrix,
+    ],
     deriverMM: ((DualMatrix, DualMatrix) => DualScalar) => (Tuple2[PMatrix, PMatrix] => (PMatrix, PMatrix)),
     deriverMCV: ((DualMatrix, DualColumnVector) => DualScalar) => (Tuple2[PMatrix, PColumnVector] => (PMatrix, PColumnVector)),
     deriverMRV: ((DualMatrix, DualRowVector) => DualScalar) => (Tuple2[PMatrix, PRowVector] => (PMatrix, PRowVector)),
@@ -48,6 +45,7 @@ trait BasicOpsTestSuit[
     tolerance: PScalar = 1,
 ) extends AnyWordSpec with should.Matchers:
     
+    import globalTestSuitParams.*
     import dualAlgebra.*
     import primaryAlgebra.*
     import deriverNumericalPlan.given
@@ -344,140 +342,237 @@ trait BasicOpsTestSuit[
         }
     }
 
-    def genCVCV(minDim: Int = 1, maxDim: Int = 25): Gen[(PColumnVector, PColumnVector)] =
-        for {
-            length <- Gen.choose(minDim, maxDim)
-            cv1 <- cvGen(length)
-            cv2 <- cvGen(length)
-        } yield (cv1, cv2)
-
-    f"${testName} (ColumnVector, ColumnVector) operations" should {
-
-        "support elementWiseMultiplyCVCV" in {
-            def f[S, CV, RV, M](algebra: MatrixAlgebra[S, CV, RV, M])(cv1: CV, cv2: CV): S = 
-                import algebra.*
-                (cv1 *:* cv2).sum
-            val df = deriverCVCV(f[DualScalar, DualColumnVector, DualRowVector, DualMatrix](dualAlgebra))
-            val dfApprox = ScalaGrad.derive(f[PScalar, PColumnVector, PRowVector, PMatrix](primaryAlgebra))
-            forAll(genCVCV()) { (cv1, cv2) =>
-                compareAllElementsCVCV(
-                    df(cv1, cv2),
-                    dfApprox(cv1, cv2)
-                )
+    f"${testName} (Vector, Vector) operations" should {
+        def genCVCV(minDim: Int = 1, maxDim: Int = 25): Gen[(PColumnVector, PColumnVector)] =
+            for {
+                length <- Gen.choose(minDim, maxDim)
+                cv1 <- cvGen(length)
+                cv2 <- cvGen(length)
+            } yield (cv1, cv2)
+        "(ColumnVector, ColumnVector) operations" should {
+            "support elementWiseMultiplyCVCV" in {
+                def f[S, CV, RV, M](algebra: MatrixAlgebra[S, CV, RV, M])(cv1: CV, cv2: CV): S = 
+                    import algebra.*
+                    (cv1 *:* cv2).sum
+                val df = deriverCVCV(f[DualScalar, DualColumnVector, DualRowVector, DualMatrix](dualAlgebra))
+                val dfApprox = ScalaGrad.derive(f[PScalar, PColumnVector, PRowVector, PMatrix](primaryAlgebra))
+                forAll(genCVCV()) { (cv1, cv2) =>
+                    compareAllElementsCVCV(
+                        df(cv1, cv2),
+                        dfApprox(cv1, cv2)
+                    )
+                }
+            }
+            "support plusCVCV" in {
+                def f[S, CV, RV, M](algebra: MatrixAlgebra[S, CV, RV, M])(cv1: CV, cv2: CV): S = 
+                    import algebra.*
+                    (cv1 + cv2).sum
+                val df = deriverCVCV(f[DualScalar, DualColumnVector, DualRowVector, DualMatrix](dualAlgebra))
+                val dfApprox = ScalaGrad.derive(f[PScalar, PColumnVector, PRowVector, PMatrix](primaryAlgebra))
+                forAll(genCVCV()) { (cv1, cv2) =>
+                    compareAllElementsCVCV(
+                        df(cv1, cv2),
+                        dfApprox(cv1, cv2)
+                    )
+                }
+            }
+            "support minusCVCV" in {
+                def f[S, CV, RV, M](algebra: MatrixAlgebra[S, CV, RV, M])(cv1: CV, cv2: CV): S = 
+                    import algebra.*
+                    (cv1 - cv2).sum
+                val df = deriverCVCV(f[DualScalar, DualColumnVector, DualRowVector, DualMatrix](dualAlgebra))
+                val dfApprox = ScalaGrad.derive(f[PScalar, PColumnVector, PRowVector, PMatrix](primaryAlgebra))
+                forAll(genCVCV()) { (cv1, cv2) =>
+                    compareAllElementsCVCV(
+                        df(cv1, cv2),
+                        dfApprox(cv1, cv2)
+                    )
+                }
             }
         }
-        "support plusCVCV" in {
-            def f[S, CV, RV, M](algebra: MatrixAlgebra[S, CV, RV, M])(cv1: CV, cv2: CV): S = 
-                import algebra.*
-                (cv1 + cv2).sum
-            val df = deriverCVCV(f[DualScalar, DualColumnVector, DualRowVector, DualMatrix](dualAlgebra))
-            val dfApprox = ScalaGrad.derive(f[PScalar, PColumnVector, PRowVector, PMatrix](primaryAlgebra))
-            forAll(genCVCV()) { (cv1, cv2) =>
-                compareAllElementsCVCV(
-                    df(cv1, cv2),
-                    dfApprox(cv1, cv2)
-                )
+        "(ColumnVector, RowVector) operations" should {
+            "support dotCVRV" in {
+                def f[S, CV, RV, M](algebra: MatrixAlgebra[S, CV, RV, M])(cv1: CV, cv2: CV): S = 
+                    import algebra.*
+                    (cv1 * cv2.t).sum
+                val df = deriverCVCV(f[DualScalar, DualColumnVector, DualRowVector, DualMatrix](dualAlgebra))
+                val dfApprox = ScalaGrad.derive(f[PScalar, PColumnVector, PRowVector, PMatrix](primaryAlgebra))
+                forAll(genCVCV()) { (cv1, cv2) =>
+                    compareAllElementsCVCV(
+                        df(cv1, cv2),
+                        dfApprox(cv1, cv2)
+                    )
+                }
+            }
+            "support dotRVCV" in {
+                def f[S, CV, RV, M](algebra: MatrixAlgebra[S, CV, RV, M])(cv1: CV, cv2: CV): S = 
+                    import algebra.*
+                    cv1.t * cv2
+                val df = deriverCVCV(f[DualScalar, DualColumnVector, DualRowVector, DualMatrix](dualAlgebra))
+                val dfApprox = ScalaGrad.derive(f[PScalar, PColumnVector, PRowVector, PMatrix](primaryAlgebra))
+                forAll(genCVCV()) { (cv1, cv2) =>
+                    compareAllElementsCVCV(
+                        df(cv1, cv2),
+                        dfApprox(cv1, cv2)
+                    )
+                }
             }
         }
-        "support minusCVCV" in {
-            def f[S, CV, RV, M](algebra: MatrixAlgebra[S, CV, RV, M])(cv1: CV, cv2: CV): S = 
-                import algebra.*
-                (cv1 - cv2).sum
-            val df = deriverCVCV(f[DualScalar, DualColumnVector, DualRowVector, DualMatrix](dualAlgebra))
-            val dfApprox = ScalaGrad.derive(f[PScalar, PColumnVector, PRowVector, PMatrix](primaryAlgebra))
-            forAll(genCVCV()) { (cv1, cv2) =>
-                compareAllElementsCVCV(
-                    df(cv1, cv2),
-                    dfApprox(cv1, cv2)
-                )
+        f"(RowVector, RowVector) operations" should {
+            "support elementWiseMultiplyRVRV" in {
+                def f[S, CV, RV, M](algebra: MatrixAlgebra[S, CV, RV, M])(cv1: CV, cv2: CV): S = 
+                    import algebra.*
+                    sum(cv1.t *:* cv2.t)
+                val df = deriverCVCV(f[DualScalar, DualColumnVector, DualRowVector, DualMatrix](dualAlgebra))
+                val dfApprox = ScalaGrad.derive(f[PScalar, PColumnVector, PRowVector, PMatrix](primaryAlgebra))
+                forAll(genCVCV()) { (cv1, cv2) =>
+                    compareAllElementsCVCV(
+                        df(cv1, cv2),
+                        dfApprox(cv1, cv2)
+                    )
+                }
+            }
+            "support plusRVRV" in {
+                def f[S, CV, RV, M](algebra: MatrixAlgebra[S, CV, RV, M])(cv1: CV, cv2: CV): S = 
+                    import algebra.*
+                    (cv1.t + cv2.t).sum
+                val df = deriverCVCV(f[DualScalar, DualColumnVector, DualRowVector, DualMatrix](dualAlgebra))
+                val dfApprox = ScalaGrad.derive(f[PScalar, PColumnVector, PRowVector, PMatrix](primaryAlgebra))
+                forAll(genCVCV()) { (cv1, cv2) =>
+                    compareAllElementsCVCV(
+                        df(cv1, cv2),
+                        dfApprox(cv1, cv2)
+                    )
+                }
+            }
+            "support minusRVRV" in {
+                def f[S, CV, RV, M](algebra: MatrixAlgebra[S, CV, RV, M])(cv1: CV, cv2: CV): S = 
+                    import algebra.*
+                    (cv1.t - cv2.t).sum
+                val df = deriverCVCV(f[DualScalar, DualColumnVector, DualRowVector, DualMatrix](dualAlgebra))
+                val dfApprox = ScalaGrad.derive(f[PScalar, PColumnVector, PRowVector, PMatrix](primaryAlgebra))
+                forAll(genCVCV()) { (cv1, cv2) =>
+                    compareAllElementsCVCV(
+                        df(cv1, cv2),
+                        dfApprox(cv1, cv2)
+                    )
+                }
             }
         }
     }
-    f"${testName} (ColumnVector, RowVector) operations" should {
-        "support dotCVRV" in {
-            def f[S, CV, RV, M](algebra: MatrixAlgebra[S, CV, RV, M])(cv1: CV, cv2: CV): S = 
-                import algebra.*
-                (cv1 * cv2.t).sum
-            val df = deriverCVCV(f[DualScalar, DualColumnVector, DualRowVector, DualMatrix](dualAlgebra))
-            val dfApprox = ScalaGrad.derive(f[PScalar, PColumnVector, PRowVector, PMatrix](primaryAlgebra))
-            forAll(genCVCV()) { (cv1, cv2) =>
-                compareAllElementsCVCV(
-                    df(cv1, cv2),
-                    dfApprox(cv1, cv2)
-                )
-            }
-        }
-        "support dotRVCV" in {
-            def f[S, CV, RV, M](algebra: MatrixAlgebra[S, CV, RV, M])(cv1: CV, cv2: CV): S = 
-                import algebra.*
-                cv1.t * cv2
-            val df = deriverCVCV(f[DualScalar, DualColumnVector, DualRowVector, DualMatrix](dualAlgebra))
-            val dfApprox = ScalaGrad.derive(f[PScalar, PColumnVector, PRowVector, PMatrix](primaryAlgebra))
-            forAll(genCVCV()) { (cv1, cv2) =>
-                compareAllElementsCVCV(
-                    df(cv1, cv2),
-                    dfApprox(cv1, cv2)
-                )
-            }
-        }
-    }
-    f"${testName} (ColumnVector, Scalar) operations" should {
+    f"${testName} (Vector, Scalar) operations" should {
         def genCVS(minDim: Int = 1, maxDim: Int = 25): Gen[(PColumnVector, PScalar)] =
             for {
                 length <- Gen.choose(minDim, maxDim)
                 cv <- cvGen(length)
                 s <- sGen
             } yield (cv, s)
-        "support multiplyCVS" in {
-            def f[S, CV, RV, M](algebra: MatrixAlgebra[S, CV, RV, M])(cv: CV, s: S): S = 
-                import algebra.*
-                (cv * s).sum
-            val df = deriverCVS(f[DualScalar, DualColumnVector, DualRowVector, DualMatrix](dualAlgebra))
-            val dfApprox = ScalaGrad.derive(f[PScalar, PColumnVector, PRowVector, PMatrix](primaryAlgebra))
-            forAll(genCVS()) { (cv, s) =>
-                compareAllElementsCVS(
-                    df(cv, s),
-                    dfApprox(cv, s)
-                )
+        f"(ColumnVector, Scalar) operations" should {
+            "support multiplyCVS" in {
+                def f[S, CV, RV, M](algebra: MatrixAlgebra[S, CV, RV, M])(cv: CV, s: S): S = 
+                    import algebra.*
+                    (cv * s).sum
+                val df = deriverCVS(f[DualScalar, DualColumnVector, DualRowVector, DualMatrix](dualAlgebra))
+                val dfApprox = ScalaGrad.derive(f[PScalar, PColumnVector, PRowVector, PMatrix](primaryAlgebra))
+                forAll(genCVS()) { (cv, s) =>
+                    compareAllElementsCVS(
+                        df(cv, s),
+                        dfApprox(cv, s)
+                    )
+                }
             }
-        }
-        "support plusCVS" in {
-            def f[S, CV, RV, M](algebra: MatrixAlgebra[S, CV, RV, M])(cv: CV, s: S): S = 
-                import algebra.*
-                (cv + s).sum
-            val df = deriverCVS(f[DualScalar, DualColumnVector, DualRowVector, DualMatrix](dualAlgebra))
-            val dfApprox = ScalaGrad.derive(f[PScalar, PColumnVector, PRowVector, PMatrix](primaryAlgebra))
-            forAll(genCVS()) { (cv, s) =>
-                compareAllElementsCVS(
-                    df(cv, s),
-                    dfApprox(cv, s)
-                )
+            "support plusCVS" in {
+                def f[S, CV, RV, M](algebra: MatrixAlgebra[S, CV, RV, M])(cv: CV, s: S): S = 
+                    import algebra.*
+                    (cv + s).sum
+                val df = deriverCVS(f[DualScalar, DualColumnVector, DualRowVector, DualMatrix](dualAlgebra))
+                val dfApprox = ScalaGrad.derive(f[PScalar, PColumnVector, PRowVector, PMatrix](primaryAlgebra))
+                forAll(genCVS()) { (cv, s) =>
+                    compareAllElementsCVS(
+                        df(cv, s),
+                        dfApprox(cv, s)
+                    )
+                }  
+            }
+            "support minusCV" in {
+                def f[S, CV, RV, M](algebra: MatrixAlgebra[S, CV, RV, M])(cv: CV, s: S): S = 
+                    import algebra.*
+                    (cv - s).sum
+                val df = deriverCVS(f[DualScalar, DualColumnVector, DualRowVector, DualMatrix](dualAlgebra))
+                val dfApprox = ScalaGrad.derive(f[PScalar, PColumnVector, PRowVector, PMatrix](primaryAlgebra))
+                forAll(genCVS()) { (cv, s) =>
+                    compareAllElementsCVS(
+                        df(cv, s),
+                        dfApprox(cv, s)
+                    )
+                }  
+            }
+            "support divideCVS" in {
+                def f[S, CV, RV, M](algebra: MatrixAlgebra[S, CV, RV, M])(cv: CV, s: S): S = 
+                    import algebra.*
+                    (cv / s).sum
+                val df = deriverCVS(f[DualScalar, DualColumnVector, DualRowVector, DualMatrix](dualAlgebra))
+                val dfApprox = ScalaGrad.derive(f[PScalar, PColumnVector, PRowVector, PMatrix](primaryAlgebra))
+                forAll(genCVS()) { (cv, s) =>
+                    compareAllElementsCVS(
+                        df(cv, s),
+                        dfApprox(cv, s)
+                    )
+                }  
             }  
         }
-        "support minusCV" in {
-            def f[S, CV, RV, M](algebra: MatrixAlgebra[S, CV, RV, M])(cv: CV, s: S): S = 
-                import algebra.*
-                (cv - s).sum
-            val df = deriverCVS(f[DualScalar, DualColumnVector, DualRowVector, DualMatrix](dualAlgebra))
-            val dfApprox = ScalaGrad.derive(f[PScalar, PColumnVector, PRowVector, PMatrix](primaryAlgebra))
-            forAll(genCVS()) { (cv, s) =>
-                compareAllElementsCVS(
-                    df(cv, s),
-                    dfApprox(cv, s)
-                )
-            }  
-        }
-        "support divideCVS" in {
-            def f[S, CV, RV, M](algebra: MatrixAlgebra[S, CV, RV, M])(cv: CV, s: S): S = 
-                import algebra.*
-                (cv / s).sum
-            val df = deriverCVS(f[DualScalar, DualColumnVector, DualRowVector, DualMatrix](dualAlgebra))
-            val dfApprox = ScalaGrad.derive(f[PScalar, PColumnVector, PRowVector, PMatrix](primaryAlgebra))
-            forAll(genCVS()) { (cv, s) =>
-                compareAllElementsCVS(
-                    df(cv, s),
-                    dfApprox(cv, s)
-                )
+        f"(RowVector, Scalar) operations" should {
+            "support multiplyRVS" in {
+                def f[S, CV, RV, M](algebra: MatrixAlgebra[S, CV, RV, M])(cv: CV, s: S): S = 
+                    import algebra.*
+                    (cv.t * s).sum
+                val df = deriverCVS(f[DualScalar, DualColumnVector, DualRowVector, DualMatrix](dualAlgebra))
+                val dfApprox = ScalaGrad.derive(f[PScalar, PColumnVector, PRowVector, PMatrix](primaryAlgebra))
+                forAll(genCVS()) { (cv, s) =>
+                    compareAllElementsCVS(
+                        df(cv, s),
+                        dfApprox(cv, s)
+                    )
+                }
+            }
+            "support plusRVS" in {
+                def f[S, CV, RV, M](algebra: MatrixAlgebra[S, CV, RV, M])(cv: CV, s: S): S = 
+                    import algebra.*
+                    (cv.t + s).sum
+                val df = deriverCVS(f[DualScalar, DualColumnVector, DualRowVector, DualMatrix](dualAlgebra))
+                val dfApprox = ScalaGrad.derive(f[PScalar, PColumnVector, PRowVector, PMatrix](primaryAlgebra))
+                forAll(genCVS()) { (cv, s) =>
+                    compareAllElementsCVS(
+                        df(cv, s),
+                        dfApprox(cv, s)
+                    )
+                }  
+            }
+            "support minusRV" in {
+                def f[S, CV, RV, M](algebra: MatrixAlgebra[S, CV, RV, M])(cv: CV, s: S): S = 
+                    import algebra.*
+                    (cv.t - s).sum
+                val df = deriverCVS(f[DualScalar, DualColumnVector, DualRowVector, DualMatrix](dualAlgebra))
+                val dfApprox = ScalaGrad.derive(f[PScalar, PColumnVector, PRowVector, PMatrix](primaryAlgebra))
+                forAll(genCVS()) { (cv, s) =>
+                    compareAllElementsCVS(
+                        df(cv, s),
+                        dfApprox(cv, s)
+                    )
+                }  
+            }
+            "support divideRVS" in {
+                def f[S, CV, RV, M](algebra: MatrixAlgebra[S, CV, RV, M])(cv: CV, s: S): S = 
+                    import algebra.*
+                    (cv.t / s).sum
+                val df = deriverCVS(f[DualScalar, DualColumnVector, DualRowVector, DualMatrix](dualAlgebra))
+                val dfApprox = ScalaGrad.derive(f[PScalar, PColumnVector, PRowVector, PMatrix](primaryAlgebra))
+                forAll(genCVS()) { (cv, s) =>
+                    compareAllElementsCVS(
+                        df(cv, s),
+                        dfApprox(cv, s)
+                    )
+                }  
             }  
         }
     }

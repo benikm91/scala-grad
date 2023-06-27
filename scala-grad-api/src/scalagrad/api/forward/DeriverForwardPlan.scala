@@ -45,6 +45,37 @@ abstract class DeriverForwardPlan[
     import primaryMatrixAlgebra.*
     import derivativeMatrixAlgebra.*
 
+    given scalar2Scalar: DeriverFromTo[DualScalar => DualScalar, PScalar => PScalar] with
+        override def derive(f: DualScalar => DualScalar): PScalar => PScalar = x => 
+            f(createDualScalar(x, oneOps.oneHotScalar)).dv
+
+    given columnVector2Scalar: DeriverFromTo[DualColumnVector => DualScalar, PColumnVector => PColumnVector] with
+        override def derive(f: DualColumnVector => DualScalar): PColumnVector => PColumnVector = x => 
+            val res = for (i <- 0 until x.length)
+                yield {
+                    val dual = createDualColumnVector(x, oneOps.oneHotColumnVector(x.length, i))
+                    f(dual).dv
+                }
+            createColumnVectorFromElements(res)
+
+    given rowVector2Scalar: DeriverFromTo[DualRowVector => DualScalar, PRowVector => PRowVector] with
+        override def derive(f: DualRowVector => DualScalar): PRowVector => PRowVector = x => 
+            val res = for (i <- 0 until x.length)
+                yield {
+                    val dual = createDualRowVector(x, oneOps.oneHotRowVector(x.length, i))
+                    f(dual).dv
+                }
+            createRowVectorFromElements(res)
+
+    given matrix2Scalar: DeriverFromTo[DualMatrix => DualScalar, PMatrix => PMatrix] with
+        override def derive(f: DualMatrix => DualScalar): PMatrix => PMatrix = x => 
+            val res = for (i <- 0 until x.nRows * x.nCols)
+                yield {
+                    val dual = createDualMatrix(x, oneOps.oneHotMatrix(x.nRows, x.nCols, i))
+                    f(dual).dv
+                }
+            createMatrixFromElements(x.nRows, x.nCols, res)
+
     given tuple2Scalar[T <: Tuple : DualTuple]: DeriverFromTo[T => DualScalar, DualTupleToPTuple[T] => DualTupleToPTuple[T]] with
 
         private val indices = (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22)
