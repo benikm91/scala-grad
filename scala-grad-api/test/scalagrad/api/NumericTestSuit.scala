@@ -51,14 +51,25 @@ trait NumericTestSuit[
         "support numeric operations" should {
             
             def testCase[S](testF: [S] => S => Numeric[S] ?=> S, sGen: Gen[PScalar] = sGen) = 
-                def plainTestCase[S: Numeric, CV, RV, M](algebra: MatrixAlgebra[S, CV, RV, M])(s: S): S = testF[S](s)
-                val df = deriverS(plainTestCase[DualScalar, DualColumnVector, DualRowVector, DualMatrix](dualAlgebra))
-                val dfApprox = ScalaGrad.derive(plainTestCase[PScalar, PColumnVector, PRowVector, PMatrix](primaryAlgebra))
-                forAll(sGen) { (s) =>
-                    compareElementsSS(
-                        df(s),
-                        dfApprox(s)
-                    )
+                {
+                    // test function testF alone
+                    def plainTestCase[S: Numeric, CV, RV, M](algebra: MatrixAlgebra[S, CV, RV, M])(s: S): S = testF[S](s)
+                    val df = deriverS(plainTestCase[DualScalar, DualColumnVector, DualRowVector, DualMatrix](dualAlgebra))
+                    val dfApprox = ScalaGrad.derive(plainTestCase[PScalar, PColumnVector, PRowVector, PMatrix](primaryAlgebra))
+                    forAll(sGen) { (s) =>
+                        compareElementsSS(df(s), dfApprox(s))
+                    }
+                }
+                {
+                    // test function testF in a chain of operations
+                    def chainedTestCase[S: Numeric, CV, RV, M](algebra: MatrixAlgebra[S, CV, RV, M])(s: S): S = 
+                        import algebra.*
+                        testF[S](s * s) / s
+                    val df = deriverS(chainedTestCase[DualScalar, DualColumnVector, DualRowVector, DualMatrix](dualAlgebra))
+                    val dfApprox = ScalaGrad.derive(chainedTestCase[PScalar, PColumnVector, PRowVector, PMatrix](primaryAlgebra))
+                    forAll(sGen) { (s) =>
+                        compareElementsSS(df(s), dfApprox(s))
+                    }
                 }
             
             "ceil" in {
