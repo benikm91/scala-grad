@@ -19,8 +19,10 @@ import scalagrad.numerical.DeriverNumericalPlan
 import scalagrad.api.forward.DeriverForwardPlan
 import scalagrad.api.reverse.DeriverReversePlan
 
-import breeze.linalg.*
+import breeze.linalg.{DenseVector, Transpose, DenseMatrix}
 import scalagrad.api.matrixalgebra.MatrixAlgebra
+import scala.math.Fractional.Implicits.given
+import spire.algebra.Trig
 
 trait ElementWiseOpsTestSuit[
     PScalar <: Double, PColumnVector <: DenseVector[Double], PRowVector <: Transpose[DenseVector[Double]], PMatrix <: DenseMatrix[Double],
@@ -38,6 +40,11 @@ trait ElementWiseOpsTestSuit[
     deriverM: (DualMatrix => DualScalar) => (PMatrix => PMatrix),
     deriverCV: (DualColumnVector => DualScalar) => (PColumnVector => PColumnVector),
     deriverS: (DualScalar => DualScalar) => (PScalar => PScalar),
+)(using 
+    Fractional[PScalar],
+    Fractional[DualScalar],
+    Trig[PScalar],
+    Trig[DualScalar]
 ) extends AnyWordSpec with BaseTestSuit[PScalar, PColumnVector, PRowVector, PMatrix]:
     
     import globalTestSuitParams.*
@@ -49,19 +56,66 @@ trait ElementWiseOpsTestSuit[
 
     f"${testName} Matrix access operations" should {
 
-        def matrixGen(minDim: Int = 1, maxDim: Int = 25): Gen[PMatrix] =
+        def matrixGen(minDim: Int = 1, maxDim: Int = 25, mGen: (Gen[Int], Gen[Int]) => Gen[PMatrix] = mGen): Gen[PMatrix] =
             for {
                 nRow <- Gen.choose(minDim, maxDim)
                 nCol <- Gen.choose(minDim, maxDim)
                 m <- mGen(nRow, nCol)
             } yield m
-        "support mapElements" in {
-            def f[S, CV, RV, M](algebra: MatrixAlgebra[S, CV, RV, M])(m: M): S = 
+        
+        "support mapElements identify" in {
+            def f[S: Fractional, CV, RV, M](algebra: MatrixAlgebra[S, CV, RV, M])(m: M): S = 
                 import algebra.*
-                m.mapElements(s => s * s).sum
+                m.mapElements(x => x).sum
             val df = deriverM(f[DualScalar, DualColumnVector, DualRowVector, DualMatrix](dualAlgebra))
             val dfApprox = ScalaGrad.derive(f[PScalar, PColumnVector, PRowVector, PMatrix](primaryAlgebra))
             forAll(matrixGen()) { (m) =>
+                compareElementsMM(
+                    df(m),
+                    dfApprox(m)
+                )
+            }
+        }
+        "support mapElements fractional square" in {
+            def square[S: Fractional](s: S) = s * s
+            def f[S: Fractional, CV, RV, M](algebra: MatrixAlgebra[S, CV, RV, M])(m: M): S = 
+                import algebra.*
+                m.mapElements(square).sum
+            val df = deriverM(f[DualScalar, DualColumnVector, DualRowVector, DualMatrix](dualAlgebra))
+            val dfApprox = ScalaGrad.derive(f[PScalar, PColumnVector, PRowVector, PMatrix](primaryAlgebra))
+            forAll(matrixGen()) { (m) =>
+                compareElementsMM(
+                    df(m),
+                    dfApprox(m)
+                )
+            }
+        }
+        "support mapElements fractional relu" in {
+            def relu[S](s: S)(using frac: Fractional[S]) = 
+                import frac.*
+                if (s <= frac.zero) frac.zero
+                else s
+            def f[S: Fractional, CV, RV, M](algebra: MatrixAlgebra[S, CV, RV, M])(m: M): S = 
+                import algebra.*
+                m.mapElements(relu).sum
+            val df = deriverM(f[DualScalar, DualColumnVector, DualRowVector, DualMatrix](dualAlgebra))
+            val dfApprox = ScalaGrad.derive(f[PScalar, PColumnVector, PRowVector, PMatrix](primaryAlgebra))
+            forAll(matrixGen()) { (m) =>
+                compareElementsMM(
+                    df(m),
+                    dfApprox(m)
+                )
+            }
+        }
+        "support mapElements spire.Trig log" in {
+            def log[S](s: S)(using trig: Trig[S]) = 
+                trig.log(s)
+            def f[S: Trig, CV, RV, M](algebra: MatrixAlgebra[S, CV, RV, M])(m: M): S = 
+                import algebra.*
+                m.mapElements(log).sum
+            val df = deriverM(f[DualScalar, DualColumnVector, DualRowVector, DualMatrix](dualAlgebra))
+            val dfApprox = ScalaGrad.derive(f[PScalar, PColumnVector, PRowVector, PMatrix](primaryAlgebra))
+            forAll(matrixGen(mGen = positiveOnlyMGen)) { (m) =>
                 compareElementsMM(
                     df(m),
                     dfApprox(m)

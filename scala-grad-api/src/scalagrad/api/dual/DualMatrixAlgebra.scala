@@ -227,6 +227,9 @@ case class DualMatrixAlgebra[
             dInvert(s),
         )
 
+    override def unliftToDouble(s: ScalarT): Double =
+        pma.unliftToDouble(s.v)
+
     override def liftToScalar(d: Double): ScalarT = 
         createDualScalar(
             pma.liftToScalar(d),

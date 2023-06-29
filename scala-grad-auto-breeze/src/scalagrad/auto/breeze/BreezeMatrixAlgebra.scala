@@ -78,7 +78,9 @@ object BreezeMatrixAlgebra extends MatrixAlgebra[
 
   override def invert(s: ScalarT): ScalarT = 1.0 / s
 
-  override def liftToScalar(d: ScalarT): ScalarT = d
+  override def unliftToDouble(s: ScalarT): Double = s
+
+  override def liftToScalar(d: Double): ScalarT = d
 
   override def sumCV(cv: ColumnVectorT): ScalarT = breeze.linalg.sum(cv)
 

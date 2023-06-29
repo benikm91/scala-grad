@@ -32,6 +32,16 @@ abstract class DeriverPlan[
         derivativeMatrixAlgebra,
     )
 
+    given algebraGiven: MatrixAlgebra[
+        DualScalar, DualColumnVector, DualRowVector, DualMatrix
+    ] = algebra
+
+    given primaryMatrixAlgebraGiven: MatrixAlgebra[
+        PScalar, PColumnVector, PRowVector, PMatrix
+    ] = primaryMatrixAlgebra
+
+    given derivativeMatrixAlgebraGiven: DerivativeMatrixAlgebraT = derivativeMatrixAlgebra
+
     type DualTuple[T <: Tuple] = T match
         case DualScalar *: t => DualTuple[t]
         case DualColumnVector *: t => DualTuple[t]

@@ -29,6 +29,7 @@ case class GlobalTestSuitParams[
     dualAlgebra: MatrixAlgebra[DualScalar, DualColumnVector, DualRowVector, DualMatrix],
     primaryAlgebra: MatrixAlgebra[PScalar, PColumnVector, PRowVector, PMatrix],
     mGen: (Gen[Int], Gen[Int]) => Gen[PMatrix],
+    positiveOnlyMGen: (Gen[Int], Gen[Int]) => Gen[PMatrix],
     cvGen: (Gen[Int]) => Gen[PColumnVector],
     rvGen: (Gen[Int]) => Gen[PRowVector],
     sGen: Gen[PScalar],

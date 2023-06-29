@@ -2,6 +2,10 @@ ThisBuild / version := "0.0.1"
 ThisBuild / scalaVersion := "3.2.2"
 ThisBuild / organization := "ch.benikm91"
 
+lazy val spireDependency = Seq(
+    libraryDependencies += "org.typelevel" %% "spire" % "0.18.0"
+)
+
 lazy val breezeDependency = Seq(
   libraryDependencies ++= Seq(
     "org.scalanlp" %% "breeze" % "2.1.0",
@@ -28,6 +32,7 @@ lazy val scalaGradApi = (project in file("./scala-grad-api"))
   .settings(
     name := "scala-grad-api",
     basicSettings,
+    spireDependency,
     breezeDependency,
     scalaTestSettings,
   )
