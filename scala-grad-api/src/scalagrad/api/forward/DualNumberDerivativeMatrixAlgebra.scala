@@ -13,7 +13,6 @@ case class DualNumberDerivativeMatrixAlgebra[Scalar, ColumnVector, RowVector, Ma
     DualNumberScalar[Scalar], DualNumberColumnVector[ColumnVector], DualNumberRowVector[RowVector], DualNumberMatrix[Matrix]
 ]:
 
-    override val dAccessOps: AccessOps[DScalarT, PColumnVectorT, PRowVectorT, PMatrixT] = matrixAlgebra
     override val dNegateOps: NegateOps[DScalarT, PColumnVectorT, PRowVectorT, PMatrixT] = matrixAlgebra
     override val dInvertOps: ScalarInvertOps[DScalarT] = matrixAlgebra
     override val dZeroOps: ZeroOps[DScalarT, PColumnVectorT, PRowVectorT, PMatrixT] = matrixAlgebra
@@ -74,3 +73,15 @@ case class DualNumberDerivativeMatrixAlgebra[Scalar, ColumnVector, RowVector, Ma
 
     override def sumM(m: DMatrixT, nRows: Int, nCols: Int): DScalarT = matrixAlgebra.sumM(m)
     
+    override def elementAtM(m: Matrix, iRow: Int, jColumn: Int, nRows: Int, nCols: Int): Scalar = matrixAlgebra.elementAtM(m, iRow, jColumn)
+    override def columnAtM(m: Matrix, jColumn: Int, nRows: Int, nCols: Int): ColumnVector = matrixAlgebra.columnAtM(m, jColumn)
+    override def elementAtCV(cv: ColumnVector, iRow: Int, length: Int): Scalar = matrixAlgebra.elementAtCV(cv, iRow)
+
+    override def setElementAtM(m: Matrix, iRow: Int, jColumn: Int, newValue: Scalar): Matrix = 
+        matrixAlgebra.setElementAtM(m, iRow, jColumn, newValue)
+
+    override def setColumnAtM(m: Matrix, jColumn: Int, newValue: ColumnVector, length: Int): Matrix = 
+        matrixAlgebra.setColumnAtM(m, jColumn, newValue)
+
+    override def setElementAtCV(cv: ColumnVector, i: Int, s: Scalar): ColumnVector = 
+        matrixAlgebra.setElementAtCV(cv, i, s)

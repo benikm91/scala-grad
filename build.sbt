@@ -12,6 +12,7 @@ lazy val basicSettings = Seq(
     Compile / scalaSource := baseDirectory.value / "src",
     Compile / resourceDirectory := baseDirectory.value / "res",
     Test / scalaSource := baseDirectory.value / "test",
+    Test / parallelExecution := false,
 )
 
 lazy val scalaTestSettings = Seq(

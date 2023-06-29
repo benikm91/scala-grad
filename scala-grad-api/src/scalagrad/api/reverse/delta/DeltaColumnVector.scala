@@ -6,7 +6,7 @@ trait DeltaIndexed:
 enum DeltaColumnVector[+PScalar, +PColumnVector, +PRowVector, +PMatrix] extends DeltaIndexed:
   case Zero extends DeltaColumnVector[Nothing, Nothing, Nothing, Nothing]
   case Val(id: Int) extends DeltaColumnVector[PScalar, PColumnVector, PRowVector, PMatrix]
-  case ColumnAtM(dAccessOpsm: DeltaMatrix[PScalar, PColumnVector, PRowVector, PMatrix], jColumn: Int) extends DeltaColumnVector[PScalar, PColumnVector, PRowVector, PMatrix]
+  case ColumnAtM(dAccessOpsm: DeltaMatrix[PScalar, PColumnVector, PRowVector, PMatrix], jColumn: Int, nRows: Int, nCols: Int) extends DeltaColumnVector[PScalar, PColumnVector, PRowVector, PMatrix]
   case NegateCV(dcv: DeltaColumnVector[PScalar, PColumnVector, PRowVector, PMatrix]) extends DeltaColumnVector[PScalar, PColumnVector, PRowVector, PMatrix]
   case TransposeRV(drv: DeltaRowVector[PScalar, PColumnVector, PRowVector, PMatrix]) extends DeltaColumnVector[PScalar, PColumnVector, PRowVector, PMatrix]
   case CreateCV(elements: Seq[DeltaScalar[PScalar, PColumnVector, PRowVector, PMatrix]]) extends DeltaColumnVector[PScalar, PColumnVector, PRowVector, PMatrix]
@@ -18,3 +18,5 @@ enum DeltaColumnVector[+PScalar, +PColumnVector, +PRowVector, +PMatrix] extends 
   case MultiplyCVDS(cv: PColumnVector, ds: DeltaScalar[PScalar, PColumnVector, PRowVector, PMatrix]) extends DeltaColumnVector[PScalar, PColumnVector, PRowVector, PMatrix]
   case MultiplyDCVS(dcv: DeltaColumnVector[PScalar, PColumnVector, PRowVector, PMatrix], s: PScalar) extends DeltaColumnVector[PScalar, PColumnVector, PRowVector, PMatrix]
   case ElementWiseMultiplyCVDCV(cv: PColumnVector, dcv: DeltaColumnVector[PScalar, PColumnVector, PRowVector, PMatrix]) extends DeltaColumnVector[PScalar, PColumnVector, PRowVector, PMatrix]
+
+  case SetElementAtCV(dcv: DeltaColumnVector[PScalar, PColumnVector, PRowVector, PMatrix], i: Int, ds: DeltaScalar[PScalar, PColumnVector, PRowVector, PMatrix])

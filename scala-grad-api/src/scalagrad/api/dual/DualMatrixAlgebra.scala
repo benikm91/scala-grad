@@ -33,6 +33,9 @@ case class DualMatrixAlgebra[
     import derivativeMatrixAlgebra.*
 
     private val pma = primaryMatrixAlgebra
+    private val dma = derivativeMatrixAlgebra
+
+    override def one = createDualScalar(pma.one, dma.dZeroOps.zeroScalar)
 
     override def inverse(m: MatrixT): MatrixT = ???
 
@@ -41,19 +44,37 @@ case class DualMatrixAlgebra[
     override def elementAtM(m: MatrixT, iRow: Int, jColumn: Int): ScalarT = 
         createDualScalar(
             pma.elementAtM(m.v, iRow, jColumn),
-            dAccessOps.elementAtM(m.dv, iRow, jColumn),
+            dma.elementAtM(m.dv, iRow, jColumn, pma.numberOfRows(m.v), pma.numberOfCols(m.v)),
         )
 
     override def columnAtM(m: MatrixT, jColumn: Int): ColumnVectorT = 
         createDualColumnVector(
             pma.columnAtM(m.v, jColumn),
-            dAccessOps.columnAtM(m.dv, jColumn),
+            dma.columnAtM(m.dv, jColumn, pma.numberOfRows(m.v), pma.numberOfCols(m.v)),
         )
 
     override def elementAtCV(cv: ColumnVectorT, iRow: Int): ScalarT = 
         createDualScalar(
             pma.elementAtCV(cv.v, iRow),
-            dAccessOps.elementAtCV(cv.dv, iRow),
+            dma.elementAtCV(cv.dv, iRow, pma.lengthColumnVector(cv.v)),
+        )
+
+    override def setElementAtM(m: MatrixT, iRow: Int, jColumn: Int, newValue: ScalarT): MatrixT =
+        createDualMatrix(
+            pma.setElementAtM(m.v, iRow, jColumn, newValue.v),
+            dma.setElementAtM(m.dv, iRow, jColumn, newValue.dv)   
+        )
+
+    override def setColumnAtM(m: MatrixT, jColumn: Int, newValue: ColumnVectorT): MatrixT = 
+        createDualMatrix(
+            pma.setColumnAtM(m.v, jColumn, newValue.v),
+            dma.setColumnAtM(m.dv, jColumn, newValue.dv, pma.lengthColumnVector(newValue.v))
+        )
+
+    override def setElementAtCV(cv: ColumnVectorT, i: Int, s: ScalarT): ColumnVectorT =
+        createDualColumnVector(
+            pma.setElementAtCV(cv.v, i, s.v),
+            dma.setElementAtCV(cv.dv, i, s.dv)        
         )
 
     override def dotMM(m1: MatrixT, m2: MatrixT): MatrixT = 

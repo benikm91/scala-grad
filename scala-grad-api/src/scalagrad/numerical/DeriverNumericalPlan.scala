@@ -23,73 +23,98 @@ abstract class DeriverNumericalPlan[
     import algebra.*
     val a = algebra
 
-    given approx[T <: Tuple : PTuple]: DeriverFromTo[T => PScalar, T => T] = approxWith(a.liftToScalar(1e-6))
+    private def approxGradient(rRes: PScalar, lRes: PScalar, epsilon: PScalar): PScalar = 
+        a.divideSS(
+            a.minusSS(
+                rRes,
+                lRes,
+            ),
+            epsilon
+        )
 
-    def approxWith[T <: Tuple : PTuple](epsilon: PScalar): DeriverFromTo[T => PScalar, T => T] = new DeriverFromTo[T => PScalar, T => T]:
+    private def approxScalar(s: PScalar, epsilon: PScalar, f: PScalar => PScalar): PScalar =
+        val halfEpsilon: PScalar = a.divideSS(epsilon, a.liftToScalar(2.0))
+        val r = a.plusSS(s, halfEpsilon)
+        val l = a.minusSS(s, halfEpsilon)
+        approxGradient(f(r), f(l), epsilon)
+
+    private def approxColumnVector(cv: PColumnVector, epsilon: PScalar, f: PColumnVector => PScalar): PColumnVector = 
+        val halfEpsilon: PScalar = a.divideSS(epsilon, a.liftToScalar(2.0))
+        val res = for (i <- 0 until cv.length)
+            yield {
+                val r = createColumnVectorFromElements(cv.elements.toVector.updated(i, a.plusSS(cv.elements(i), halfEpsilon)))
+                val l = createColumnVectorFromElements(cv.elements.toVector.updated(i, a.minusSS(cv.elements(i), halfEpsilon)))
+                approxGradient(
+                    f(r),
+                    f(l),
+                    epsilon
+                )
+            }
+        a.createColumnVectorFromElements(res)
+
+    private def approxRowVector(rv: PRowVector, epsilon: PScalar, f: PRowVector => PScalar): PRowVector = 
+        val halfEpsilon: PScalar = a.divideSS(epsilon, a.liftToScalar(2.0))
+        val res = for (i <- 0 until rv.length)
+            yield {
+                val r = createRowVectorFromElements(rv.elements.toVector.updated(i, a.plusSS(rv.elements(i), halfEpsilon)))
+                val l = createRowVectorFromElements(rv.elements.toVector.updated(i, a.minusSS(rv.elements(i), halfEpsilon)))
+                approxGradient(f(r), f(l), epsilon)
+            }
+        a.createRowVectorFromElements(res)
+
+    private def approxMatrix(m: PMatrix, epsilon: PScalar, f: PMatrix => PScalar): PMatrix = 
+        val halfEpsilon: PScalar = a.divideSS(epsilon, a.liftToScalar(2.0))
+        val res = for (i <- 0 until m.nRows * m.nCols)
+            yield {
+                val r = createMatrixFromElements(m.nRows, m.nCols, m.elements.toVector.updated(i, a.plusSS(m.elements(i), halfEpsilon)))
+                val l = createMatrixFromElements(m.nRows, m.nCols, m.elements.toVector.updated(i, a.minusSS(m.elements(i), halfEpsilon)))
+                approxGradient(f(r), f(l), epsilon)
+            }
+        createMatrixFromElements(m.nRows, m.nCols, res)
+
+    given approxTuple2ScalarDefault[T <: Tuple : PTuple]: DeriverFromTo[T => PScalar, T => T] = approxTuple2ScalarWith(1e-6)
+    given approxScalar2ScalarDefault: DeriverFromTo[PScalar => PScalar, PScalar => PScalar] = approxScalar2ScalarWith(1e-6)
+    given approxColumnVector2ScalarDefault: DeriverFromTo[PColumnVector => PScalar, PColumnVector => PColumnVector] = approxColumnVector2ScalarWith(1e-6)
+    given approxRowVector2ScalarDefault: DeriverFromTo[PRowVector => PScalar, PRowVector => PRowVector] = approxRowVector2ScalarWith(1e-6)
+    given approxMatrix2ScalarDefault: DeriverFromTo[PMatrix => PScalar, PMatrix => PMatrix] = approxMatrix2ScalarWith(1e-6)
+    
+    def approxScalar2ScalarWith(epsilon: Double): DeriverFromTo[PScalar => PScalar, PScalar => PScalar] = new DeriverFromTo[PScalar => PScalar, PScalar => PScalar]:
+        override def derive(f: PScalar => PScalar): PScalar => PScalar = s =>
+            approxScalar(s, a.liftToScalar(epsilon), f)
+
+    def approxColumnVector2ScalarWith(epsilon: Double): DeriverFromTo[PColumnVector => PScalar, PColumnVector => PColumnVector] = new DeriverFromTo[PColumnVector => PScalar, PColumnVector => PColumnVector]:
+        override def derive(f: PColumnVector => PScalar): PColumnVector => PColumnVector = cv =>
+            approxColumnVector(cv, a.liftToScalar(epsilon), f)
+
+    def approxRowVector2ScalarWith(epsilon: Double): DeriverFromTo[PRowVector => PScalar, PRowVector => PRowVector] = new DeriverFromTo[PRowVector => PScalar, PRowVector => PRowVector]:
+        override def derive(f: PRowVector => PScalar): PRowVector => PRowVector = rv =>
+            approxRowVector(rv, a.liftToScalar(epsilon), f)
+
+    def approxMatrix2ScalarWith(epsilon: Double): DeriverFromTo[PMatrix => PScalar, PMatrix => PMatrix] = new DeriverFromTo[PMatrix => PScalar, PMatrix => PMatrix]:
+        override def derive(f: PMatrix => PScalar): PMatrix => PMatrix = m =>
+            approxMatrix(m, a.liftToScalar(epsilon), f)
+
+    def approxTuple2ScalarWith[T <: Tuple : PTuple](epsilon: Double): DeriverFromTo[T => PScalar, T => T] = new DeriverFromTo[T => PScalar, T => T]:
+
+        val epsilonScalar = a.liftToScalar(epsilon)
 
         override def derive(f: T => PScalar): T => T = t => 
             def numericalPlan(inputs: T): T = 
-                val halfEpsilon: PScalar = a.divideSS(epsilon, a.liftToScalar(2.0))
                 val inputsWithIndex = inputs.zip(indices)
                 def appendTopAndBottomTo(top: Tuple, x: Any, bottom: Tuple) = 
                     top ++ (x *: bottom)
                 inputsWithIndex.map[[X] =>> Any]([U] => (t: U) => t match {
-                    case (x: PScalar, y: Int) => 
+                    case (s: PScalar, y: Int) => 
                         val (top, bottom) = inputs.splitAt(y)
-                        val r = a.plusSS(x, halfEpsilon)
-                        val l = a.minusSS(x, halfEpsilon)
-                        a.divideSS(
-                            a.minusSS(
-                                f(appendTopAndBottomTo(top.asInstanceOf[NonEmptyTuple].init, r, bottom).asInstanceOf[T]),
-                                f(appendTopAndBottomTo(top.asInstanceOf[NonEmptyTuple].init, l, bottom).asInstanceOf[T]),
-                            ),
-                            epsilon
-                        )
-                    case (x: PColumnVector, y: Int) => 
+                        approxScalar(s, epsilonScalar, s => f(appendTopAndBottomTo(top.asInstanceOf[NonEmptyTuple].init, s, bottom).asInstanceOf[T]))
+                    case (cv: PColumnVector, y: Int) => 
                         val (top, bottom) = inputs.splitAt(y)
-                        val res = for (i <- 0 until x.length)
-                            yield {
-                                val r = createColumnVectorFromElements(x.elements.toVector.updated(i, a.plusSS(x.elements(i), halfEpsilon)))
-                                val l = createColumnVectorFromElements(x.elements.toVector.updated(i, a.minusSS(x.elements(i), halfEpsilon)))
-                                a.divideSS(
-                                    a.minusSS(
-                                        f(appendTopAndBottomTo(top.asInstanceOf[NonEmptyTuple].init, r, bottom).asInstanceOf[T]),
-                                        f(appendTopAndBottomTo(top.asInstanceOf[NonEmptyTuple].init, l, bottom).asInstanceOf[T]),
-                                    ),
-                                    epsilon
-                                )
-                            }
-                        createColumnVectorFromElements(res)
-                    case (x: PRowVector, y: Int) => 
+                        approxColumnVector(cv, epsilonScalar, cv => f(appendTopAndBottomTo(top.asInstanceOf[NonEmptyTuple].init, cv, bottom).asInstanceOf[T]))
+                    case (rv: PRowVector, y: Int) => 
                         val (top, bottom) = inputs.splitAt(y)
-                        val res = for (i <- 0 until x.length)
-                            yield {
-                                val r = createRowVectorFromElements(x.elements.toVector.updated(i, a.plusSS(x.elements(i), halfEpsilon)))
-                                val l = createRowVectorFromElements(x.elements.toVector.updated(i, a.minusSS(x.elements(i), halfEpsilon)))
-                                a.divideSS(
-                                    a.minusSS(
-                                        f(appendTopAndBottomTo(top.asInstanceOf[NonEmptyTuple].init, r, bottom).asInstanceOf[T]),
-                                        f(appendTopAndBottomTo(top.asInstanceOf[NonEmptyTuple].init, l, bottom).asInstanceOf[T]),
-                                    ),
-                                    epsilon
-                                )
-                            }
-                        createRowVectorFromElements(res)
-                    case (x: PMatrix, y: Int) =>
+                        approxRowVector(rv, epsilonScalar, rv => f(appendTopAndBottomTo(top.asInstanceOf[NonEmptyTuple].init, rv, bottom).asInstanceOf[T]))
+                    case (m: PMatrix, y: Int) =>
                         val (top, bottom) = inputs.splitAt(y)
-                        val res = for (i <- 0 until x.nRows * x.nCols)
-                            yield {
-                                val r = createMatrixFromElements(x.nRows, x.nCols, x.elements.toVector.updated(i, a.plusSS(x.elements(i), halfEpsilon)))
-                                val l = createMatrixFromElements(x.nRows, x.nCols, x.elements.toVector.updated(i, a.minusSS(x.elements(i), halfEpsilon)))
-                                a.divideSS(
-                                    a.minusSS(
-                                        f(appendTopAndBottomTo(top.asInstanceOf[NonEmptyTuple].init, r, bottom).asInstanceOf[T]),
-                                        f(appendTopAndBottomTo(top.asInstanceOf[NonEmptyTuple].init, l, bottom).asInstanceOf[T]),
-                                    ),
-                                    epsilon
-                                )
-                            }
-                        createMatrixFromElements(x.nRows, x.nCols, res)
-                        // createMatrixFromElements(x.nCols, x.nRows, res).t
+                        approxMatrix(m, epsilonScalar, m => f(appendTopAndBottomTo(top.asInstanceOf[NonEmptyTuple].init, m, bottom).asInstanceOf[T]))
                 }).asInstanceOf[T]
             numericalPlan(t)

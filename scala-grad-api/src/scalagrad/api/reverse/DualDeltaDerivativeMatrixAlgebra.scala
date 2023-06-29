@@ -2,28 +2,10 @@ package scalagrad.api.reverse
 
 import scalagrad.api.reverse.delta.*
 import scalagrad.api.reverse.dual.*
-import scalagrad.api.matrixalgebra.{AccessOps, CreateOps, LiftOps, NegateOps, ScalarInvertOps, ZeroOps, SumOps, TransposeOps}
+import scalagrad.api.matrixalgebra.{AccessOps, AccessSetOps, CreateOps, LiftOps, NegateOps, ScalarInvertOps, ZeroOps, SumOps, TransposeOps}
 import scalagrad.api.matrixalgebra.derivative.DerivativeMatrixAlgebra
 import scalagrad.api.matrixalgebra.MatrixAlgebra
-
-trait DeltaAccessOps[PScalar, PColumnVector, PRowVector, PMatrix]() 
-extends AccessOps[
-    DeltaScalar[PScalar, PColumnVector, PRowVector, PMatrix],
-    DeltaColumnVector[PScalar, PColumnVector, PRowVector, PMatrix],
-    DeltaRowVector[PScalar, PColumnVector, PRowVector, PMatrix],
-    DeltaMatrix[PScalar, PColumnVector, PRowVector, PMatrix],
-]
-with DeltaTransposeOps[PScalar, PColumnVector, PRowVector, PMatrix]
-:
-    override def elementAtM(m: DeltaMatrix[PScalar, PColumnVector, PRowVector, PMatrix], iRow: Int, jColumn: Int): DeltaScalar[PScalar, PColumnVector, PRowVector, PMatrix] = 
-        DeltaScalar.ElementAtM(m, iRow, jColumn)
-
-    override def columnAtM(m: DeltaMatrix[PScalar, PColumnVector, PRowVector, PMatrix], jColumn: Int): DeltaColumnVector[PScalar, PColumnVector, PRowVector, PMatrix] = 
-        DeltaColumnVector.ColumnAtM(m, jColumn)
-
-    override def elementAtCV(cv: DeltaColumnVector[PScalar, PColumnVector, PRowVector, PMatrix], iRow: Int): DeltaScalar[PScalar, PColumnVector, PRowVector, PMatrix] = 
-        DeltaScalar.ElementAtCV(cv, iRow)
-        
+  
 trait DeltaNegateOps[PScalar, PColumnVector, PRowVector, PMatrix]()
 extends NegateOps[
     DeltaScalar[PScalar, PColumnVector, PRowVector, PMatrix], 
@@ -121,7 +103,6 @@ case class DualDeltaDerivativeMatrixAlgebra[
         nextIndex += 1
         d
 
-    override val dAccessOps = new DeltaAccessOps[PScalar, PColumnVector, PRowVector, PMatrix] { }
     override val dNegateOps = new DeltaNegateOps[PScalar, PColumnVector, PRowVector, PMatrix] { }
     override val dInvertOps = new DeltaScalarInvertOps[PScalar, PColumnVector, PRowVector, PMatrix] { }
     override val dZeroOps = new DeltaZeroOps[PScalar, PColumnVector, PRowVector, PMatrix] { }
@@ -209,3 +190,21 @@ case class DualDeltaDerivativeMatrixAlgebra[
     override def sumM(m: DeltaMatrix[PScalar, PColumnVector, PRowVector, PMatrix], nRows: Int, nCols: Int): DeltaScalar[PScalar, PColumnVector, PRowVector, PMatrix] = 
         DeltaScalar.SumM(m, nRows, nCols)
     
+    override def setElementAtM(m: DeltaMatrix[PScalar, PColumnVector, PRowVector, PMatrix], iRow: Int, jColumn: Int, newValue: DeltaScalar[PScalar, PColumnVector, PRowVector, PMatrix]): DeltaMatrix[PScalar, PColumnVector, PRowVector, PMatrix] =
+        DeltaMatrix.SetElementAtM(m, iRow, jColumn, newValue)
+
+    override def setColumnAtM(m: DeltaMatrix[PScalar, PColumnVector, PRowVector, PMatrix], jColumn: Int, newValue: DeltaColumnVector[PScalar, PColumnVector, PRowVector, PMatrix], length: Int): DeltaMatrix[PScalar, PColumnVector, PRowVector, PMatrix] =
+        DeltaMatrix.SetColumnAtM(m, jColumn, newValue, length)
+
+    override def setElementAtCV(cv: DeltaColumnVector[PScalar, PColumnVector, PRowVector, PMatrix], i: Int, s: DeltaScalar[PScalar, PColumnVector, PRowVector, PMatrix]): DeltaColumnVector[PScalar, PColumnVector, PRowVector, PMatrix] =
+        DeltaColumnVector.SetElementAtCV(cv, i, s)
+
+    override def elementAtM(m: DeltaMatrix[PScalar, PColumnVector, PRowVector, PMatrix], iRow: Int, jColumn: Int, nRows: Int, nCols: Int): DeltaScalar[PScalar, PColumnVector, PRowVector, PMatrix] = 
+        DeltaScalar.ElementAtM(m, iRow, jColumn, nRows, nCols)
+
+    override def columnAtM(m: DeltaMatrix[PScalar, PColumnVector, PRowVector, PMatrix], jColumn: Int, nRows: Int, nCols: Int): DeltaColumnVector[PScalar, PColumnVector, PRowVector, PMatrix] = 
+        DeltaColumnVector.ColumnAtM(m, jColumn, nRows, nCols)
+
+    override def elementAtCV(cv: DeltaColumnVector[PScalar, PColumnVector, PRowVector, PMatrix], iRow: Int, length: Int): DeltaScalar[PScalar, PColumnVector, PRowVector, PMatrix] = 
+        DeltaScalar.ElementAtCV(cv, iRow, length)
+        

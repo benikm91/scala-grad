@@ -19,3 +19,6 @@ enum DeltaMatrix[+PScalar, +PColumnVector, +PRowVector, +PMatrix] extends DeltaI
   case MultiplyMDS(m: PMatrix, ds: DeltaScalar[PScalar, PColumnVector, PRowVector, PMatrix]) extends DeltaMatrix[PScalar, PColumnVector, PRowVector, PMatrix]
   case MultiplyDMS(dm: DeltaMatrix[PScalar, PColumnVector, PRowVector, PMatrix], s: PScalar) extends DeltaMatrix[PScalar, PColumnVector, PRowVector, PMatrix]
   case ElementWiseMultiplyMDM(m: PMatrix, dm: DeltaMatrix[PScalar, PColumnVector, PRowVector, PMatrix]) extends DeltaMatrix[PScalar, PColumnVector, PRowVector, PMatrix]
+
+  case SetElementAtM(dm: DeltaMatrix[PScalar, PColumnVector, PRowVector, PMatrix], iRow: Int, jColumn: Int, ds: DeltaScalar[PScalar, PColumnVector, PRowVector, PMatrix])
+  case SetColumnAtM(dm: DeltaMatrix[PScalar, PColumnVector, PRowVector, PMatrix], jColumn: Int, dcv: DeltaColumnVector[PScalar, PColumnVector, PRowVector, PMatrix], dcvLength: Int)

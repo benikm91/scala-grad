@@ -96,8 +96,48 @@ case class Eval[PScalar, PColumnVector, PRowVector, PMatrix](
                                 v.fold(dOutput)(_ + dOutput)
                             ))
                     )
-                case ElementAtM(dm, iRow, jColumn) => ???
-                case ElementAtCV(cv, iRow) => ???
+                case ElementAtM(dm, iRow, jColumn, nRows, nCols) => 
+                    val index = dm.index
+                    lazy val newOutput = {
+                        val newOutput = zeroMatrix(nRows, nCols)
+                        newOutput.setElementAt(iRow, jColumn, dOutput)
+                    }
+                    if (index == -1) {
+                        // If dm is a Val, then we can directly update the result
+                        assert(dm.isInstanceOf[DeltaMatrix.Val[PScalar, PColumnVector, PRowVector, PMatrix]])
+                        evalMatrixStep(newOutput, dm, intermediateResults, endIndex, results)
+                    } else {
+                        // Store change in intermediateResults
+                        intermediateResults(index) = Option(intermediateResults(index).asInstanceOf[EvalStepMatrixResult]).fold(
+                            EvalStepMatrixResult(newOutput, dm)
+                        )(x =>
+                            assert(x.dm.index == dm.index)
+                            val existingOutput = x.dOutput.setElementAt(iRow, jColumn, x.dOutput.elementAt(iRow, jColumn) + dOutput)
+                            x.copy(dOutput = existingOutput)
+                        )
+                        results
+                    }
+                case ElementAtCV(dcv, iRow, length) => 
+                    val index = dcv.index
+                    lazy val newOutput = {
+                        val newOutput = zeroColumnVector(length)
+                        newOutput.setElementAt(iRow, dOutput)
+                    }
+                    if (index == -1) {
+                        // If dm is a Val, then we can directly update the result
+                        assert(dcv.isInstanceOf[DeltaColumnVector.Val[PScalar, PColumnVector, PRowVector, PMatrix]])
+                        evalColumnVectorStep(newOutput, dcv, intermediateResults, endIndex, results)
+                    } else {
+                        intermediateResults(index) = 
+                            Option(intermediateResults(index).asInstanceOf[EvalStepColumnVectorResult]).fold(
+                                EvalStepColumnVectorResult(newOutput, dcv)
+                            )(x =>
+                                assert(x.dcv.index == dcv.index)
+                                val existingOutput = x.dOutput.setElementAt(iRow, dOutput)
+                                x.copy(dOutput = existingOutput)
+                            )
+                        results
+                    }
                 case NegateS(s) => 
                     evalScalarStep(-dOutput, s, intermediateResults, endIndex, results)
                 case Invert(s) => 
@@ -159,7 +199,29 @@ case class Eval[PScalar, PColumnVector, PRowVector, PMatrix](
                                 v.fold(dOutput)(_ + dOutput)
                             ))
                     )
-                case ColumnAtM(dAccessOpsm, jColumn) => ???
+                case ColumnAtM(dm, jColumn, nRows, nColumns) => 
+                    val index = dm.index
+                    lazy val newOutput = {
+                        val newOutput = pma.zeroMatrix(nRows, nColumns)
+                        newOutput.setColumnAt(jColumn, dOutput)
+                        newOutput
+                    }
+                    if (index == -1) {
+                        // If dm is a Val, then we can directly update the result
+                        assert(dm.isInstanceOf[DeltaMatrix.Val[PScalar, PColumnVector, PRowVector, PMatrix]])
+                        evalMatrixStep(newOutput, dm, intermediateResults, endIndex, results)
+                    } else {
+                        intermediateResults(index) =
+                            Option(intermediateResults(index).asInstanceOf[EvalStepMatrixResult]).fold(
+                                EvalStepMatrixResult(newOutput, dm)
+                            )(x =>
+                                assert(x.dm.index == dm.index)
+                                val existingOutput = x.dOutput
+                                existingOutput.setColumnAt(jColumn, existingOutput.columnAt(jColumn) + dOutput)
+                                x.copy(dOutput = existingOutput)
+                            )
+                        results
+                    }
                 case NegateCV(dcv) => 
                     evalColumnVectorStep(-dOutput, dcv, intermediateResults, endIndex, results)
                 case TransposeRV(drv) => 
@@ -185,12 +247,17 @@ case class Eval[PScalar, PColumnVector, PRowVector, PMatrix](
                     evalColumnVectorStep(dOutput * s, dcv, intermediateResults, endIndex, results)
                 case ElementWiseMultiplyCVDCV(cv, dcv) => 
                     evalColumnVectorStep(dOutput *:* cv, dcv, intermediateResults, endIndex, results)
+                case SetElementAtCV(dcv, i, ds) =>
+                    val dOutputDs = dOutput.elementAt(i)
+                    evalColumnVectorStep(dOutput.setElementAt(i, zeroScalar), dcv, intermediateResults, endIndex, 
+                        evalScalarStep(dOutputDs, ds, intermediateResults, endIndex, results)
+                    )
 
     private def storeIntoIntermediateResults(
-                                                dOutput: PRowVector,
-                                                delta: DeltaRowVectorT,
-                                                intermediateResults: Array[EvalStepResult],
-                                            ): Unit =
+        dOutput: PRowVector,
+        delta: DeltaRowVectorT,
+        intermediateResults: Array[EvalStepResult],
+    ): Unit =
         val index = delta.index
         intermediateResults(index) =
             Option(intermediateResults(index).asInstanceOf[EvalStepRowVectorResult]).fold(
@@ -237,7 +304,7 @@ case class Eval[PScalar, PColumnVector, PRowVector, PMatrix](
             Option(intermediateResults(index).asInstanceOf[EvalStepMatrixResult]).fold(
                 EvalStepMatrixResult(dOutput, delta)
             )(x =>
-                assert(x.dm.index == delta.index)
+                assert(x.dm.index == delta.index, f"${x.dm.index} != ${delta.index}")
                 x.copy(dOutput = x.dOutput + dOutput)
             )
 
@@ -267,7 +334,12 @@ case class Eval[PScalar, PColumnVector, PRowVector, PMatrix](
                     evalMatrixStep(-dOutput, dm, intermediateResults, endIndex, results)
                 case TransposeM(dm) => 
                     evalMatrixStep(dOutput.t, dm, intermediateResults, endIndex, results)
-                case CreateM(nRows, nCols, elements) => ???
+                case CreateM(nRows, nCols, elements) => 
+                    elements.zipWithIndex.foldLeft(results)((results, t) => 
+                        val (dScalar, index) = t
+                        val (jCol, iRow) = (index / dOutput.nRows, index % dOutput.nRows)
+                        evalScalarStep(dOutput.elementAt(iRow, jCol), dScalar, intermediateResults, endIndex, results)
+                    )
                 case StackColumns(columns) => ???
                 case PlusDMDM(dm1, dm2) => 
                     evalMatrixStep(dOutput, dm1, intermediateResults, endIndex, 
@@ -297,6 +369,18 @@ case class Eval[PScalar, PColumnVector, PRowVector, PMatrix](
                     evalMatrixStep(dOutput * s, dm, intermediateResults, endIndex, results)
                 case ElementWiseMultiplyMDM(m, dm) => 
                     evalMatrixStep(dOutput *:* m, dm, intermediateResults, endIndex, results)
+                case SetElementAtM(dm, iRow: Int, jColumn: Int, ds) => 
+                    val dOutputDs = dOutput.elementAt(iRow, jColumn)
+                    evalMatrixStep(
+                        dOutput.setElementAt(iRow, jColumn, zeroScalar), dm, intermediateResults, endIndex,
+                        evalScalarStep(dOutputDs, ds, intermediateResults, endIndex, results)
+                    )
+                case SetColumnAtM(dm, jColumn, dcv, dcvLength) =>
+                    val dOutputCv = dOutput.columnAt(jColumn) 
+                    evalMatrixStep(
+                        dOutput.setColumnAt(jColumn, zeroColumnVector(dcvLength)), dm, intermediateResults, endIndex,
+                        evalColumnVectorStep(dOutputCv, dcv, intermediateResults, endIndex, results)
+                    )
 
     case class Results(
         scalars: Map[Int, PScalar],

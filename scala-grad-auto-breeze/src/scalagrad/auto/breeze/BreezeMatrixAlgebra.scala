@@ -7,6 +7,9 @@ import scalagrad.api.forward.dual.*
 object BreezeMatrixAlgebra extends MatrixAlgebra[
     Double, DenseVector[Double], Transpose[DenseVector[Double]], DenseMatrix[Double],
 ]:
+
+  override def one: ScalarT = 1.0
+
   override def inverse(m: MatrixT): MatrixT = ???
 
   override def determinant(m: MatrixT): ScalarT = ???
@@ -16,6 +19,20 @@ object BreezeMatrixAlgebra extends MatrixAlgebra[
   override def columnAtM(m: MatrixT, jColumn: Int): ColumnVectorT = m(::, jColumn)
 
   override def elementAtCV(cv: ColumnVectorT, iRow: Int): ScalarT = cv(iRow)
+
+  override def setElementAtM(m: MatrixT, iRow: Int, jColumn: Int, newValue: ScalarT): MatrixT =
+    val newM = m.copy
+    newM(iRow, jColumn) = newValue
+    newM
+
+  override def setColumnAtM(m: MatrixT, jColumn: Int, newValue: ColumnVectorT): MatrixT =
+    m(::, jColumn) := newValue
+    m
+
+  override def setElementAtCV(cv: ColumnVectorT, i: Int, newValue: ScalarT): ColumnVectorT = 
+    val newCv = cv.copy
+    newCv(i) = newValue
+    newCv
 
   override def dotMM(m1: MatrixT, m2: MatrixT): MatrixT = m1 * m2
 

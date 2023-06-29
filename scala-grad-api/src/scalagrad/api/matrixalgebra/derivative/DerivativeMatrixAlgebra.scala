@@ -33,7 +33,6 @@ trait DerivativeMatrixAlgebra[
     type DualRowVectorT = DualRowVector
     type DualMatrixT = DualMatrix
 
-    val dAccessOps: AccessOps[DScalar, DColumnVector, DRowVector, DMatrix]
     val dNegateOps: NegateOps[DScalar, DColumnVector, DRowVector, DMatrix]
     val dInvertOps: ScalarInvertOps[DScalar]
     val dZeroOps: ZeroOps[DScalar, DColumnVector, DRowVector, DMatrix]
@@ -73,3 +72,11 @@ trait DerivativeMatrixAlgebra[
     def sumCV(cv: DColumnVector, length: Int): DScalar
     def sumRV(rv: DRowVector, length: Int): DScalar = sumCV(dTransposeOps.transposeRowVector(rv), length)
     def sumM(m: DMatrix, nRows: Int, nCols: Int): DScalar
+
+    def setElementAtM(m: DMatrix, iRow: Int, jColumn: Int, s: DScalar): DMatrix
+    def setColumnAtM(m: DMatrix, jColumn: Int, newValue: DColumnVector, length: Int): DMatrix
+    def setElementAtCV(cv: DColumnVector, i: Int, s: DScalar): DColumnVector
+    
+    def elementAtM(m: DMatrix, iRow: Int, jColumn: Int, nRows: Int, nCols: Int): DScalar
+    def columnAtM(m: DMatrix, jColumn: Int, nRows: Int, nCols: Int): DColumnVector
+    def elementAtCV(cv: DColumnVector, iRow: Int, length: Int): DScalar 

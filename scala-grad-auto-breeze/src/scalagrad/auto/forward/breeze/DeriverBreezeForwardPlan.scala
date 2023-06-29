@@ -23,15 +23,3 @@ object DeriverBreezeForwardPlan extends DeriverForwardPlan[
     type PColumnVector = DenseVector[Double]
     type PRowVector = Transpose[DenseVector[Double]]
     type PMatrix = DenseMatrix[Double]
-
-    override val oneOps: OneOpsT = new OneOpsT:
-        override def oneHotScalar: PScalar = 1.0
-        override def oneHotColumnVector(length: Int, i: Int): PColumnVector = 
-            val res = DenseVector.zeros[PScalar](length)
-            res(i) = 1.0
-            res
-        override def oneHotRowVector(length: Int, i: Int): PRowVector = oneHotColumnVector(length, i).t
-        override def oneHotMatrix(nRows: Int, nCols: Int, i: Int): PMatrix = 
-            val res = DenseMatrix.zeros[PScalar](nRows, nCols)
-            res(i % nRows, i / nRows) = 1.0
-            res

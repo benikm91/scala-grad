@@ -42,62 +42,14 @@ trait BasicOpsTestSuit[
     deriverCVCV: ((DualColumnVector, DualColumnVector) => DualScalar) => (Tuple2[PColumnVector, PColumnVector] => (PColumnVector, PColumnVector)),
     deriverCVS: ((DualColumnVector, DualScalar) => DualScalar) => (Tuple2[PColumnVector, PScalar] => (PColumnVector, PScalar)),
     deriverSS: ((DualScalar, DualScalar) => DualScalar) => (Tuple2[PScalar, PScalar] => (PScalar, PScalar)),
-    tolerance: PScalar = 1,
-) extends AnyWordSpec with should.Matchers:
+) extends AnyWordSpec with BaseTestSuit[PScalar, PColumnVector, PRowVector, PMatrix]:
     
     import globalTestSuitParams.*
+    override val primaryAlgebra = globalTestSuitParams.primaryAlgebra
+    
     import dualAlgebra.*
     import primaryAlgebra.*
     import deriverNumericalPlan.given
-
-    def compareAllElementsMS(t1: (PMatrix, PScalar), t2: (PMatrix, PScalar)) = 
-        compareElementsMM(t1._1, t2._1)
-        compareElementsSS(t1._2, t2._2)
-
-    def compareAllElementsMRV(t1: (PMatrix, PRowVector), t2: (PMatrix, PRowVector)) = 
-        compareElementsMM(t1._1, t2._1)
-        compareElementsRVRV(t1._2, t2._2)
-
-    def compareAllElementsMCV(t1: (PMatrix, PColumnVector), t2: (PMatrix, PColumnVector)) = 
-        compareElementsMM(t1._1, t2._1)
-        compareElementsCVCV(t1._2, t2._2)
-
-    def compareAllElementsMM(t1: (PMatrix, PMatrix), t2: (PMatrix, PMatrix)) = 
-        compareElementsMM(t1._1, t2._1)
-        compareElementsMM(t1._2, t2._2)
-
-    def compareAllElementsCVCV(t1: (PColumnVector, PColumnVector), t2: (PColumnVector, PColumnVector)) = 
-        compareElementsCVCV(t1._1, t2._1)
-        compareElementsCVCV(t1._2, t2._2)
-
-    def compareAllElementsCVS(t1: (PColumnVector, PScalar), t2: (PColumnVector, PScalar)) = 
-        compareElementsCVCV(t1._1, t2._1)
-        compareElementsSS(t1._2, t2._2)
-
-    def compareAllElementsSS(t1: (PScalar, PScalar), t2: (PScalar, PScalar)) = 
-        compareElementsSS(t1._1, t2._1)
-        compareElementsSS(t1._2, t2._2)
-
-    def compareElementsSS(s1: PScalar, s2: PScalar) = 
-        (s1: Double) should be((s2: Double) +- tolerance)
-
-    def compareElementsCVCV(cv1: PColumnVector, cv2: PColumnVector) =
-        cv1.length should be(cv2.length)
-        cv1.toArray.zip(cv2.toArray).foreach { (e1, e2) =>
-            e1 should be(e2 +- tolerance)
-        }
-
-    def compareElementsRVRV(rv1: PRowVector, rv2: PRowVector) = compareElementsCVCV(
-        primaryAlgebra.transposeRowVector(rv1), 
-        primaryAlgebra.transposeRowVector(rv2),
-    )
-
-    def compareElementsMM(m1: PMatrix, m2: PMatrix) = 
-        m1.rows should be(m2.rows)
-        m1.cols should be(m2.cols)
-        m1.toArray.zip(m2.toArray).foreach { (e1, e2) =>
-            e1 should be(e2 +- tolerance)
-        }
 
     f"${testName} (Matrix, Matrix) operations" should {
 

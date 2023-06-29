@@ -1,8 +1,5 @@
 package scalagrad.api.matrixalgebra
 
-import scala.annotation.targetName
-import scala.math.Fractional.Implicits._
-
 trait MatrixAlgebra[Scalar, ColumnVector, RowVector, Matrix] 
     extends LengthOps[ColumnVector, RowVector, Matrix]
     with LiftOps[Scalar]
@@ -10,11 +7,14 @@ trait MatrixAlgebra[Scalar, ColumnVector, RowVector, Matrix]
     with TransposeOps[ColumnVector, RowVector, Matrix]
     with NegateOps[Scalar, ColumnVector, RowVector, Matrix]
     with ScalarInvertOps[Scalar]
+    with One[Scalar]
+    with OneOps[Scalar, ColumnVector, RowVector, Matrix]
     with ZeroOps[Scalar, ColumnVector, RowVector, Matrix]
     with BasicOps[Scalar, ColumnVector, RowVector, Matrix]
     with SumOps[Scalar, ColumnVector, RowVector, Matrix]
     with FoldLeftOps[Scalar, ColumnVector, RowVector, Matrix]
     with AccessOps[Scalar, ColumnVector, RowVector, Matrix]
+    with AccessSetOps[Scalar, ColumnVector, RowVector, Matrix]
     with AccessSeqOps[Scalar, ColumnVector, RowVector, Matrix]
     with CreateOps[Scalar, ColumnVector, RowVector, Matrix]
     with ElementWiseOps[Scalar, ColumnVector, RowVector, Matrix]

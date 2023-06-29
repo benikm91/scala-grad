@@ -7,7 +7,7 @@ import scalagrad.api.reverse.dual.*
 import scalagrad.api.reverse.delta.*
 import scalagrad.api.matrixalgebra.derivative.DerivativeMatrixAlgebra
 import scalagrad.api.matrixalgebra.CreateOps
-import scalagrad.api.matrixalgebra.derivative.OneOps
+import scalagrad.api.matrixalgebra.OneOps
 import scalagrad.api.matrixalgebra.MatrixAlgebra
 import scalagrad.api.reverse.eval.Eval
 import breeze.linalg.*
@@ -44,43 +44,51 @@ abstract class DeriverReversePlan[
     type DualRowVector = DualDeltaRowVector[PScalar, PColumnVector, PRowVector, PMatrix]
     type DualMatrix = DualDeltaMatrix[PScalar, PColumnVector, PRowVector, PMatrix]
 
-    type OneOpsT = OneOps[PScalar, PColumnVector, PRowVector, PMatrix]
-    val oneOps: OneOpsT
-
     val eval = Eval[PScalar, PColumnVector, PRowVector, PMatrix](primaryMatrixAlgebra)
 
     import primaryMatrixAlgebra.*
     import derivativeMatrixAlgebra.*
 
+    private def withResetIndex[R](f: => R) = 
+        val startNextIndex = derivativeMatrixAlgebra.nextIndex
+        derivativeMatrixAlgebra.nextIndex = 0
+        val res = f
+        derivativeMatrixAlgebra.nextIndex = startNextIndex
+        res
+
     given scalar2Scalar: DeriverFromTo[DualScalar => DualScalar, PScalar => PScalar] with
-        override def derive(f: DualScalar => DualScalar): PScalar => PScalar = x => 
+        override def derive(f: DualScalar => DualScalar): PScalar => PScalar = x => withResetIndex {
             val delta = f(createDualScalar(x, DeltaScalar.Val(0))).dv
-            val res = eval.evalScalar(oneOps.oneHotScalar, delta)
+            val res = eval.evalScalar(one, delta)
             res.scalars.get(0).getOrElse(zeroScalar)
+        }
 
     given columnVector2Scalar: DeriverFromTo[DualColumnVector => DualScalar, PColumnVector => PColumnVector] with
-        override def derive(f: DualColumnVector => DualScalar): PColumnVector => PColumnVector = x => 
+        override def derive(f: DualColumnVector => DualScalar): PColumnVector => PColumnVector = x => withResetIndex {
             val delta = f(createDualColumnVector(x, DeltaColumnVector.Val(0))).dv
-            val res = eval.evalScalar(oneOps.oneHotScalar, delta)
+            val res = eval.evalScalar(one, delta)
             res.columnVectors.get(0).getOrElse(zeroColumnVector(x.length))
+        }
 
     given rowVector2Scalar: DeriverFromTo[DualRowVector => DualScalar, PRowVector => PRowVector] with
-        override def derive(f: DualRowVector => DualScalar): PRowVector => PRowVector = x => 
+        override def derive(f: DualRowVector => DualScalar): PRowVector => PRowVector = x => withResetIndex {
             val delta = f(createDualRowVector(x, DeltaRowVector.Val(0))).dv
-            val res = eval.evalScalar(oneOps.oneHotScalar, delta)
+            val res = eval.evalScalar(one, delta)
             res.rowVectors.get(0).getOrElse(zeroRowVector(x.length))
+        }
 
     given matrix2Scalar: DeriverFromTo[DualMatrix => DualScalar, PMatrix => PMatrix] with
-        override def derive(f: DualMatrix => DualScalar): PMatrix => PMatrix = x => 
+        override def derive(f: DualMatrix => DualScalar): PMatrix => PMatrix = x => withResetIndex {
             val delta = f(createDualMatrix(x, DeltaMatrix.Val(0))).dv
-            val res = eval.evalScalar(oneOps.oneHotScalar, delta)
+            val res = eval.evalScalar(one, delta)
             res.matrices.get(0).getOrElse(zeroMatrix(x.nRows, x.nCols))
+        }
 
     given tuple2Scalar[T <: Tuple : DualTuple]: DeriverFromTo[T => DualScalar, DualTupleToPTuple[T] => DualTupleToPTuple[T]] with
 
         private val ids = (0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22)
 
-        override def derive(f: T => DualScalar): DualTupleToPTuple[T] => DualTupleToPTuple[T] = t => 
+        override def derive(f: T => DualScalar): DualTupleToPTuple[T] => DualTupleToPTuple[T] = t => withResetIndex {
             def reversePlan(t: DualTupleToPTuple[T]): DualTupleToPTuple[T] = 
                 val tWithIndex = t.zip(ids)
                 val delta = f(
@@ -92,12 +100,12 @@ abstract class DeriverReversePlan[
                     }).asInstanceOf[T]
                 ).dv.asInstanceOf[DeltaScalar[PScalar, PColumnVector, PRowVector, PMatrix]]
                 
-                val res = eval.evalScalar(oneOps.oneHotScalar, delta)
+                val res = eval.evalScalar(one, delta)
                 tWithIndex.map[[X] =>> Any]([U] => (t: U) => t match {
                     case (_: PScalar, id: Int) => res.scalars.get(id).getOrElse(zeroScalar)
                     case (cv: PColumnVector, id: Int) => res.columnVectors.get(id).getOrElse(zeroColumnVector(cv.length))
                     case (rv: PRowVector, id: Int) => res.rowVectors.get(id).getOrElse(zeroRowVector(rv.length))
                     case (m: PMatrix, id: Int) => res.matrices.get(id).getOrElse(zeroMatrix(m.nRows, m.nCols))
                 }).asInstanceOf[DualTupleToPTuple[T]]
-            resetIndex() // Reset index, so tracking of statement order is starting at 0 again.
             reversePlan(t)
+        }
