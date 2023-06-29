@@ -204,7 +204,6 @@ case class Eval[PScalar, PColumnVector, PRowVector, PMatrix](
                     lazy val newOutput = {
                         val newOutput = pma.zeroMatrix(nRows, nColumns)
                         newOutput.setColumnAt(jColumn, dOutput)
-                        newOutput
                     }
                     if (index == -1) {
                         // If dm is a Val, then we can directly update the result
@@ -216,9 +215,7 @@ case class Eval[PScalar, PColumnVector, PRowVector, PMatrix](
                                 EvalStepMatrixResult(newOutput, dm)
                             )(x =>
                                 assert(x.dm.index == dm.index)
-                                val existingOutput = x.dOutput
-                                existingOutput.setColumnAt(jColumn, existingOutput.columnAt(jColumn) + dOutput)
-                                x.copy(dOutput = existingOutput)
+                                x.copy(dOutput = x.dOutput.setColumnAt(jColumn, x.dOutput.columnAt(jColumn) + dOutput))
                             )
                         results
                     }
