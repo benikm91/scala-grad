@@ -13,5 +13,9 @@ jobs:
       with:
         distribution: temurin
         java-version: 8
-    - name: Build and Test
-      run: sbt -v +test
+    - name: Run tests
+      run: sbt coverage test
+    - name: "Upload coverage to Codecov"
+      uses: "codecov/codecov-action@v2"
+      with:
+        fail_ci_if_error: true
