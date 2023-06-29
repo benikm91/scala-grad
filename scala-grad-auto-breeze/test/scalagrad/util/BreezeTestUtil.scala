@@ -28,15 +28,24 @@ object BreezeTestUtil:
         testName,
         dualAlgebra,
         DeriverBreezeNumericalPlan.algebra,
-        BreezeTestUtil.denseMatrixDoubleGenerator(reasonableDoubleGenerator),
-        BreezeTestUtil.denseMatrixDoubleGenerator(reasonablePositiveDoubleGenerator),
-        BreezeTestUtil.denseVectorDoubleGenerator(reasonableDoubleGenerator),
-        (x: Gen[Int]) => for { cv <- BreezeTestUtil.denseVectorDoubleGenerator(reasonableDoubleGenerator)(x) } yield cv.t,
-        BreezeTestUtil.reasonableDoubleGenerator,
+        denseMatrixDoubleGenerator(reasonableDoubleGenerator),
+        denseMatrixDoubleGenerator(reasonablePositiveDoubleGenerator),
+        denseVectorDoubleGenerator(reasonableDoubleGenerator),
+        (x: Gen[Int]) => for { cv <- denseVectorDoubleGenerator(reasonableDoubleGenerator)(x) } yield cv.t,
+        reasonableDoubleGenerator,
+        reasonableSmallDoubleGenerator,
+        reasonablePositiveDoubleGenerator,
         DeriverBreezeNumericalPlan,
       )
 
-    val (min, max) = (1e-3, 1e+3)
+    private val (min, max) = (1e-3, 1e+3)
+    
+    def reasonableSmallDoubleGenerator: Gen[Double] = 
+      Gen.oneOf(
+        Gen.choose(1e-3, 1e-2),
+        Gen.choose(-1e-2, -1e-3)
+      )
+
     def reasonableDoubleGenerator: Gen[Double] = 
       Gen.oneOf(
         Gen.choose(min, max),

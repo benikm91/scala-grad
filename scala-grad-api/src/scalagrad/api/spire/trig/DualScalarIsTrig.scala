@@ -37,25 +37,50 @@ object DualScalarIsTrig:
                 dma.multiplySDS(df(dn.v), dn.dv)
             )
 
+        private def lift(v: PScalar) = dma.createDualScalar(v, dma.dZeroOps.zeroScalar)
+
         def acos(a: DualScalar): DualScalar = 
             def dAcos(v: PScalar): PScalar = -(pma.one / nRoot.sqrt(pma.one - v * v))
             chain(trig.acos, dAcos)(a)
-        def asin(a: DualScalar): DualScalar = ???
-        def atan(a: DualScalar): DualScalar = ???
+        def asin(a: DualScalar): DualScalar = 
+            def dAsin(v: PScalar): PScalar = pma.one / nRoot.sqrt(pma.one - v * v)
+            chain(trig.asin, dAsin)(a)
+        def atan(a: DualScalar): DualScalar = 
+            def dAtan(v: PScalar): PScalar = pma.one / (v * v + pma.one)
+            chain(trig.atan, dAtan)(a)
         def atan2(y: DualScalar, x: DualScalar): DualScalar = ???
-        def cos(a: DualScalar): DualScalar = ???
-        def cosh(x: DualScalar): DualScalar = ???
-        def e: DualScalar = ???
-        def exp(a: DualScalar): DualScalar = ???
-        def expm1(a: DualScalar): DualScalar = ???
+        def cos(a: DualScalar): DualScalar = 
+            def dCos(v: PScalar): PScalar = -trig.sin(v)
+            chain(trig.cos, dCos)(a)
+        def cosh(x: DualScalar): DualScalar = 
+            def dCosh(v: PScalar): PScalar = trig.sinh(v)
+            chain(trig.cosh, dCosh)(x)
+        def e: DualScalar = lift(trig.e)
+        private def dExp(a: PScalar): PScalar = trig.exp(a)
+        def exp(a: DualScalar): DualScalar = chain(trig.exp, dExp)(a)
+        def expm1(a: DualScalar): DualScalar = chain(trig.expm1, dExp)(a)
         def log(a: DualScalar): DualScalar = 
             def dLog(a: PScalar): PScalar = pma.one / a
             chain(trig.log, dLog)(a)
-        def log1p(a: DualScalar): DualScalar = ???
-        def pi: DualScalar = ???
-        def sin(a: DualScalar): DualScalar = ???
-        def sinh(x: DualScalar): DualScalar = ???
-        def tan(a: DualScalar): DualScalar = ???
-        def tanh(x: DualScalar): DualScalar = ???
-        def toDegrees(a: DualScalar): DualScalar = ???
-        def toRadians(a: DualScalar): DualScalar = ???
+        def log1p(a: DualScalar): DualScalar = 
+            def dLog1p(a: PScalar): PScalar = pma.one / (pma.one + a)
+            chain(trig.log1p, dLog1p)(a)
+        def pi: DualScalar = lift(trig.pi)
+        def sin(a: DualScalar): DualScalar = 
+            def dSin(v: PScalar): PScalar = trig.cos(v)
+            chain(trig.sin, dSin)(a)
+        def sinh(x: DualScalar): DualScalar = 
+            def dSinh(v: PScalar): PScalar = trig.cosh(v)
+            chain(trig.sinh, dSinh)(x)
+        def tan(a: DualScalar): DualScalar = 
+            def dTan(v: PScalar): PScalar = pma.one / (trig.cos(v) * trig.cos(v))
+            chain(trig.tan, dTan)(a)
+        def tanh(x: DualScalar): DualScalar = 
+            def dTanh(v: PScalar): PScalar = pma.one / (trig.cosh(v) * trig.cosh(v))
+            chain(trig.tanh, dTanh)(x)
+        def toDegrees(a: DualScalar): DualScalar = 
+            def dToDegrees(v: PScalar): PScalar = pma.liftToScalar(180) / trig.pi
+            chain(trig.toDegrees, dToDegrees)(a)
+        def toRadians(a: DualScalar): DualScalar = 
+            def dToRadians(v: PScalar): PScalar = trig.pi / pma.liftToScalar(180)
+            chain(trig.toRadians, dToRadians)(a)

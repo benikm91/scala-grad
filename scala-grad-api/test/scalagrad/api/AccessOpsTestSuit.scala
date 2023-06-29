@@ -22,8 +22,6 @@ import scalagrad.api.reverse.DeriverReversePlan
 import breeze.linalg.*
 import scalagrad.api.matrixalgebra.MatrixAlgebra
 
-
-
 trait AccessOpsTestSuit[
     PScalar <: Double, PColumnVector <: DenseVector[Double], PRowVector <: Transpose[DenseVector[Double]], PMatrix <: DenseMatrix[Double],
     DScalar, DColumnVector, DRowVector, DMatrix,

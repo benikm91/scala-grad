@@ -33,5 +33,7 @@ case class GlobalTestSuitParams[
     cvGen: (Gen[Int]) => Gen[PColumnVector],
     rvGen: (Gen[Int]) => Gen[PRowVector],
     sGen: Gen[PScalar],
+    smallSGen: Gen[PScalar],
+    positiveOnlySGen: Gen[PScalar],
     deriverNumericalPlan: DeriverNumericalPlan[PScalar, PColumnVector, PRowVector, PMatrix],
 )
