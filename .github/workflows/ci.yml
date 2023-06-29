@@ -15,7 +15,9 @@ jobs:
         java-version: 8
     - name: Run tests
       run: sbt coverage test
-    - name: "Upload coverage to Codecov"
-      uses: "codecov/codecov-action@v2"
+    - name: Create test coverage report
+      run: sbt coverageReport
+    - name: Upload test coverage report to Codecov
+      uses: codecov/codecov-action@v3
       with:
         fail_ci_if_error: true
