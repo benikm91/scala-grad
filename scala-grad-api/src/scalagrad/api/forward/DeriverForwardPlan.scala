@@ -10,7 +10,7 @@ import scalagrad.api.matrixalgebra.MatrixAlgebra
 import breeze.linalg.*
 import scala.reflect.ClassTag
 
-abstract class DeriverForwardPlan[
+class DeriverForwardPlan[
     // TODO currently type bounds are needed to make the compiler happy, but they should not be needed
     PScalar <: Double, PColumnVector <: DenseVector[Double], PRowVector <: Transpose[DenseVector[Double]], PMatrix <: DenseMatrix[Double],
 ](
@@ -31,11 +31,6 @@ abstract class DeriverForwardPlan[
     type DualColumnVector = DualNumberColumnVector[PColumnVector]
     type DualRowVector = DualNumberRowVector[PRowVector]
     type DualMatrix = DualNumberMatrix[PMatrix]
-
-     // FIXME
-     // PScalar, PColumnVector, PRowVector, PMatrix should not have breeze type here, but I get a 
-     // "the type test for DeriverForwardPlan.this.PMatrix cannot be checked at runtime because it refers to an abstract type member or type parameter"
-     // don't know how to fix it.
 
     import primaryMatrixAlgebra.*
     import derivativeMatrixAlgebra.*

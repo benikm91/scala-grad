@@ -7,8 +7,8 @@ import scalagrad.api.Deriver
 import scalagrad.api.DeriverFromTo
 import org.scalacheck.Gen
 
-import scalagrad.auto.forward.breeze.DeriverBreezeForwardPlan
-import DeriverBreezeForwardPlan.given
+import scalagrad.auto.forward.breeze.DeriverBreezeDoubleForwardPlan
+import DeriverBreezeDoubleForwardPlan.given
 import spire.implicits._
 import scalagrad.api.spire.trig.DualScalarIsTrig.given
 
@@ -18,7 +18,7 @@ import scalagrad.util.test.BreezeTestUtil
 case class BreezeForwardTrigTestSuit() extends TrigTestSuit(
     BreezeTestUtil.createGlobalTestSuitParams(
         "breeze forward mode",
-        DeriverBreezeForwardPlan.algebra,
+        DeriverBreezeDoubleForwardPlan.algebra,
     ),
     f => ScalaGrad.derive(f),
 )

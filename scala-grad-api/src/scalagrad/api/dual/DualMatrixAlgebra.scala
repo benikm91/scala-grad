@@ -12,6 +12,7 @@ import scalagrad.api.matrixalgebra.SumOps
 import scalagrad.api.dual
 import scalagrad.api.matrixalgebra.derivative.DerivativeMatrixAlgebra
 import scalagrad.api.matrixalgebra.MatrixAlgebraT
+import scalagrad.api.dual.DualMatrixAlgebra
 
 
 trait DualMatrixAlgebraT extends MatrixAlgebraT:

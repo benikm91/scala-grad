@@ -1,8 +1,8 @@
 package scalagrad.numerical
 
-import scalagrad.auto.breeze.BreezeMatrixAlgebra
+import scalagrad.auto.breeze.BreezeDoubleMatrixAlgebra
 
 
 object DeriverBreezeNumericalPlan extends DeriverNumericalPlan(
-    BreezeMatrixAlgebra
+    BreezeDoubleMatrixAlgebra
 )

@@ -11,8 +11,8 @@ import spire.implicits._
 
 import spire.math.Numeric
 import spire.algebra.Trig
-import scalagrad.auto.forward.breeze.DeriverBreezeForwardPlan
-import DeriverBreezeForwardPlan.given
+import scalagrad.auto.forward.breeze.DeriverBreezeDoubleForwardPlan
+import DeriverBreezeDoubleForwardPlan.given
 import scalagrad.api.forward.dual.DualNumberScalar
 import scalagrad.api.fractional.MatrixAlgebraScalarIsFractional.given
 import scalagrad.api.spire.numeric.DualScalarIsNumeric.given
@@ -24,7 +24,7 @@ import scalagrad.util.test.BreezeTestUtil
 case class BreezeForwardMapOpsTestSuit() extends MapOpsTestSuit(
     BreezeTestUtil.createGlobalTestSuitParams(
         "breeze forward mode",
-        DeriverBreezeForwardPlan.algebra,
+        DeriverBreezeDoubleForwardPlan.algebra,
     ),
     f => ScalaGrad.derive(f),
     f => ScalaGrad.derive(f),

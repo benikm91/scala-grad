@@ -10,16 +10,11 @@ import scalagrad.api.forward.dual.DualNumberColumnVector
 import scalagrad.api.matrixalgebra.CreateOps
 import scala.reflect.ClassTag
 import scalagrad.api.matrixalgebra.MatrixAlgebra
-import scalagrad.auto.breeze.BreezeMatrixAlgebra
+import scalagrad.auto.breeze.BreezeDoubleMatrixAlgebra
 import scalagrad.api.dual.DualMatrixAlgebra
 
-object DeriverBreezeForwardPlan extends DeriverForwardPlan[
+object DeriverBreezeDoubleForwardPlan extends DeriverForwardPlan[
     Double, DenseVector[Double], Transpose[DenseVector[Double]], DenseMatrix[Double],
 ](
-    BreezeMatrixAlgebra
-):
-
-    type PScalar = Double
-    type PColumnVector = DenseVector[Double]
-    type PRowVector = Transpose[DenseVector[Double]]
-    type PMatrix = DenseMatrix[Double]
+    BreezeDoubleMatrixAlgebra
+)

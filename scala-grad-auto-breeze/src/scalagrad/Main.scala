@@ -6,7 +6,7 @@ import scalagrad.api.Deriver
 import scalagrad.api.DeriverFromTo
 import breeze.linalg.{DenseVector, Transpose, DenseMatrix}
 import scala.util.TupledFunction
-import scalagrad.auto.reverse.breeze.DeriverBreezeReversePlan
+import scalagrad.auto.reverse.breeze.DeriverBreezeDoubleReversePlan
 import scalagrad.api.matrixalgebra.MatrixAlgebraT
 
 def gWithTypeDependency(mat: MatrixAlgebraT)(
@@ -21,9 +21,9 @@ def gWithTypeClass[Scalar, ColumnVector, RowVector, Matrix](
 
 @main
 def forward = 
-    import scalagrad.auto.forward.breeze.DeriverBreezeForwardPlan
-    import scalagrad.auto.forward.breeze.DeriverBreezeForwardPlan.given
-    import scalagrad.auto.forward.breeze.DeriverBreezeForwardPlan.algebra.*
+    import scalagrad.auto.forward.breeze.DeriverBreezeDoubleForwardPlan
+    import scalagrad.auto.forward.breeze.DeriverBreezeDoubleForwardPlan.given
+    import scalagrad.auto.forward.breeze.DeriverBreezeDoubleForwardPlan.algebra.*
     import scalagrad.api.forward.dual.*
     
     def e(
@@ -57,7 +57,7 @@ def forward =
     ])
     println(dgWithTypeClass(1.0, 2.0))
     
-    val dgWithTypeDependency = ScalaGrad.derive(gWithTypeDependency(DeriverBreezeForwardPlan.algebraT))
+    val dgWithTypeDependency = ScalaGrad.derive(gWithTypeDependency(DeriverBreezeDoubleForwardPlan.algebraT))
     println(dgWithTypeDependency(1.0, 2.0))
     
     println("DONE")
@@ -65,24 +65,26 @@ def forward =
 
 @main
 def reverse = 
-    import scalagrad.auto.reverse.breeze.DeriverBreezeReversePlan
-    import scalagrad.auto.reverse.breeze.DeriverBreezeReversePlan.*
-    import scalagrad.auto.reverse.breeze.DeriverBreezeReversePlan.given
-    import scalagrad.auto.reverse.breeze.DeriverBreezeReversePlan.algebra.*
+    import scalagrad.auto.reverse.breeze.DeriverBreezeDoubleReversePlan
+    import scalagrad.auto.reverse.breeze.DeriverBreezeDoubleReversePlan.*
+    import scalagrad.auto.reverse.breeze.DeriverBreezeDoubleReversePlan.given
+    import scalagrad.auto.reverse.breeze.DeriverBreezeDoubleReversePlan.algebra.*
     import scalagrad.api.reverse.dual.*
 
+    val alg = DeriverBreezeDoubleReversePlan.algebraT
+
     def f(
-        x1: BreezeDualScalar,
-        x2: BreezeDualScalar
-    ): BreezeDualScalar = x1 * x2
+        x1: alg.Scalar,
+        x2: alg.Scalar
+    ): alg.Scalar = x1 * x2
 
     val df = ScalaGrad.derive(f)
     println(df(1.0, 2.0))
 
     def f2(
-        x1: BreezeDualMatrix,
-        x2: BreezeDualMatrix
-    ): BreezeDualScalar = 
+        x1: alg.Matrix,
+        x2: alg.Matrix
+    ): alg.Scalar = 
         (x2 * x1).sum
 
     val df2 = ScalaGrad.derive(f2)
@@ -92,17 +94,32 @@ def reverse =
     ))
 
     def f3(
-        x1: BreezeDualScalar,
-        x2: BreezeDualScalar,
-        x3: BreezeDualScalar,
-        x4: BreezeDualScalar,
-        x5: BreezeDualScalar,
-        x6: BreezeDualScalar,
-        x7: BreezeDualScalar
-    ): BreezeDualScalar = x1 * x2 * x3 * x4
+        x1: alg.Scalar,
+        x2: alg.Scalar,
+        x3: alg.Scalar,
+        x4: alg.Scalar,
+        x5: alg.Scalar,
+        x6: alg.Scalar,
+        x7: alg.Scalar
+    ): alg.Scalar = x1 * x2 * x3 * x4
     
     val df3 = ScalaGrad.derive(f3)
     println(df3(1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0))
 
     println("DONE")
 
+
+@main
+def forwardForward =
+    // TODO bring multiple derivation to work
+    import scalagrad.api.forward.DeriverForwardPlan
+    import scalagrad.auto.forward.breeze.DeriverBreezeDoubleForwardPlan
+    // val ffp = new DeriverForwardPlan(DeriverBreezeDoubleForwardPlan.algebraGiven)
+    // val alg = ffp.algebraT
+    // println(alg.Scalar)
+    // def f(
+    //     x1: alg.Scalar,
+    //     x2: alg.Scalar
+    // ): alg.Scalar = x1 * x2
+    // import ffp.*
+    // ScalaGrad.derive(f)

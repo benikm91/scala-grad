@@ -4,8 +4,8 @@ import scalagrad.api.matrixalgebra.MatrixAlgebra
 import breeze.linalg.*
 import scalagrad.api.forward.dual.*
 
-object BreezeMatrixAlgebra extends MatrixAlgebra[
-    Double, DenseVector[Double], Transpose[DenseVector[Double]], DenseMatrix[Double],
+object BreezeFloatMatrixAlgebra extends MatrixAlgebra[
+    Float, DenseVector[Float], Transpose[DenseVector[Float]], DenseMatrix[Float],
 ]:
 
   override def one: ScalarT = 1.0
@@ -77,11 +77,11 @@ object BreezeMatrixAlgebra extends MatrixAlgebra[
 
   override def negateM(m: MatrixT): MatrixT = -m
 
-  override def invert(s: ScalarT): ScalarT = 1.0 / s
+  override def invert(s: ScalarT): ScalarT = one / s
 
   override def unliftToDouble(s: ScalarT): Double = s
 
-  override def liftToScalar(d: Double): ScalarT = d
+  override def liftToScalar(d: Double): ScalarT = d.toFloat
 
   override def sumCV(cv: ColumnVectorT): ScalarT = breeze.linalg.sum(cv)
 
@@ -101,10 +101,10 @@ object BreezeMatrixAlgebra extends MatrixAlgebra[
 
   override def transposeRowVector(v: RowVectorT): ColumnVectorT = v.t
   
-  override def zeroScalar: Double = 0.0
+  override def zeroScalar: ScalarT = 0.0f
 
-  override def zeroColumnVector(length: Int): DenseVector[Double] = DenseVector.zeros[Double](length)
+  override def zeroColumnVector(length: Int): ColumnVectorT = DenseVector.zeros[Float](length)
     
-  override def zeroRowVector(length: Int): Transpose[DenseVector[Double]] = DenseVector.zeros[Double](length).t
+  override def zeroRowVector(length: Int): RowVectorT = DenseVector.zeros[Float](length).t
 
-  override def zeroMatrix(nRows: Int, nCols: Int): DenseMatrix[Double] = DenseMatrix.zeros[Double](nRows, nCols)
+  override def zeroMatrix(nRows: Int, nCols: Int): MatrixT = DenseMatrix.zeros[Float](nRows, nCols)

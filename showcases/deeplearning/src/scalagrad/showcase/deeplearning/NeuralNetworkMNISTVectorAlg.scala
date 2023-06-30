@@ -5,7 +5,7 @@ import scala.io.Source
 import scalagrad.api.matrixalgebra.MatrixAlgebra
 import scalagrad.api.matrixalgebra.MatrixAlgebraT
 import scalagrad.api.ScalaGrad
-import scalagrad.auto.breeze.BreezeMatrixAlgebraT
+import scalagrad.auto.breeze.BreezeDoubleMatrixAlgebraT
 import breeze.linalg.{DenseMatrix, DenseVector}
 import spire.math.Numeric
 import spire.algebra.Trig
@@ -17,8 +17,8 @@ import scalagrad.api.matrixalgebra.MatrixAlgebraT
 import scalagrad.api.forward.dual.DualNumberMatrix
 import scalagrad.api.spire.numeric.DualScalarIsNumeric.given
 import scalagrad.api.spire.trig.DualScalarIsTrig.given
-import scalagrad.auto.forward.breeze.DeriverBreezeForwardPlan
-import DeriverBreezeForwardPlan.given
+import scalagrad.auto.forward.breeze.DeriverBreezeDoubleForwardPlan
+import DeriverBreezeDoubleForwardPlan.given
 import scalagrad.api.dual.DualMatrixAlgebraT
 import scalagrad.api.forward.dual.DualNumberScalar
 import scalagrad.api.reverse.dual.DualDeltaScalar
@@ -115,7 +115,7 @@ def cycle[T](seq: Seq[T]): LazyList[T] = {
     inner(seq)
 }
 
-val breezeOps = BreezeMatrixAlgebraT
+val breezeOps = BreezeDoubleMatrixAlgebraT
 def miniBatchGradientDescent
 (data: LazyList[(breezeOps.Matrix, breezeOps.Matrix)])
 (
@@ -200,7 +200,7 @@ def makePredictions(xs: DenseMatrix[Double])(
     lastW0: DenseVector[Double],
     lastWs: DenseMatrix[Double],
 ): DenseMatrix[Double] =
-    neuralNetworkApply(BreezeMatrixAlgebraT)(
+    neuralNetworkApply(BreezeDoubleMatrixAlgebraT)(
         xs, firstW0, firstWs, lastW0, lastWs
     )
 
@@ -238,20 +238,20 @@ def getRandomWeights(nFeatures: Int, nHiddenUnits: Int, nOutputUnits: Int): (
 
     time {
         val initYsHatM = makePredictions(xsM)(initFirstW0, initFirstWs, initLastW0, initLastWs)
-        println(f"${crossEntropy(BreezeMatrixAlgebraT)(ysM, initYsHatM)}  -- with initial weights")
-        // println(f"${lossF(BreezeMatrixAlgebraT)(xsM, ysM)(initFirstW0, initFirstWs, initLastW0, initLastWs)}  -- with initial weights")
+        println(f"${crossEntropy(BreezeDoubleMatrixAlgebraT)(ysM, initYsHatM)}  -- with initial weights")
+        // println(f"${lossF(BreezeDoubleMatrixAlgebraT)(xsM, ysM)(initFirstW0, initFirstWs, initLastW0, initLastWs)}  -- with initial weights")
         println("train acc: " + accuracy(initYsHatM, ysM) * 100 + " -- with initial weights")
     }
     time {
         val iters = 1
         println(f"Start forward-mode on single batch with ${iters} iterations")
-        val gradientDescentF = gradientDescent(BreezeMatrixAlgebraT)(
+        val gradientDescentF = gradientDescent(BreezeDoubleMatrixAlgebraT)(
             initFirstW0, initFirstWs, initLastW0, initLastWs, 0.01, iters
         )
         
-        import scalagrad.auto.forward.breeze.DeriverBreezeForwardPlan
-        import DeriverBreezeForwardPlan.given
-        val dLoss = ScalaGrad.derive(lossF(DeriverBreezeForwardPlan.algebraT)(
+        import scalagrad.auto.forward.breeze.DeriverBreezeDoubleForwardPlan
+        import DeriverBreezeDoubleForwardPlan.given
+        val dLoss = ScalaGrad.derive(lossF(DeriverBreezeDoubleForwardPlan.algebraT)(
             DualNumberMatrix(xsM, DenseMatrix.zeros[Double](xsM.rows, xsM.cols)),
             DualNumberMatrix(ysM, DenseMatrix.zeros[Double](ysM.rows, ysM.cols))
         ))
@@ -260,20 +260,20 @@ def getRandomWeights(nFeatures: Int, nHiddenUnits: Int, nOutputUnits: Int): (
         val ysHatM = makePredictions(xsM)(firstW0, firstWs, lastW0, lastWs)
 
         println("train acc: " + accuracy(ysHatM, ysM) * 100)
-        println(f"${crossEntropy(BreezeMatrixAlgebraT)(ysM, ysHatM)}  -- with learned weights (${iters} iterations)")
+        println(f"${crossEntropy(BreezeDoubleMatrixAlgebraT)(ysM, ysHatM)}  -- with learned weights (${iters} iterations)")
     }
     time {
         val iters = 1 // 1000 / batchSize
         println(f"Start reverse-mode on single batch with ${iters} iterations")
-        val gradientDescentF = gradientDescent(BreezeMatrixAlgebraT)(
+        val gradientDescentF = gradientDescent(BreezeDoubleMatrixAlgebraT)(
             initFirstW0, initFirstWs, initLastW0, initLastWs, 0.01, iters
         )
         
-        import scalagrad.auto.reverse.breeze.DeriverBreezeReversePlan
-        import DeriverBreezeReversePlan.given
+        import scalagrad.auto.reverse.breeze.DeriverBreezeDoubleReversePlan
+        import DeriverBreezeDoubleReversePlan.given
         import scalagrad.api.reverse.dual.DualDeltaMatrix
         import scalagrad.api.reverse.delta.DeltaMatrix
-        val dLoss = ScalaGrad.derive(lossF(DeriverBreezeReversePlan.algebraT)(
+        val dLoss = ScalaGrad.derive(lossF(DeriverBreezeDoubleReversePlan.algebraT)(
             DualDeltaMatrix(xsM, DeltaMatrix.Zero()),
             DualDeltaMatrix(ysM, DeltaMatrix.Zero())
         ))
@@ -282,7 +282,7 @@ def getRandomWeights(nFeatures: Int, nHiddenUnits: Int, nOutputUnits: Int): (
         val ysHatM = makePredictions(xsM)(firstW0, firstWs, lastW0, lastWs)
 
         println("train acc: " + accuracy(ysHatM, ysM) * 100)
-        println(f"${crossEntropy(BreezeMatrixAlgebraT)(ysM, ysHatM)}  -- with learned weights (${iters} iterations)")
+        println(f"${crossEntropy(BreezeDoubleMatrixAlgebraT)(ysM, ysHatM)}  -- with learned weights (${iters} iterations)")
     }
 
 
@@ -328,19 +328,19 @@ def getRandomWeights(nFeatures: Int, nHiddenUnits: Int, nOutputUnits: Int): (
             val createDLoss = mode match {
                 case "forward" => {
                     def createDLoss(xs: DenseMatrix[Double], ys: DenseMatrix[Double]) =
-                        ScalaGrad.derive(lossF(DeriverBreezeForwardPlan.algebraT)(
+                        ScalaGrad.derive(lossF(DeriverBreezeDoubleForwardPlan.algebraT)(
                             DualNumberMatrix(xs, DenseMatrix.zeros[Double](xs.rows, xs.cols)),
                             DualNumberMatrix(ys, DenseMatrix.zeros[Double](ys.rows, ys.cols))
                         ))
                     createDLoss
                 }
                 case "reverse" => {
-                    import scalagrad.auto.reverse.breeze.DeriverBreezeReversePlan
-                    import DeriverBreezeReversePlan.given
+                    import scalagrad.auto.reverse.breeze.DeriverBreezeDoubleReversePlan
+                    import DeriverBreezeDoubleReversePlan.given
                     import scalagrad.api.reverse.dual.DualDeltaMatrix
                     import scalagrad.api.reverse.delta.DeltaMatrix
                     def createDLoss(xs: DenseMatrix[Double], ys: DenseMatrix[Double]) =
-                        ScalaGrad.derive(lossF(DeriverBreezeReversePlan.algebraT)(
+                        ScalaGrad.derive(lossF(DeriverBreezeDoubleReversePlan.algebraT)(
                             DualDeltaMatrix(xs, DeltaMatrix.Zero()),
                             DualDeltaMatrix(ys, DeltaMatrix.Zero())
                         ))
@@ -354,7 +354,7 @@ def getRandomWeights(nFeatures: Int, nHiddenUnits: Int, nOutputUnits: Int): (
             val ysHatTest = xsTest.map(xs => makePredictions(xs)(firstW0, firstWs, lastW0, lastWs))
             val accuracyTestBatch = ysHatTest.zip(ysTest).map((ysHat, ys) => accuracy(ysHat, ys)).toList
             val accuracyTest = accuracyTestBatch.sum / accuracyTestBatch.length
-            val lossTestBatch = ysHatTest.zip(ysTest).map((ysHat, ys) => crossEntropy(BreezeMatrixAlgebraT)(ys, ysHat)).toList
+            val lossTestBatch = ysHatTest.zip(ysTest).map((ysHat, ys) => crossEntropy(BreezeDoubleMatrixAlgebraT)(ys, ysHat)).toList
             val lossTest = lossTestBatch.sum / lossTestBatch.length
 
             val trainTimeNormalized = trainTime * (60_000d / iters / batchSize) 
