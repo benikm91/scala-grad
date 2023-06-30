@@ -8,11 +8,10 @@ import scalagrad.api.matrixalgebra.derivative.DerivativeMatrixAlgebra
 import scalagrad.api.matrixalgebra.CreateOps
 import scalagrad.api.matrixalgebra.MatrixAlgebra
 import breeze.linalg.*
-import scala.reflect.ClassTag
+import scala.reflect.Typeable
 
 class DeriverForwardPlan[
-    // TODO currently type bounds are needed to make the compiler happy, but they should not be needed
-    PScalar <: Double, PColumnVector <: DenseVector[Double], PRowVector <: Transpose[DenseVector[Double]], PMatrix <: DenseMatrix[Double],
+    PScalar : Typeable, PColumnVector : Typeable, PRowVector : Typeable, PMatrix : Typeable,
 ](
     primaryMatrixAlgebra: MatrixAlgebra[PScalar, PColumnVector, PRowVector, PMatrix],
 ) extends DeriverPlan[
@@ -72,7 +71,7 @@ class DeriverForwardPlan[
 
         override def derive(f: T => DualScalar): DualTupleToPTuple[T] => DualTupleToPTuple[T] = t => 
             def toZeros(t: DualTupleToPTuple[T]): T = 
-                t.map[[X] =>> PToDual[X]]([T] => (t: T) => t match {
+                t.map[[X] =>> Any]([T] => (t: T) => t match {
                     case x: PScalar => createDualScalar(x, dZeroOps.zeroScalar)
                     case x: PColumnVector => createDualColumnVector(x, dZeroOps.zeroColumnVector(x.length))
                     case x: PRowVector => createDualRowVector(x, dZeroOps.zeroRowVector(x.length))

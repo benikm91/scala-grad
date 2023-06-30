@@ -111,15 +111,26 @@ def reverse =
 
 @main
 def forwardForward =
-    // TODO bring multiple derivation to work
+    import spire.algebra.Trig
     import scalagrad.api.forward.DeriverForwardPlan
     import scalagrad.auto.forward.breeze.DeriverBreezeDoubleForwardPlan
-    // val ffp = new DeriverForwardPlan(DeriverBreezeDoubleForwardPlan.algebraGiven)
-    // val alg = ffp.algebraT
-    // println(alg.Scalar)
-    // def f(
-    //     x1: alg.Scalar,
-    //     x2: alg.Scalar
-    // ): alg.Scalar = x1 * x2
-    // import ffp.*
-    // ScalaGrad.derive(f)
+    import DeriverBreezeDoubleForwardPlan.{algebraGiven => _, given}
+    import scalagrad.api.forward.dual.*
+    import spire.implicits._
+    import scalagrad.api.spire.numeric.DualScalarIsNumeric.given
+    import scalagrad.api.spire.trig.DualScalarIsTrig.given
+    // construct DeriverPlan for deriving twice by chaining plan
+    val ffp = new DeriverForwardPlan(DeriverBreezeDoubleForwardPlan.algebraGiven)
+    import ffp.given
+
+    def f(x: ffp.algebraT.Scalar): ffp.algebraT.Scalar = x * x
+    // Apply ScalaGrad.derive twice on function
+    val ddf = ScalaGrad.derive(ScalaGrad.derive(f))
+    println(ddf(5.0))
+
+    // Example with Trig
+    def g(x: ffp.algebraT.Scalar)(
+        using trig: Trig[ffp.algebraT.Scalar]
+    ): ffp.algebraT.Scalar = trig.exp(x)
+    val ddg = ScalaGrad.derive(ScalaGrad.derive(g))
+    println(ddg(5.0))

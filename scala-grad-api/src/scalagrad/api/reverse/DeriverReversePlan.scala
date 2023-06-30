@@ -12,10 +12,11 @@ import scalagrad.api.matrixalgebra.MatrixAlgebra
 import scalagrad.api.reverse.eval.Eval
 import breeze.linalg.*
 import scalagrad.api.reverse.DualDeltaDerivativeMatrixAlgebra
+import scala.reflect.Typeable
 
 abstract class DeriverReversePlan[
     // TODO currently type bounds are needed to make the compiler happy, but they should not be needed
-    PScalar <: Double, PColumnVector <: DenseVector[Double], PRowVector <: Transpose[DenseVector[Double]], PMatrix <: DenseMatrix[Double],
+    PScalar : Typeable, PColumnVector : Typeable, PRowVector : Typeable, PMatrix : Typeable,
 ](
     primaryMatrixAlgebra: MatrixAlgebra[PScalar, PColumnVector, PRowVector, PMatrix],
 ) extends DeriverPlan[
