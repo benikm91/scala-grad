@@ -90,7 +90,8 @@ object BreezeMatrixAlgebra extends MatrixAlgebra[
   override def createMatrixFromElements(nRows: Int, nCols: Int, elements: Seq[ScalarT]): MatrixT = 
       new DenseMatrix(nRows, nCols, elements.toArray)
 
-  override def stackColumns(columns: Seq[ColumnVectorT]): MatrixT = DenseMatrix.horzcat(columns.map(_.toDenseMatrix):_*)
+  override def stackColumns(columns: Seq[ColumnVectorT]): MatrixT = 
+    DenseMatrix.vertcat(columns.map(_.toDenseMatrix):_*).t
 
   override def createColumnVectorFromElements(elements: Seq[ScalarT]): ColumnVectorT = DenseVector(elements.toArray)
 

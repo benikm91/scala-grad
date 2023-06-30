@@ -200,6 +200,7 @@ case class Eval[PScalar, PColumnVector, PRowVector, PMatrix](
                             ))
                     )
                 case ColumnAtM(dm, jColumn, nRows, nColumns) => 
+                    assert(dOutput.length == nRows, f"dOutput.length == nRows, ${dOutput.length} == $nRows")
                     val index = dm.index
                     lazy val newOutput = {
                         val newOutput = pma.zeroMatrix(nRows, nColumns)
@@ -341,7 +342,11 @@ case class Eval[PScalar, PColumnVector, PRowVector, PMatrix](
                         val (jCol, iRow) = (i / dOutput.nRows, i % dOutput.nRows)
                         evalScalarStep(dOutput.elementAt(iRow, jCol), dScalar, intermediateResults, endIndex, results)
                     )
-                case StackColumns(columns) => ???
+                case StackColumns(columns) => 
+                    columns.zipWithIndex.foldLeft(results)((results, t) => 
+                        val (dColumnVector, i) = t
+                        evalColumnVectorStep(dOutput.columnAt(i), dColumnVector, intermediateResults, endIndex, results)
+                    )
                 case PlusDMDM(dm1, dm2) => 
                     evalMatrixStep(dOutput, dm1, intermediateResults, endIndex, 
                         evalMatrixStep(dOutput, dm2, intermediateResults, endIndex, results)
