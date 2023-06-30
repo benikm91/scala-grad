@@ -1,5 +1,16 @@
 package scalagrad.api.matrixalgebra
 
+trait MatrixAlgebraTypes {
+  type Scalar
+  type ColumnVector
+  type RowVector
+  type Matrix
+}
+
+trait MatrixAlgebraT extends MatrixAlgebraTypes:
+    val innerAlgebra: MatrixAlgebra[Scalar, ColumnVector, RowVector, Matrix]
+    export innerAlgebra.*
+
 trait MatrixAlgebra[Scalar, ColumnVector, RowVector, Matrix] 
     extends LengthOps[ColumnVector, RowVector, Matrix]
     with LiftOps[Scalar]
@@ -17,7 +28,7 @@ trait MatrixAlgebra[Scalar, ColumnVector, RowVector, Matrix]
     with AccessSetOps[Scalar, ColumnVector, RowVector, Matrix]
     with AccessSeqOps[Scalar, ColumnVector, RowVector, Matrix]
     with CreateOps[Scalar, ColumnVector, RowVector, Matrix]
-    with ElementWiseOps[Scalar, ColumnVector, RowVector, Matrix]
+    with MapOps[Scalar, ColumnVector, RowVector, Matrix]
 :
 
     type ScalarT = Scalar

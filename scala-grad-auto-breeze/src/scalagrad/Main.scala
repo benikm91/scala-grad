@@ -1,10 +1,23 @@
 package scalagrad
 
 import scalagrad.api.ScalaGrad
+import scalagrad.api.matrixalgebra.MatrixAlgebra
+import scalagrad.api.Deriver
 import scalagrad.api.DeriverFromTo
-import breeze.linalg.DenseMatrix
+import breeze.linalg.{DenseVector, Transpose, DenseMatrix}
 import scala.util.TupledFunction
+import scalagrad.auto.reverse.breeze.DeriverBreezeReversePlan
+import scalagrad.api.matrixalgebra.MatrixAlgebraT
 
+def gWithTypeDependency(mat: MatrixAlgebraT)(
+    x1: mat.Scalar,
+    x2: mat.Scalar
+): mat.Scalar = x1 * x2
+
+def gWithTypeClass[Scalar, ColumnVector, RowVector, Matrix](
+    x1: Scalar,
+    x2: Scalar
+)(using ma: MatrixAlgebra[Scalar, ColumnVector, RowVector, Matrix]): Scalar = x1 * x2
 
 @main
 def forward = 
@@ -24,7 +37,6 @@ def forward =
         x1: DualNumberScalar[Double],
         x2: DualNumberScalar[Double]
     ): DualNumberScalar[Double] = x2 * x1
-
     val df = ScalaGrad.derive(f)
     println(df(1.0, 2.0))
 
@@ -39,6 +51,14 @@ def forward =
         DenseMatrix((1.0, 2.0), (3.0, 4.0)),
         DenseMatrix((1.0, 2.0), (3.0, 4.0))
     ))
+    
+    val dgWithTypeClass = ScalaGrad.derive(gWithTypeClass[
+        DualNumberScalar[Double], DualNumberColumnVector[DenseVector[Double]], DualNumberRowVector[Transpose[DenseVector[Double]]], DualNumberMatrix[DenseMatrix[Double]],
+    ])
+    println(dgWithTypeClass(1.0, 2.0))
+    
+    val dgWithTypeDependency = ScalaGrad.derive(gWithTypeDependency(DeriverBreezeForwardPlan.algebraT))
+    println(dgWithTypeDependency(1.0, 2.0))
     
     println("DONE")
 

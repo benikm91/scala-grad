@@ -1,5 +1,7 @@
 package scalagrad.api
 
+import scala.util.TupledFunction
+
 object ScalaGrad:
 
     def derive[S, T](f: S => T)(using d: Deriver[S => T]): d.dfT = 

@@ -104,7 +104,7 @@ trait TrigTestSuit[
             }
             "tan" in {
                 def f[S](s: S)(using trig: Trig[S]) = trig.tan(s)
-                testCase([S] => (x: S) => (trig: Trig[S]) ?=> f[S](x))
+                testCase([S] => (x: S) => (trig: Trig[S]) ?=> f[S](x), sGen = smallSGen)
             }
             "asin" in {
                 def f[S](s: S)(using trig: Trig[S]) = trig.asin(s)

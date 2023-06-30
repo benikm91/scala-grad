@@ -2,7 +2,7 @@ package scalagrad.api.reverse
 
 import scalagrad.api.reverse.delta.*
 import scalagrad.api.reverse.dual.*
-import scalagrad.api.matrixalgebra.{AccessOps, AccessSetOps, CreateOps, LiftOps, NegateOps, ScalarInvertOps, ZeroOps, SumOps, TransposeOps}
+import scalagrad.api.matrixalgebra.{AccessOps, AccessSetOps, CreateOps, MapOps, LiftOps, NegateOps, ScalarInvertOps, ZeroOps, SumOps, TransposeOps}
 import scalagrad.api.matrixalgebra.derivative.DerivativeMatrixAlgebra
 import scalagrad.api.matrixalgebra.MatrixAlgebra
   
@@ -42,10 +42,10 @@ extends ZeroOps[
     DeltaRowVector[PScalar, PColumnVector, PRowVector, PMatrix],
     DeltaMatrix[PScalar, PColumnVector, PRowVector, PMatrix],
 ]:
-    def zeroScalar: DeltaScalar[PScalar, PColumnVector, PRowVector, PMatrix] = DeltaScalar.Zero
-    def zeroColumnVector(length: Int): DeltaColumnVector[PScalar, PColumnVector, PRowVector, PMatrix] = DeltaColumnVector.Zero
-    def zeroRowVector(length: Int): DeltaRowVector[PScalar, PColumnVector, PRowVector, PMatrix] = DeltaRowVector.Zero
-    def zeroMatrix(nRows: Int, nCols: Int): DeltaMatrix[PScalar, PColumnVector, PRowVector, PMatrix] = DeltaMatrix.Zero
+    def zeroScalar: DeltaScalar[PScalar, PColumnVector, PRowVector, PMatrix] = DeltaScalar.Zero()
+    def zeroColumnVector(length: Int): DeltaColumnVector[PScalar, PColumnVector, PRowVector, PMatrix] = DeltaColumnVector.Zero()
+    def zeroRowVector(length: Int): DeltaRowVector[PScalar, PColumnVector, PRowVector, PMatrix] = DeltaRowVector.Zero()
+    def zeroMatrix(nRows: Int, nCols: Int): DeltaMatrix[PScalar, PColumnVector, PRowVector, PMatrix] = DeltaMatrix.Zero()
 
 
 trait DeltaTransposeOps[PScalar, PColumnVector, PRowVector, PMatrix]()
@@ -207,4 +207,3 @@ case class DualDeltaDerivativeMatrixAlgebra[
 
     override def elementAtCV(cv: DeltaColumnVector[PScalar, PColumnVector, PRowVector, PMatrix], iRow: Int, length: Int): DeltaScalar[PScalar, PColumnVector, PRowVector, PMatrix] = 
         DeltaScalar.ElementAtCV(cv, iRow, length)
-        

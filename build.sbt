@@ -48,6 +48,16 @@ lazy val scalaGradAutoBreezeApi = (project in file("./scala-grad-auto-breeze"))
     scalaGradApi % "test->test",
   )
 
+// ScalaGrad Breeze
+lazy val deepLearningShowcase = (project in file("./showcases/deeplearning"))
+  .settings(
+    name := "scala-grad-showcase-deeplearning",
+    basicSettings,
+    breezeDependency,
+  ).dependsOn(
+    scalaGradAutoBreezeApi
+  )
+
 lazy val root = (project in file("."))
   .settings(
     name := "scala-grad",
@@ -57,4 +67,6 @@ lazy val root = (project in file("."))
     scalaGradApi,
     // Breeze
     scalaGradAutoBreezeApi,
+    // Showcase
+    deepLearningShowcase,
   )

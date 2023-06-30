@@ -5,6 +5,9 @@ import scalagrad.api.dual
 import scalagrad.api.dual.DualMatrixAlgebra
 import scalagrad.api.matrixalgebra.MatrixAlgebra
 import scalagrad.api.matrixalgebra.derivative.DerivativeMatrixAlgebra
+import scalagrad.api.spire.trig.DualScalarIsTrig
+import scalagrad.api.matrixalgebra.MatrixAlgebraT
+import scalagrad.api.dual.DualMatrixAlgebraT
 
 abstract class DeriverPlan[
     PScalar, PColumnVector, PRowVector, PMatrix,
@@ -41,6 +44,22 @@ abstract class DeriverPlan[
     ] = primaryMatrixAlgebra
 
     given derivativeMatrixAlgebraGiven: DerivativeMatrixAlgebraT = derivativeMatrixAlgebra
+
+    val algebraT = new DualMatrixAlgebraT {
+        override type PrimaryScalar = PScalar
+        override type PrimaryColumnVector = PColumnVector
+        override type PrimaryRowVector = PRowVector
+        override type PrimaryMatrix = PMatrix
+        override type DerivativeScalar = DScalar
+        override type DerivativeColumnVector = DColumnVector
+        override type DerivativeRowVector = DRowVector
+        override type DerivativeMatrix = DMatrix
+        override type Scalar = DualScalar
+        override type ColumnVector = DualColumnVector
+        override type RowVector = DualRowVector
+        override type Matrix = DualMatrix
+        override val innerAlgebra = algebra
+    }
 
     type DualTuple[T <: Tuple] = T match
         case DualScalar *: t => DualTuple[t]

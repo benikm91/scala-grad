@@ -88,7 +88,7 @@ case class Eval[PScalar, PColumnVector, PRowVector, PMatrix](
         else
             import DeltaScalar.*
             delta match
-                case Zero => results
+                case Zero() => results
                 case Val(id) =>
                     results.copy(
                         scalars =
@@ -191,7 +191,7 @@ case class Eval[PScalar, PColumnVector, PRowVector, PMatrix](
         else
             import DeltaColumnVector.*
             delta match
-                case Zero => results
+                case Zero() => results
                 case Val(id) =>
                     results.copy(
                         columnVectors =
@@ -223,7 +223,11 @@ case class Eval[PScalar, PColumnVector, PRowVector, PMatrix](
                     evalColumnVectorStep(-dOutput, dcv, intermediateResults, endIndex, results)
                 case TransposeRV(drv) => 
                     evalRowVectorStep(dOutput.t, drv, intermediateResults, endIndex, results)
-                case CreateCV(elements) => ???
+                case CreateCV(elements) => 
+                    elements.zipWithIndex.foldLeft(results)((results, t) => 
+                        val (dScalar, i) = t
+                        evalScalarStep(dOutput.elementAt(i), dScalar, intermediateResults, endIndex, results)
+                    )
                 case PlusDCVDCV(dcv1, dcv2) => 
                     evalColumnVectorStep(dOutput, dcv1, intermediateResults, endIndex, 
                         evalColumnVectorStep(dOutput, dcv2, intermediateResults, endIndex, results)
@@ -278,7 +282,7 @@ case class Eval[PScalar, PColumnVector, PRowVector, PMatrix](
         else
             import DeltaRowVector.*
             delta match
-                case Zero => results
+                case Zero() => results
                 case Val(id) =>
                     results.copy(
                         rowVectors =
@@ -319,7 +323,7 @@ case class Eval[PScalar, PColumnVector, PRowVector, PMatrix](
         else
             import DeltaMatrix.*
             delta match
-                case Zero => results
+                case Zero() => results
                 case Val(id) =>
                     results.copy(
                         matrices =
@@ -333,8 +337,8 @@ case class Eval[PScalar, PColumnVector, PRowVector, PMatrix](
                     evalMatrixStep(dOutput.t, dm, intermediateResults, endIndex, results)
                 case CreateM(nRows, nCols, elements) => 
                     elements.zipWithIndex.foldLeft(results)((results, t) => 
-                        val (dScalar, index) = t
-                        val (jCol, iRow) = (index / dOutput.nRows, index % dOutput.nRows)
+                        val (dScalar, i) = t
+                        val (jCol, iRow) = (i / dOutput.nRows, i % dOutput.nRows)
                         evalScalarStep(dOutput.elementAt(iRow, jCol), dScalar, intermediateResults, endIndex, results)
                     )
                 case StackColumns(columns) => ???

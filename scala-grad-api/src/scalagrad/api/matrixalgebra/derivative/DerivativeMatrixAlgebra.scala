@@ -10,6 +10,7 @@ import scalagrad.api.matrixalgebra.TransposeOps
 import scalagrad.api.matrixalgebra.CreateOps
 import scalagrad.api.matrixalgebra.SumOps
 import scalagrad.api.matrixalgebra.ZeroOps
+import scalagrad.api.matrixalgebra.MapOps
 
 trait DerivativeMatrixAlgebra[
     PScalar, PColumnVector, PRowVector, PMatrix,

@@ -1,7 +1,7 @@
 package scalagrad.api.reverse.delta
 
-enum DeltaMatrix[+PScalar, +PColumnVector, +PRowVector, +PMatrix] extends DeltaIndexed:
-  case Zero extends DeltaMatrix[Nothing, Nothing, Nothing, Nothing]
+enum DeltaMatrix[PScalar, PColumnVector, PRowVector, PMatrix] extends DeltaIndexed:
+  case Zero() extends DeltaMatrix[PScalar, PColumnVector, PRowVector, PMatrix]
   case Val(id: Int) extends DeltaMatrix[PScalar, PColumnVector, PRowVector, PMatrix]
   case NegateM(dm: DeltaMatrix[PScalar, PColumnVector, PRowVector, PMatrix]) extends DeltaMatrix[PScalar, PColumnVector, PRowVector, PMatrix]
   case TransposeM(dm: DeltaMatrix[PScalar, PColumnVector, PRowVector, PMatrix]) extends DeltaMatrix[PScalar, PColumnVector, PRowVector, PMatrix]

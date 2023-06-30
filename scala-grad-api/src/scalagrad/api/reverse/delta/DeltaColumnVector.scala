@@ -3,8 +3,8 @@ package scalagrad.api.reverse.delta
 trait DeltaIndexed:
   private[scalagrad] var index: Int = -1
 
-enum DeltaColumnVector[+PScalar, +PColumnVector, +PRowVector, +PMatrix] extends DeltaIndexed:
-  case Zero extends DeltaColumnVector[Nothing, Nothing, Nothing, Nothing]
+enum DeltaColumnVector[PScalar, PColumnVector, PRowVector, PMatrix] extends DeltaIndexed:
+  case Zero() extends DeltaColumnVector[PScalar, PColumnVector, PRowVector, PMatrix]
   case Val(id: Int) extends DeltaColumnVector[PScalar, PColumnVector, PRowVector, PMatrix]
   case ColumnAtM(dAccessOpsm: DeltaMatrix[PScalar, PColumnVector, PRowVector, PMatrix], jColumn: Int, nRows: Int, nCols: Int) extends DeltaColumnVector[PScalar, PColumnVector, PRowVector, PMatrix]
   case NegateCV(dcv: DeltaColumnVector[PScalar, PColumnVector, PRowVector, PMatrix]) extends DeltaColumnVector[PScalar, PColumnVector, PRowVector, PMatrix]

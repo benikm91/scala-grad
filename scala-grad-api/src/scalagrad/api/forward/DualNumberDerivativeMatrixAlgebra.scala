@@ -1,7 +1,7 @@
 package scalagrad.api.forward
 
 import scalagrad.api.forward.dual.*
-import scalagrad.api.matrixalgebra.{AccessOps, CreateOps, NegateOps, ScalarInvertOps, ZeroOps, SumOps, TransposeOps}
+import scalagrad.api.matrixalgebra.{AccessOps, CreateOps, MapOps, NegateOps, ScalarInvertOps, ZeroOps, SumOps, TransposeOps}
 import scalagrad.api.matrixalgebra.derivative.DerivativeMatrixAlgebra
 import scalagrad.api.matrixalgebra.MatrixAlgebra
 

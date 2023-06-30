@@ -11,6 +11,31 @@ import scalagrad.api.matrixalgebra.CreateOps
 import scalagrad.api.matrixalgebra.SumOps
 import scalagrad.api.dual
 import scalagrad.api.matrixalgebra.derivative.DerivativeMatrixAlgebra
+import scalagrad.api.matrixalgebra.MatrixAlgebraT
+
+
+trait DualMatrixAlgebraT extends MatrixAlgebraT:
+
+    type PrimaryScalar
+    type PrimaryColumnVector
+    type PrimaryRowVector
+    type PrimaryMatrix
+    type DerivativeScalar
+    type DerivativeColumnVector
+    type DerivativeRowVector
+    type DerivativeMatrix
+
+    type Scalar <: dual.DualScalar[PrimaryScalar, DerivativeScalar] 
+    type ColumnVector <: dual.DualColumnVector[PrimaryColumnVector, DerivativeColumnVector] 
+    type RowVector <: dual.DualRowVector[PrimaryRowVector, DerivativeRowVector] 
+    type Matrix <: dual.DualMatrix[PrimaryMatrix, DerivativeMatrix]
+
+    val innerAlgebra: DualMatrixAlgebra[
+        PrimaryScalar, PrimaryColumnVector, PrimaryRowVector, PrimaryMatrix,
+        DerivativeScalar, DerivativeColumnVector, DerivativeRowVector, DerivativeMatrix,
+        Scalar, ColumnVector, RowVector, Matrix,
+    ]
+    
 
 case class DualMatrixAlgebra[
     PScalar, PColumnVector, PRowVector, PMatrix,
@@ -28,12 +53,18 @@ case class DualMatrixAlgebra[
     ]
 ) extends MatrixAlgebra[
     DualScalar, DualColumnVector, DualRowVector, DualMatrix
-] {
-
-    import derivativeMatrixAlgebra.*
+]
+with MapDualOps[
+    PScalar, PColumnVector, PRowVector, PMatrix,
+    DScalar, DColumnVector, DRowVector, DMatrix,
+    DualScalar, DualColumnVector, DualRowVector, DualMatrix,
+](primaryMatrixAlgebra)
+{
 
     private val pma = primaryMatrixAlgebra
     private val dma = derivativeMatrixAlgebra
+
+    import dma.*
 
     override def one = createDualScalar(pma.one, dma.dZeroOps.zeroScalar)
 
@@ -309,4 +340,31 @@ case class DualMatrixAlgebra[
             dZeroOps.zeroMatrix(nRows, nCols),
         )
 
+    override def elementWiseOpM(m: DualMatrix, op: PScalar => PScalar, dOp: PScalar => PScalar): DualMatrix =
+        createDualMatrix(
+            pma.elementWiseOpM(m.v, op),
+            elementWiseMultiplyDMM(
+                m.dv,
+                pma.elementWiseOpM(m.v, dOp)
+            ),
+        )
+    
+    override def columnWiseOpM(m: DualMatrix, op: PColumnVector => PColumnVector, dOp: PColumnVector => PColumnVector): DualMatrix = 
+        createDualMatrix(
+            pma.columnWiseOpM(m.v, op),
+            elementWiseMultiplyDMM(
+                m.dv,
+                pma.columnWiseOpM(m.v, dOp)
+            ),
+        )
+
+    override def elementWiseOpCV(cv: DualColumnVector, op: PScalar => PScalar, dOp: PScalar => PScalar): DualColumnVector = 
+        createDualColumnVector(
+            pma.elementWiseOpCV(cv.v, op),
+            elementWiseMultiplyDCVCV(
+                cv.dv,
+                pma.elementWiseOpCV(cv.v, dOp)
+            ),
+        )
+    
 }

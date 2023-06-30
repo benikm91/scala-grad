@@ -1,7 +1,7 @@
 package scalagrad.auto.breeze.forward.test
 
 import scalagrad.numerical.DeriverBreezeNumericalPlan
-import scalagrad.api.test.ElementWiseOpsTestSuit
+import scalagrad.api.test.CreateOpsTestSuit
 import scalagrad.api.ScalaGrad
 import scalagrad.api.Deriver
 import scalagrad.api.DeriverFromTo
@@ -21,7 +21,7 @@ import scalagrad.api.spire.trig.DualScalarIsTrig.given
 import breeze.linalg.*
 import scalagrad.util.test.BreezeTestUtil
 
-case class BreezeForwardElementWiseOpsTestSuit() extends ElementWiseOpsTestSuit(
+case class BreezeForwardCreateOpsTestSuit() extends CreateOpsTestSuit(
     BreezeTestUtil.createGlobalTestSuitParams(
         "breeze forward mode",
         DeriverBreezeForwardPlan.algebra,
