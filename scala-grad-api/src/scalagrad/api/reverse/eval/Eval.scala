@@ -26,6 +26,10 @@ case class Eval[PScalar, PColumnVector, PRowVector, PMatrix](
         assert(delta.index != -1)
         eval(EvalStepScalarResult(dOutput, delta), delta.index)
 
+    def evalColumnVector(dOutput: PColumnVector, delta: DeltaColumnVectorT): Results = 
+        assert(delta.index != -1)
+        eval(EvalStepColumnVectorResult(dOutput, delta), delta.index)
+
     def eval(
         start: EvalStepResult,
         endIndex: Int,
@@ -43,17 +47,25 @@ case class Eval[PScalar, PColumnVector, PRowVector, PMatrix](
             intermediateResults(i) match {
                 case null => // skip
                 case EvalStepScalarResult(dOutput, ds) =>
+                    val index = ds.index 
                     ds.index = -1
                     results = evalScalarStep(dOutput, ds, intermediateResults, endIndex, results)
+                    ds.index = index
                 case EvalStepColumnVectorResult(dOutput, dcv) =>
+                    val index = dcv.index 
                     dcv.index = -1
                     results = evalColumnVectorStep(dOutput, dcv, intermediateResults, endIndex, results)
+                    dcv.index = index
                 case EvalStepRowVectorResult(dOutput, drv) =>
+                    val index = drv.index 
                     drv.index = -1
                     results = evalRowVectorStep(dOutput, drv, intermediateResults, endIndex, results)
+                    drv.index = index
                 case EvalStepMatrixResult(dOutput, dm) =>
+                    val index = dm.index 
                     dm.index = -1
                     results = evalMatrixStep(dOutput, dm, intermediateResults, endIndex, results)
+                    dm.index = index
             }
             intermediateResults(i) = null // clear
             i -= 1

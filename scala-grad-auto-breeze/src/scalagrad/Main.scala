@@ -20,12 +20,119 @@ def gWithTypeClass[Scalar, ColumnVector, RowVector, Matrix](
 )(using ma: MatrixAlgebra[Scalar, ColumnVector, RowVector, Matrix]): Scalar = x1 * x2
 
 @main
+def forwardMulti = 
+    import scalagrad.auto.forward.breeze.DeriverBreezeDoubleForwardPlan
+    import scalagrad.auto.forward.breeze.DeriverBreezeDoubleForwardPlan.given
+    import scalagrad.auto.forward.breeze.DeriverBreezeDoubleForwardPlan.algebra.*
+    import scalagrad.api.forward.dual.*
+
+    val x = DeriverBreezeDoubleForwardPlan.tuple2Tuple[
+        (DualNumberScalar[Double], DualNumberScalar[Double], DualNumberScalar[Double]),
+        (DualNumberScalar[Double], DualNumberScalar[Double]),
+    ]
+
+    def fx(
+        x1: DualNumberScalar[Double],
+        x2: DualNumberScalar[Double],
+        x3: DualNumberScalar[Double]
+    ): (DualNumberScalar[Double], DualNumberScalar[Double]) = (x1, x2)
+
+    val t = x.derive(fx.tupled)
+    val tRes: ((Double, Double), (Double, Double), (Double, Double)) = t(1.0, 2.0, 3.0)
+    println(tRes)
+
+    // S, CV => S, S ==> S, CV => ((S, CV), (S, CV))
+    val x2 = DeriverBreezeDoubleForwardPlan.tuple2Tuple[
+        (DualNumberScalar[Double], DualNumberColumnVector[DenseVector[Double]]),
+        (DualNumberScalar[Double], DualNumberScalar[Double]),
+    ]
+
+    def fx2(
+        x1: DualNumberScalar[Double],
+        x2: DualNumberColumnVector[DenseVector[Double]]
+    ): (DualNumberScalar[Double], DualNumberScalar[Double]) = (x1, x1)
+
+    val t2 = x2.derive(fx2.tupled)
+    val t2Res: ((Double, Double), (DenseVector[Double], DenseVector[Double])) = t2(1.0, DenseVector(2.0, 1.0))
+    println(t2Res)
+
+    // S, CV => S, CV ==> S, CV => ((S, CV), (CV, M))
+    val x3 = DeriverBreezeDoubleForwardPlan.tuple2Tuple[
+        (DualNumberScalar[Double], DualNumberColumnVector[DenseVector[Double]]),
+        (DualNumberScalar[Double], DualNumberColumnVector[DenseVector[Double]]),
+    ]
+
+    def fx3(
+        x1: DualNumberScalar[Double],
+        x2: DualNumberColumnVector[DenseVector[Double]]
+    ): (DualNumberScalar[Double], DualNumberColumnVector[DenseVector[Double]]) = (x1, x2)
+
+    val t3 = x3.derive(fx3.tupled)
+    val t3Res: ((Double, DenseVector[Double]), (DenseVector[Double], DenseMatrix[Double])) = t3(1.0, DenseVector(2.0, 1.0))
+    println(t3Res)
+
+@main
+def reverseMulti = 
+    import scalagrad.auto.reverse.breeze.DeriverBreezeDoubleReversePlan
+    import scalagrad.auto.reverse.breeze.DeriverBreezeDoubleReversePlan.given
+    import scalagrad.auto.reverse.breeze.DeriverBreezeDoubleReversePlan.algebra.*
+    import scalagrad.api.reverse.dual.*
+
+    val a = DeriverBreezeDoubleReversePlan.algebraT
+
+    val x = DeriverBreezeDoubleReversePlan.tuple2Tuple[
+        (a.Scalar, a.Scalar, a.Scalar),
+        (a.Scalar, a.Scalar),
+    ]
+
+    def fx(
+        x1: a.Scalar,
+        x2: a.Scalar,
+        x3: a.Scalar
+    ): (a.Scalar, a.Scalar) = (x1, x2)
+
+    val t = x.derive(fx.tupled)
+    val tRes: ((Double, Double), (Double, Double), (Double, Double)) = t(1.0, 2.0, 3.0)
+    println(tRes)
+
+    // S, CV => S, S ==> S, CV => ((S, CV), (S, CV))
+    val x2 = DeriverBreezeDoubleReversePlan.tuple2Tuple[
+        (a.Scalar, a.ColumnVector),
+        (a.Scalar, a.Scalar),
+    ]
+
+    def fx2(
+        x1: a.Scalar,
+        x2: a.ColumnVector
+    ): (a.Scalar, a.Scalar) = (x1, x1)
+
+    val t2 = x2.derive(fx2.tupled)
+    val t2Res: ((Double, Double), (DenseVector[Double], DenseVector[Double])) = t2(1.0, DenseVector(2.0, 1.0))
+    println(t2Res)
+
+     // S, CV => S, CV ==> S, CV => ((S, CV), (CV, M))
+     val x3 = DeriverBreezeDoubleReversePlan.tuple2Tuple[
+         (a.Scalar, a.ColumnVector),
+         (a.Scalar, a.ColumnVector),
+     ]
+
+     def fx3(
+         x1: a.Scalar,
+         x2: a.ColumnVector
+     ): (a.Scalar, a.ColumnVector) = (x1, x2)
+
+    val t3 = x3.derive(fx3.tupled)
+    val t3Res: ((Double, DenseVector[Double]), (DenseVector[Double], DenseMatrix[Double])) = t3(1.0, DenseVector(2.0, 1.0))
+    println(t3Res)
+
+    
+@main
 def forward = 
     import scalagrad.auto.forward.breeze.DeriverBreezeDoubleForwardPlan
     import scalagrad.auto.forward.breeze.DeriverBreezeDoubleForwardPlan.given
     import scalagrad.auto.forward.breeze.DeriverBreezeDoubleForwardPlan.algebra.*
     import scalagrad.api.forward.dual.*
-    
+
     def e(
         x1: DualNumberScalar[Double],
     ): DualNumberScalar[Double] = x1

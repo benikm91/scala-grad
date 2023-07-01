@@ -78,11 +78,33 @@ abstract class DeriverPlan[
         case DualRowVector    => PRowVector
         case DualMatrix       => PMatrix
 
+    type UpPTuple[T <: Tuple] <: Tuple = T match
+        case (head *: tail) => UpP[head] *: UpPTuple[tail]
+        case EmptyTuple     => EmptyTuple
+
+    type UpP[T] = T match
+        case PScalar       => PColumnVector
+        case PColumnVector => PMatrix
+        case PRowVector    => PMatrix
+        case PMatrix       => DualMatrix
+
     type PToDual[T] = T match
         case PScalar       => DualScalar      
         case PColumnVector => DualColumnVector
         case PRowVector    => DualRowVector   
         case PMatrix       => DualMatrix      
+
+    type CopyAndUpP = [T <: Tuple] =>> [X] =>> X match
+        case DualScalar => T
+        case DualColumnVector => UpPTuple[T]
+        case DualRowVector => UpPTuple[T]
+        case DualMatrix => T
+
+    type CartesianProductAndUpP[T1 <: Tuple, T2 <: Tuple] = Tuple.Map[T1, CopyAndUpP[T2]]
+
+    given tuple2Tuple[T <: Tuple : DualTuple, RT <: Tuple : DualTuple]: DeriverFromTo[T => RT, 
+        DualTupleToPTuple[T] => CartesianProductAndUpP[T, DualTupleToPTuple[RT]]
+    ]
 
     given tuple2Scalar[T <: Tuple : DualTuple]: DeriverFromTo[
         T => DualScalar,
