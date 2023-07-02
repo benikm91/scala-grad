@@ -78,15 +78,35 @@ abstract class DeriverPlan[
         case DualRowVector    => PRowVector
         case DualMatrix       => PMatrix
 
-    type UpPTuple[T <: Tuple] <: Tuple = T match
-        case (head *: tail) => UpP[head] *: UpPTuple[tail]
+    type UpPByColumnVectorTuple[T <: Tuple] <: Tuple = T match
+        case (head *: tail) => UpPByColumnVector[head] *: UpPByColumnVectorTuple[tail]
         case EmptyTuple     => EmptyTuple
 
-    type UpP[T] = T match
+    type UpPByColumnVector[T] = T match
         case PScalar       => PColumnVector
         case PColumnVector => PMatrix
         case PRowVector    => PMatrix
-        case PMatrix       => DualMatrix
+        case PMatrix       => PMatrix
+
+    type UpPByRowVectorTuple[T <: Tuple] <: Tuple = T match
+        case (head *: tail) => UpPByRowVector[head] *: UpPByRowVectorTuple[tail]
+        case EmptyTuple     => EmptyTuple
+
+    type UpPByRowVector[T] = T match
+        case PScalar       => PRowVector
+        case PColumnVector => PMatrix
+        case PRowVector    => PMatrix
+        case PMatrix       => PMatrix
+
+    type UpPByMatrixTuple[T <: Tuple] <: Tuple = T match
+        case (head *: tail) => UpPByMatrix[head] *: UpPByMatrixTuple[tail]
+        case EmptyTuple     => EmptyTuple
+
+    type UpPByMatrix[T] = T match
+        case PScalar       => PMatrix
+        case PColumnVector => PMatrix
+        case PMatrix       => PMatrix
+        case PMatrix       => PMatrix
 
     type PToDual[T] = T match
         case PScalar       => DualScalar      
@@ -96,17 +116,22 @@ abstract class DeriverPlan[
 
     type CopyAndUpP = [T <: Tuple] =>> [X] =>> X match
         case DualScalar => T
-        case DualColumnVector => UpPTuple[T]
-        case DualRowVector => UpPTuple[T]
-        case DualMatrix => T
+        case DualColumnVector => UpPByColumnVectorTuple[T]
+        case DualRowVector => UpPByRowVectorTuple[T]
+        case DualMatrix => UpPByMatrixTuple[T]
 
     type CartesianProductAndUpP[T1 <: Tuple, T2 <: Tuple] = Tuple.Map[T1, CopyAndUpP[T2]]
 
-    given tuple2Tuple[T <: Tuple : DualTuple, RT <: Tuple : DualTuple]: DeriverFromTo[T => RT, 
-        DualTupleToPTuple[T] => CartesianProductAndUpP[T, DualTupleToPTuple[RT]]
-    ]
+    given scalar2Scalar: DeriverFromTo[DualScalar => DualScalar, PScalar => PScalar]
+    given columnVector2Scalar: DeriverFromTo[DualColumnVector => DualScalar, PColumnVector => PColumnVector]
+    given rowVector2Scalar: DeriverFromTo[DualRowVector => DualScalar, PRowVector => PRowVector]
+    given matrix2Scalar: DeriverFromTo[DualMatrix => DualScalar, PMatrix => PMatrix]
 
     given tuple2Scalar[T <: Tuple : DualTuple]: DeriverFromTo[
         T => DualScalar,
         DualTupleToPTuple[T] => DualTupleToPTuple[T]
+    ]
+
+    given tuple2Tuple[T <: Tuple : DualTuple, RT <: Tuple : DualTuple]: DeriverFromTo[T => RT, 
+        DualTupleToPTuple[T] => CartesianProductAndUpP[T, DualTupleToPTuple[RT]]
     ]

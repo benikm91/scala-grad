@@ -71,6 +71,26 @@ def forwardMulti =
     val t3Res: ((Double, DenseVector[Double]), (DenseVector[Double], DenseMatrix[Double])) = t3(1.0, DenseVector(2.0, 1.0))
     println(t3Res)
 
+    val a = DeriverBreezeDoubleForwardPlan.algebraT
+    
+     val x4 = DeriverBreezeDoubleForwardPlan.tuple2Tuple[
+         (a.Scalar, a.ColumnVector),
+         (a.Scalar, a.Matrix),
+     ]
+
+     def fx4(
+         x1: a.Scalar,
+         x2: a.ColumnVector
+     ): (a.Scalar, a.Matrix) = (x1, x2 * x2.t)
+
+    val t4 = x4.derive(fx4.tupled)
+    val t4Res: ((Double, DenseMatrix[Double]), (DenseVector[Double], DenseMatrix[Double])) = t4(1.0, DenseVector(2.0, 1.0))
+    println("t4Res")
+    println(t4Res)
+    println(t4Res._1._2.rows + " " + t4Res._1._2.cols)
+    println(t4Res._2._2.rows + " " + t4Res._2._2.cols)
+
+
 @main
 def reverseMulti = 
     import scalagrad.auto.reverse.breeze.DeriverBreezeDoubleReversePlan
@@ -124,6 +144,24 @@ def reverseMulti =
     val t3 = x3.derive(fx3.tupled)
     val t3Res: ((Double, DenseVector[Double]), (DenseVector[Double], DenseMatrix[Double])) = t3(1.0, DenseVector(2.0, 1.0))
     println(t3Res)
+
+     val x4 = DeriverBreezeDoubleReversePlan.tuple2Tuple[
+         (a.Scalar, a.ColumnVector),
+         (a.Scalar, a.Matrix),
+     ]
+
+     def fx4(
+         x1: a.Scalar,
+         x2: a.ColumnVector
+     ): (a.Scalar, a.Matrix) = (x1, x2 * x2.t)
+
+    val t4 = x4.derive(fx4.tupled)
+    val t4Res: ((Double, DenseMatrix[Double]), (DenseVector[Double], DenseMatrix[Double])) = t4(1.0, DenseVector(2.0, 1.0))
+    println("t4Res")
+    println(t4Res)
+    println(t4Res._1._2.rows + " " + t4Res._1._2.cols)
+    println(t4Res._2._2.rows + " " + t4Res._2._2.cols)
+
 
     
 @main

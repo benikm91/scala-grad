@@ -30,6 +30,14 @@ case class Eval[PScalar, PColumnVector, PRowVector, PMatrix](
         assert(delta.index != -1)
         eval(EvalStepColumnVectorResult(dOutput, delta), delta.index)
 
+    def evalRowVector(dOutput: PRowVector, delta: DeltaRowVectorT): Results = 
+        assert(delta.index != -1)
+        eval(EvalStepRowVectorResult(dOutput, delta), delta.index)
+
+    def evalMatrix(dOutput: PMatrix, delta: DeltaMatrixT): Results = 
+        assert(delta.index != -1)
+        eval(EvalStepMatrixResult(dOutput, delta), delta.index)
+
     def eval(
         start: EvalStepResult,
         endIndex: Int,
