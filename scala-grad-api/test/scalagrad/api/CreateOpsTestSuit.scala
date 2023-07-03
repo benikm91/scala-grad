@@ -25,7 +25,7 @@ import scala.math.Fractional.Implicits.given
 import spire.algebra.Trig
 
 trait CreateOpsTestSuit[
-    PScalar <: Double, PColumnVector <: DenseVector[Double], PRowVector <: Transpose[DenseVector[Double]], PMatrix <: DenseMatrix[Double],
+    PScalar, PColumnVector, PRowVector, PMatrix,
     DScalar, DColumnVector, DRowVector, DMatrix,
     DualScalar <: dual.DualScalar[PScalar, DScalar],
     DualColumnVector <: dual.DualColumnVector[PColumnVector, DColumnVector],

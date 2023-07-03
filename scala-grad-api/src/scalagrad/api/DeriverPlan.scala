@@ -105,14 +105,8 @@ abstract class DeriverPlan[
     type UpPByMatrix[T] = T match
         case PScalar       => PMatrix
         case PColumnVector => PMatrix
+        case PRowVector    => PMatrix
         case PMatrix       => PMatrix
-        case PMatrix       => PMatrix
-
-    type PToDual[T] = T match
-        case PScalar       => DualScalar      
-        case PColumnVector => DualColumnVector
-        case PRowVector    => DualRowVector   
-        case PMatrix       => DualMatrix      
 
     type CopyAndUpP = [T <: Tuple] =>> [X] =>> X match
         case DualScalar => T

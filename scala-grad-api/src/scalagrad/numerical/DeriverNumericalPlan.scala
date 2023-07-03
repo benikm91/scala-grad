@@ -2,11 +2,10 @@ package scalagrad.numerical
 
 import scalagrad.api.DeriverFromTo
 import scalagrad.api.matrixalgebra.MatrixAlgebra
-import breeze.linalg.{DenseVector, Transpose, DenseMatrix}
+import scala.reflect.Typeable
 
 abstract class DeriverNumericalPlan[
-    // TODO currently type bounds are needed to make the compiler happy, but they should not be needed
-    PScalar <: Double, PColumnVector <: DenseVector[Double], PRowVector <: Transpose[DenseVector[Double]], PMatrix <: DenseMatrix[Double],
+    PScalar : Typeable, PColumnVector : Typeable, PRowVector : Typeable, PMatrix : Typeable,
 ](
     val algebra: MatrixAlgebra[PScalar, PColumnVector, PRowVector, PMatrix],
 ):

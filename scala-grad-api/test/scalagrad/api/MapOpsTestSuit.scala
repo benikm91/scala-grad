@@ -19,13 +19,12 @@ import scalagrad.numerical.DeriverNumericalPlan
 import scalagrad.api.forward.DeriverForwardPlan
 import scalagrad.api.reverse.DeriverReversePlan
 
-import breeze.linalg.{DenseVector, Transpose, DenseMatrix}
 import scalagrad.api.matrixalgebra.MatrixAlgebra
 import scala.math.Fractional.Implicits.given
 import spire.algebra.Trig
 
 trait MapOpsTestSuit[
-    PScalar <: Double, PColumnVector <: DenseVector[Double], PRowVector <: Transpose[DenseVector[Double]], PMatrix <: DenseMatrix[Double],
+    PScalar, PColumnVector, PRowVector, PMatrix,
     DScalar, DColumnVector, DRowVector, DMatrix,
     DualScalar <: dual.DualScalar[PScalar, DScalar],
     DualColumnVector <: dual.DualColumnVector[PColumnVector, DColumnVector],

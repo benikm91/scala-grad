@@ -23,6 +23,7 @@ import breeze.linalg.*
 import scalagrad.api.matrixalgebra.MatrixAlgebra
 
 trait BasicOpsTestSuit[
+    // TODO Remove breeze type bounds
     PScalar <: Double, PColumnVector <: DenseVector[Double], PRowVector <: Transpose[DenseVector[Double]], PMatrix <: DenseMatrix[Double],
     DScalar, DColumnVector, DRowVector, DMatrix,
     DualScalar <: dual.DualScalar[PScalar, DScalar],

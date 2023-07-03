@@ -10,7 +10,6 @@ import scalagrad.api.matrixalgebra.CreateOps
 import scalagrad.api.matrixalgebra.OneOps
 import scalagrad.api.matrixalgebra.MatrixAlgebra
 import scalagrad.api.reverse.eval.Eval
-import breeze.linalg.*
 import scalagrad.api.reverse.DualDeltaDerivativeMatrixAlgebra
 import scala.reflect.Typeable
 
@@ -74,6 +73,54 @@ abstract class DeriverReversePlan[
         override def derive(f: DualMatrix => DualScalar): PMatrix => PMatrix = x => 
             tuple2Scalar[Tuple1[DualMatrix]].derive((t: Tuple1[DualMatrix]) => f(t.head))(Tuple1(x)).head
     
+    given scalar2ColumnVector: DeriverFromTo[DualScalar => DualColumnVector, PScalar => PColumnVector] with
+        override def derive(f: DualScalar => DualColumnVector): PScalar => PColumnVector = x => 
+            tuple2ColumnVector[Tuple1[DualScalar]].derive((t: Tuple1[DualScalar]) => f(t.head))(Tuple1(x)).head
+
+    given columnVector2ColumnVector: DeriverFromTo[DualColumnVector => DualColumnVector, PColumnVector => UpPByColumnVector[PColumnVector]] with
+        override def derive(f: DualColumnVector => DualColumnVector): PColumnVector => UpPByColumnVector[PColumnVector] = x => 
+            tuple2ColumnVector[Tuple1[DualColumnVector]].derive((t: Tuple1[DualColumnVector]) => f(t.head))(Tuple1(x)).head
+
+    given rowVector2ColumnVector: DeriverFromTo[DualRowVector => DualColumnVector, PRowVector => UpPByColumnVector[PRowVector]] with
+        override def derive(f: DualRowVector => DualColumnVector): PRowVector => UpPByColumnVector[PRowVector] = x => 
+            tuple2ColumnVector[Tuple1[DualRowVector]].derive((t: Tuple1[DualRowVector]) => f(t.head))(Tuple1(x)).head
+
+    given matrix2ColumnVector: DeriverFromTo[DualMatrix => DualColumnVector, PMatrix => UpPByColumnVector[PMatrix]] with
+        override def derive(f: DualMatrix => DualColumnVector): PMatrix => UpPByColumnVector[PMatrix] = x => 
+            tuple2ColumnVector[Tuple1[DualMatrix]].derive((t: Tuple1[DualMatrix]) => f(t.head))(Tuple1(x)).head
+
+    given scalar2RowVector: DeriverFromTo[DualScalar => DualRowVector, PScalar => PRowVector] with
+        override def derive(f: DualScalar => DualRowVector): PScalar => PRowVector = x => 
+            tuple2RowVector[Tuple1[DualScalar]].derive((t: Tuple1[DualScalar]) => f(t.head))(Tuple1(x)).head
+
+    given columnVector2RowVector: DeriverFromTo[DualColumnVector => DualRowVector, PColumnVector => UpPByRowVector[PColumnVector]] with
+        override def derive(f: DualColumnVector => DualRowVector): PColumnVector => UpPByRowVector[PColumnVector] = x => 
+            tuple2RowVector[Tuple1[DualColumnVector]].derive((t: Tuple1[DualColumnVector]) => f(t.head))(Tuple1(x)).head
+
+    given rowVector2RowVector: DeriverFromTo[DualRowVector => DualRowVector, PRowVector => UpPByRowVector[PRowVector]] with
+        override def derive(f: DualRowVector => DualRowVector): PRowVector => UpPByRowVector[PRowVector] = x => 
+            tuple2RowVector[Tuple1[DualRowVector]].derive((t: Tuple1[DualRowVector]) => f(t.head))(Tuple1(x)).head
+
+    given matrix2RowVector: DeriverFromTo[DualMatrix => DualRowVector, PMatrix => UpPByRowVector[PMatrix]] with
+        override def derive(f: DualMatrix => DualRowVector): PMatrix => UpPByRowVector[PMatrix] = x => 
+            tuple2RowVector[Tuple1[DualMatrix]].derive((t: Tuple1[DualMatrix]) => f(t.head))(Tuple1(x)).head
+
+    given scalar2Matrix: DeriverFromTo[DualScalar => DualMatrix, PScalar => PMatrix] with
+        override def derive(f: DualScalar => DualMatrix): PScalar => PMatrix = x => 
+            tuple2Matrix[Tuple1[DualScalar]].derive((t: Tuple1[DualScalar]) => f(t.head))(Tuple1(x)).head
+
+    given columnVector2Matrix: DeriverFromTo[DualColumnVector => DualMatrix, PColumnVector => UpPByMatrix[PColumnVector]] with
+        override def derive(f: DualColumnVector => DualMatrix): PColumnVector => UpPByMatrix[PColumnVector] = x => 
+            tuple2Matrix[Tuple1[DualColumnVector]].derive((t: Tuple1[DualColumnVector]) => f(t.head))(Tuple1(x)).head
+
+    given rowVector2Matrix: DeriverFromTo[DualRowVector => DualMatrix, PRowVector => UpPByMatrix[PRowVector]] with
+        override def derive(f: DualRowVector => DualMatrix): PRowVector => UpPByMatrix[PRowVector] = x => 
+            tuple2Matrix[Tuple1[DualRowVector]].derive((t: Tuple1[DualRowVector]) => f(t.head))(Tuple1(x)).head
+
+    given matrix2Matrix: DeriverFromTo[DualMatrix => DualMatrix, PMatrix => UpPByMatrix[PMatrix]] with
+        override def derive(f: DualMatrix => DualMatrix): PMatrix => UpPByMatrix[PMatrix] = x => 
+            tuple2Matrix[Tuple1[DualMatrix]].derive((t: Tuple1[DualMatrix]) => f(t.head))(Tuple1(x)).head
+
     given tuple2Scalar[T <: Tuple : DualTuple]: DeriverFromTo[T => DualScalar, DualTupleToPTuple[T] => DualTupleToPTuple[T]] with
 
         override def derive(f: T => DualScalar): DualTupleToPTuple[T] => DualTupleToPTuple[T] = t =>
@@ -105,7 +152,23 @@ abstract class DeriverReversePlan[
                 [T] => (e: T) =>
                     e.asInstanceOf[Tuple1[Any]].head
             ).asInstanceOf[Tuple.Map[DualTupleToPTuple[T], UpPByMatrix]]
-           
+        
+    given scalar2Tuple[RT <: Tuple : DualTuple]: DeriverFromTo[DualScalar => RT, PScalar => DualTupleToPTuple[RT]] with
+        override def derive(f: DualScalar => RT): PScalar => DualTupleToPTuple[RT] = t =>
+            tuple2Tuple[Tuple1[DualScalar], RT].derive(t => f(t.head))(Tuple1(t)).asInstanceOf[Tuple1[DualTupleToPTuple[RT]]].head
+    
+    given columnVector2Tuple[RT <: Tuple : DualTuple]: DeriverFromTo[DualColumnVector => RT, PColumnVector => DualTupleToPTuple[RT]] with
+        override def derive(f: DualColumnVector => RT): PColumnVector => DualTupleToPTuple[RT] = t =>
+            tuple2Tuple[Tuple1[DualColumnVector], RT].derive(t => f(t.head))(Tuple1(t)).asInstanceOf[Tuple1[DualTupleToPTuple[RT]]].head
+    
+    given rowVector2Tuple[RT <: Tuple : DualTuple]: DeriverFromTo[DualRowVector => RT, PRowVector => DualTupleToPTuple[RT]] with
+        override def derive(f: DualRowVector => RT): PRowVector => DualTupleToPTuple[RT] = t =>
+            tuple2Tuple[Tuple1[DualRowVector], RT].derive(t => f(t.head))(Tuple1(t)).asInstanceOf[Tuple1[DualTupleToPTuple[RT]]].head
+    
+    given matrix2Tuple[RT <: Tuple : DualTuple]: DeriverFromTo[DualMatrix => RT, PMatrix => DualTupleToPTuple[RT]] with
+        override def derive(f: DualMatrix => RT): PMatrix => DualTupleToPTuple[RT] = t =>
+            tuple2Tuple[Tuple1[DualMatrix], RT].derive(t => f(t.head))(Tuple1(t)).asInstanceOf[Tuple1[DualTupleToPTuple[RT]]].head
+    
     given tuple2Tuple[T <: Tuple : DualTuple, RT <: Tuple : DualTuple]: DeriverFromTo[T => RT, 
         DualTupleToPTuple[T] => CartesianProductAndUpP[T, DualTupleToPTuple[RT]]
     ] with
@@ -130,6 +193,7 @@ abstract class DeriverReversePlan[
                         case (rv: PRowVector, id: Int) => res.rowVectors.get(id).getOrElse(zeroRowVector(rv.length))
                         case (m: PMatrix, id: Int) => res.matrices.get(id).getOrElse(zeroMatrix(m.nRows, m.nCols))
                     }).asInstanceOf[DualTupleToPTuple[RT]]
+                // map over outputs
                 val res = fRes.map[[X] =>> Any]([U] => (t: U) => t match {
                     case x: DualScalar => 
                         val res = eval.evalScalar(one, x.delta)
@@ -139,6 +203,7 @@ abstract class DeriverReversePlan[
                             val res = eval.evalColumnVector(oneHotColumnVector(x.length, i), x.delta)
                             extractResults(res)
                         }
+                        // map over inputs
                         results.head.zip(ids).map[[X] =>> Any]([U] => (t2: U) => t2 match {
                             case (x: PScalar, index: Int) => 
                                 val elements = results.map(t => t.toList(index).asInstanceOf[PScalar])
@@ -159,6 +224,7 @@ abstract class DeriverReversePlan[
                             val res = eval.evalRowVector(oneHotRowVector(x.length, i), x.delta)
                             extractResults(res)
                         }
+                        // map over inputs
                         results.head.zip(ids).map[[X] =>> Any]([U] => (t2: U) => t2 match {
                             case (x: PScalar, index: Int) => 
                                 val elements = results.map(t => t.toList(index).asInstanceOf[PScalar])
@@ -168,7 +234,7 @@ abstract class DeriverReversePlan[
                                 stackColumns(columns)
                             case (x: PRowVector, index: Int) => 
                                 val rows = results.map(t => t.toList(index).asInstanceOf[PRowVector])
-                                stackRows(rows)
+                                stackRows(rows).t
                             case (x: PMatrix, index: Int) =>
                                 val matrices = results.map(t => t.toList(index).asInstanceOf[PMatrix])
                                 val (resNRows, resNCols) = (matrices.head.nRows, matrices.head.nCols)
@@ -179,6 +245,7 @@ abstract class DeriverReversePlan[
                             val res = eval.evalMatrix(oneHotMatrix(x.v.nRows, x.v.nCols, i), x.delta)
                             extractResults(res)
                         }
+                        // map over inputs
                         results.head.zip(ids).map[[X] =>> Any]([U] => (t2: U) => t2 match {
                             case (_: PScalar, index: Int) => 
                                 val elements = results.map(t => t.toList(index).asInstanceOf[PScalar])

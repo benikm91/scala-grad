@@ -26,70 +26,56 @@ def forwardMulti =
     import scalagrad.auto.forward.breeze.DeriverBreezeDoubleForwardPlan.algebra.*
     import scalagrad.api.forward.dual.*
 
-    val x = DeriverBreezeDoubleForwardPlan.tuple2Tuple[
-        (DualNumberScalar[Double], DualNumberScalar[Double], DualNumberScalar[Double]),
-        (DualNumberScalar[Double], DualNumberScalar[Double]),
-    ]
-
     def fx(
         x1: DualNumberScalar[Double],
         x2: DualNumberScalar[Double],
         x3: DualNumberScalar[Double]
     ): (DualNumberScalar[Double], DualNumberScalar[Double]) = (x1, x2)
 
-    val t = x.derive(fx.tupled)
+    val t = ScalaGrad.derive(fx.tupled)
     val tRes: ((Double, Double), (Double, Double), (Double, Double)) = t(1.0, 2.0, 3.0)
     println(tRes)
-
-    // S, CV => S, S ==> S, CV => ((S, CV), (S, CV))
-    val x2 = DeriverBreezeDoubleForwardPlan.tuple2Tuple[
-        (DualNumberScalar[Double], DualNumberColumnVector[DenseVector[Double]]),
-        (DualNumberScalar[Double], DualNumberScalar[Double]),
-    ]
 
     def fx2(
         x1: DualNumberScalar[Double],
         x2: DualNumberColumnVector[DenseVector[Double]]
     ): (DualNumberScalar[Double], DualNumberScalar[Double]) = (x1, x1)
 
-    val t2 = x2.derive(fx2.tupled)
+    val t2 = ScalaGrad.derive(fx2.tupled)
     val t2Res: ((Double, Double), (DenseVector[Double], DenseVector[Double])) = t2(1.0, DenseVector(2.0, 1.0))
     println(t2Res)
-
-    // S, CV => S, CV ==> S, CV => ((S, CV), (CV, M))
-    val x3 = DeriverBreezeDoubleForwardPlan.tuple2Tuple[
-        (DualNumberScalar[Double], DualNumberColumnVector[DenseVector[Double]]),
-        (DualNumberScalar[Double], DualNumberColumnVector[DenseVector[Double]]),
-    ]
 
     def fx3(
         x1: DualNumberScalar[Double],
         x2: DualNumberColumnVector[DenseVector[Double]]
     ): (DualNumberScalar[Double], DualNumberColumnVector[DenseVector[Double]]) = (x1, x2)
 
-    val t3 = x3.derive(fx3.tupled)
+    val t3 = ScalaGrad.derive(fx3.tupled)
     val t3Res: ((Double, DenseVector[Double]), (DenseVector[Double], DenseMatrix[Double])) = t3(1.0, DenseVector(2.0, 1.0))
     println(t3Res)
 
     val a = DeriverBreezeDoubleForwardPlan.algebraT
     
-     val x4 = DeriverBreezeDoubleForwardPlan.tuple2Tuple[
-         (a.Scalar, a.ColumnVector),
-         (a.Scalar, a.Matrix),
-     ]
-
      def fx4(
          x1: a.Scalar,
          x2: a.ColumnVector
      ): (a.Scalar, a.Matrix) = (x1, x2 * x2.t)
 
-    val t4 = x4.derive(fx4.tupled)
+    val t4 = ScalaGrad.derive(fx4.tupled)
     val t4Res: ((Double, DenseMatrix[Double]), (DenseVector[Double], DenseMatrix[Double])) = t4(1.0, DenseVector(2.0, 1.0))
     println("t4Res")
     println(t4Res)
     println(t4Res._1._2.rows + " " + t4Res._1._2.cols)
     println(t4Res._2._2.rows + " " + t4Res._2._2.cols)
 
+     def fx5(
+         x1: a.Scalar,
+     ): (a.Scalar, a.Scalar) = (x1, x1)
+
+    val t5 = ScalaGrad.derive(fx5)
+    val t5Res: (Double, Double) = t5(1.0)
+    println("t5Res")
+    println(t5Res)
 
 @main
 def reverseMulti = 
@@ -100,62 +86,40 @@ def reverseMulti =
 
     val a = DeriverBreezeDoubleReversePlan.algebraT
 
-    val x = DeriverBreezeDoubleReversePlan.tuple2Tuple[
-        (a.Scalar, a.Scalar, a.Scalar),
-        (a.Scalar, a.Scalar),
-    ]
-
     def fx(
         x1: a.Scalar,
         x2: a.Scalar,
         x3: a.Scalar
     ): (a.Scalar, a.Scalar) = (x1, x2)
 
-    val t = x.derive(fx.tupled)
+    val t = ScalaGrad.derive(fx.tupled)
     val tRes: ((Double, Double), (Double, Double), (Double, Double)) = t(1.0, 2.0, 3.0)
     println(tRes)
-
-    // S, CV => S, S ==> S, CV => ((S, CV), (S, CV))
-    val x2 = DeriverBreezeDoubleReversePlan.tuple2Tuple[
-        (a.Scalar, a.ColumnVector),
-        (a.Scalar, a.Scalar),
-    ]
 
     def fx2(
         x1: a.Scalar,
         x2: a.ColumnVector
     ): (a.Scalar, a.Scalar) = (x1, x1)
 
-    val t2 = x2.derive(fx2.tupled)
+    val t2 = ScalaGrad.derive(fx2.tupled)
     val t2Res: ((Double, Double), (DenseVector[Double], DenseVector[Double])) = t2(1.0, DenseVector(2.0, 1.0))
     println(t2Res)
-
-     // S, CV => S, CV ==> S, CV => ((S, CV), (CV, M))
-     val x3 = DeriverBreezeDoubleReversePlan.tuple2Tuple[
-         (a.Scalar, a.ColumnVector),
-         (a.Scalar, a.ColumnVector),
-     ]
 
      def fx3(
          x1: a.Scalar,
          x2: a.ColumnVector
      ): (a.Scalar, a.ColumnVector) = (x1, x2)
 
-    val t3 = x3.derive(fx3.tupled)
+    val t3 = ScalaGrad.derive(fx3.tupled)
     val t3Res: ((Double, DenseVector[Double]), (DenseVector[Double], DenseMatrix[Double])) = t3(1.0, DenseVector(2.0, 1.0))
     println(t3Res)
-
-     val x4 = DeriverBreezeDoubleReversePlan.tuple2Tuple[
-         (a.Scalar, a.ColumnVector),
-         (a.Scalar, a.Matrix),
-     ]
 
      def fx4(
          x1: a.Scalar,
          x2: a.ColumnVector
      ): (a.Scalar, a.Matrix) = (x1, x2 * x2.t)
 
-    val t4 = x4.derive(fx4.tupled)
+    val t4 = ScalaGrad.derive(fx4.tupled)
     val t4Res: ((Double, DenseMatrix[Double]), (DenseVector[Double], DenseMatrix[Double])) = t4(1.0, DenseVector(2.0, 1.0))
     println("t4Res")
     println(t4Res)
@@ -279,3 +243,10 @@ def forwardForward =
     ): ffp.algebraT.Scalar = trig.exp(x)
     val ddg = ScalaGrad.derive(ScalaGrad.derive(g))
     println(ddg(5.0))
+
+    def f2(x1: ffp.algebraT.Scalar, x2: ffp.algebraT.Scalar): ffp.algebraT.Scalar = x1 * x2
+    // Apply ScalaGrad.derive twice on function
+    val df2: Tuple2[DualNumberScalar[Double], DualNumberScalar[Double]] => Tuple2[DualNumberScalar[Double], DualNumberScalar[Double]] = ScalaGrad.derive(f2)
+    import DeriverBreezeDoubleForwardPlan.{algebraGiven => _, given}
+    val ddf2 = ScalaGrad.derive(df2)
+    println(ddf2(1.0, 1.0))

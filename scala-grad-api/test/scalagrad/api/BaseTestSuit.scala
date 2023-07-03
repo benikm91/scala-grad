@@ -19,16 +19,17 @@ import scalagrad.numerical.DeriverNumericalPlan
 import scalagrad.api.forward.DeriverForwardPlan
 import scalagrad.api.reverse.DeriverReversePlan
 
-import breeze.linalg.*
 import scalagrad.api.matrixalgebra.MatrixAlgebra
 
 trait BaseTestSuit[
-    PScalar <: Double, PColumnVector <: DenseVector[Double], PRowVector <: Transpose[DenseVector[Double]], PMatrix <: DenseMatrix[Double],
+    PScalar, PColumnVector, PRowVector, PMatrix,
 ](
 ) extends should.Matchers:
     
     val primaryAlgebra: MatrixAlgebra[PScalar, PColumnVector, PRowVector, PMatrix]
-    val tolerance: Double = 1
+    val tolerance: Double = 0.5
+
+    import primaryAlgebra.*
 
     def compareAllElementsMS(t1: (PMatrix, PScalar), t2: (PMatrix, PScalar)) = 
         compareElementsMM(t1._1, t2._1)
@@ -59,12 +60,12 @@ trait BaseTestSuit[
         compareElementsSS(t1._2, t2._2)
 
     def compareElementsSS(s1: PScalar, s2: PScalar) = 
-        (s1: Double) should be((s2: Double) +- tolerance)
+        s1.toDouble should be(s2.toDouble +- tolerance)
 
     def compareElementsCVCV(cv1: PColumnVector, cv2: PColumnVector) =
         cv1.length should be(cv2.length)
-        cv1.toArray.zip(cv2.toArray).foreach { (e1, e2) =>
-            e1 should be(e2 +- tolerance)
+        cv1.elements.zip(cv2.elements).foreach { (e1, e2) =>
+            e1.toDouble should be(e2.toDouble +- tolerance)
         }
 
     def compareElementsRVRV(rv1: PRowVector, rv2: PRowVector) = compareElementsCVCV(
@@ -73,8 +74,8 @@ trait BaseTestSuit[
     )
 
     def compareElementsMM(m1: PMatrix, m2: PMatrix) = 
-        m1.rows should be(m2.rows)
-        m1.cols should be(m2.cols)
-        m1.toArray.zip(m2.toArray).foreach { (e1, e2) =>
-            e1 should be(e2 +- tolerance)
+        m1.nRows should be(m2.nRows)
+        m1.nCols should be(m2.nCols)
+        m1.elements.zip(m2.elements).foreach { (e1, e2) =>
+            e1.toDouble should be(e2.toDouble +- tolerance)
         }

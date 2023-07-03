@@ -14,11 +14,11 @@ import scalagrad.api.DeriverFromTo
 import scalagrad.numerical.DeriverNumericalPlan
 import scalagrad.api.forward.DeriverForwardPlan
 import scalagrad.api.reverse.DeriverReversePlan
-import breeze.linalg.*
 import scalagrad.api.matrixalgebra.MatrixAlgebra
+import scala.reflect.Typeable
 
 case class GlobalTestSuitParams[
-    PScalar <: Double, PColumnVector <: DenseVector[Double], PRowVector <: Transpose[DenseVector[Double]], PMatrix <: DenseMatrix[Double],
+    PScalar : Typeable, PColumnVector : Typeable, PRowVector : Typeable, PMatrix : Typeable,
     DScalar, DColumnVector, DRowVector, DMatrix,
     DualScalar <: dual.DualScalar[PScalar, DScalar],
     DualColumnVector <: dual.DualColumnVector[PColumnVector, DColumnVector],
