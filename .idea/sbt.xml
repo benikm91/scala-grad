@@ -11,6 +11,7 @@
             <option value="$PROJECT_DIR$/project" />
             <option value="$PROJECT_DIR$/scala-grad-api" />
             <option value="$PROJECT_DIR$/scala-grad-auto-breeze" />
+            <option value="$PROJECT_DIR$/showcases/deeplearning" />
           </set>
         </option>
         <option name="sbtVersion" value="1.9.0" />

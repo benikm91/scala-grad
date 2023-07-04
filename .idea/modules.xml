@@ -6,6 +6,7 @@
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/scala-grad-api.iml" filepath="$PROJECT_DIR$/.idea/modules/scala-grad-api.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/scala-grad-auto-breeze.iml" filepath="$PROJECT_DIR$/.idea/modules/scala-grad-auto-breeze.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/scala-grad-build.iml" filepath="$PROJECT_DIR$/.idea/modules/scala-grad-build.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/scala-grad-showcase-deeplearning.iml" filepath="$PROJECT_DIR$/.idea/modules/scala-grad-showcase-deeplearning.iml" />
     </modules>
   </component>
 </project>

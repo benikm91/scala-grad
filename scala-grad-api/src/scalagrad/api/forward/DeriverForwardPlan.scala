@@ -266,7 +266,7 @@ class DeriverForwardPlan[
                             case (_: DualNumberMatrix[PMatrix], index: Int) =>
                                 val elements2dOutput = elements2Outputs.map(t => t.toList(index).asInstanceOf[DualNumberMatrix[PMatrix]].dv)
                                 val nElements = elements2dOutput.map(m => m.nRows * m.nCols).sum
-                                createMatrixFromElements(elements2dOutput.length, nElements / elements2dOutput.length, elements2dOutput.flatMap(_.elements))
+                                createMatrixFromElements(elements2dOutput.length, nElements / elements2dOutput.length, elements2dOutput.map(_.elements).transpose.flatten)
                         })
                 }).asInstanceOf[CartesianProductAndUpP[T, DualTupleToPTuple[RT]]]
             forwardPlan(toZeroDuals(inputs))

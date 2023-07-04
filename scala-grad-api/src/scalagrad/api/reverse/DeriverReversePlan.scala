@@ -14,7 +14,6 @@ import scalagrad.api.reverse.DualDeltaDerivativeMatrixAlgebra
 import scala.reflect.Typeable
 
 abstract class DeriverReversePlan[
-    // TODO currently type bounds are needed to make the compiler happy, but they should not be needed
     PScalar : Typeable, PColumnVector : Typeable, PRowVector : Typeable, PMatrix : Typeable,
 ](
     primaryMatrixAlgebra: MatrixAlgebra[PScalar, PColumnVector, PRowVector, PMatrix],
@@ -178,7 +177,7 @@ abstract class DeriverReversePlan[
         override def derive(f: T => RT): DualTupleToPTuple[T] => CartesianProductAndUpP[T, DualTupleToPTuple[RT]] = t => withResetIndex {
             def reversePlan(t: DualTupleToPTuple[T]): CartesianProductAndUpP[T, DualTupleToPTuple[RT]] = 
                 val tWithIndex = t.zip(ids)
-                val fRes = f(
+                val output = f(
                     tWithIndex.map[[X] =>> Any]([U] => (t: U) => t match {
                         case (x: PScalar, id: Int) => createDualScalar(x, DeltaScalar.Val(id))
                         case (x: PColumnVector, id: Int) => createDualColumnVector(x, DeltaColumnVector.Val(id))
@@ -194,72 +193,76 @@ abstract class DeriverReversePlan[
                         case (m: PMatrix, id: Int) => res.matrices.get(id).getOrElse(zeroMatrix(m.nRows, m.nCols))
                     }).asInstanceOf[DualTupleToPTuple[RT]]
                 // map over outputs
-                val res = fRes.map[[X] =>> Any]([U] => (t: U) => t match {
+                val res = output.map[[X] =>> Any]([U] => (t: U) => t match {
                     case x: DualScalar => 
+                        // run reverse plan for scalar
                         val res = eval.evalScalar(one, x.delta)
                         extractResults(res)
                     case x: DualColumnVector =>
-                        val results = for (i <- 0 until x.length) yield { 
+                        // run reverse plan for column vector
+                        val inputsByOutputElements = for (i <- 0 until x.length) yield { 
                             val res = eval.evalColumnVector(oneHotColumnVector(x.length, i), x.delta)
                             extractResults(res)
                         }
-                        // map over inputs
-                        results.head.zip(ids).map[[X] =>> Any]([U] => (t2: U) => t2 match {
-                            case (x: PScalar, index: Int) => 
-                                val elements = results.map(t => t.toList(index).asInstanceOf[PScalar])
-                                createColumnVectorFromElements(elements)
-                            case (x: PColumnVector, index: Int) => 
-                                val columns = results.map(t => t.toList(index).asInstanceOf[PColumnVector])
-                                stackColumns(columns)
-                            case (x: PRowVector, index: Int) => 
-                                val rows = results.map(t => t.toList(index).asInstanceOf[PRowVector])
-                                stackRows(rows)
-                            case (x: PMatrix, index: Int) =>
-                                val matrices = results.map(t => t.toList(index).asInstanceOf[PMatrix])
-                                val (resNRows, resNCols) = (matrices.head.nRows, matrices.head.nCols)
-                                createMatrixFromElements(matrices.length, resNRows * resNCols, matrices.flatMap(_.elements))
+                        // map over input
+                        inputsByOutputElements.head.zip(ids).map[[X] =>> Any]([U] => (t2: U) => t2 match {
+                            case (_: PScalar, index: Int) => 
+                                val inputByOutputsElements = inputsByOutputElements.map(t => t.toList(index).asInstanceOf[PScalar])
+                                createColumnVectorFromElements(inputByOutputsElements)
+                            case (_: PColumnVector, index: Int) => 
+                                val inputByOutputsElements = inputsByOutputElements.map(t => t.toList(index).asInstanceOf[PColumnVector])
+                                stackColumns(inputByOutputsElements)
+                            case (_: PRowVector, index: Int) => 
+                                val inputByOutputsElements = inputsByOutputElements.map(t => t.toList(index).asInstanceOf[PRowVector])
+                                stackRows(inputByOutputsElements).t
+                            case (m: PMatrix, index: Int) =>
+                                val inputByOutputsElements = inputsByOutputElements.map(t => t.toList(index).asInstanceOf[PMatrix])
+                                val nInputElements = inputByOutputsElements.head.nRows * inputByOutputsElements.head.nCols
+                                createMatrixFromElements(nInputElements, inputByOutputsElements.length, inputByOutputsElements.flatMap(_.elements))
                         })
                     case x: DualRowVector => 
-                        val results = for (i <- 0 until x.length) yield { 
+                        // run reverse plan for row vector
+                        val inputsByOutputElements = for (i <- 0 until x.length) yield { 
                             val res = eval.evalRowVector(oneHotRowVector(x.length, i), x.delta)
                             extractResults(res)
                         }
                         // map over inputs
-                        results.head.zip(ids).map[[X] =>> Any]([U] => (t2: U) => t2 match {
+                        inputsByOutputElements.head.zip(ids).map[[X] =>> Any]([U] => (t2: U) => t2 match {
                             case (x: PScalar, index: Int) => 
-                                val elements = results.map(t => t.toList(index).asInstanceOf[PScalar])
-                                createRowVectorFromElements(elements)
+                                val inputByOutputsElements = inputsByOutputElements.map(t => t.toList(index).asInstanceOf[PScalar])
+                                createRowVectorFromElements(inputByOutputsElements)
                             case (x: PColumnVector, index: Int) => 
-                                val columns = results.map(t => t.toList(index).asInstanceOf[PColumnVector])
-                                stackColumns(columns)
+                                val inputByOutputsElements = inputsByOutputElements.map(t => t.toList(index).asInstanceOf[PColumnVector])
+                                stackColumns(inputByOutputsElements)
                             case (x: PRowVector, index: Int) => 
-                                val rows = results.map(t => t.toList(index).asInstanceOf[PRowVector])
-                                stackRows(rows).t
+                                val inputByOutputsElements = inputsByOutputElements.map(t => t.toList(index).asInstanceOf[PRowVector])
+                                stackRows(inputByOutputsElements).t
                             case (x: PMatrix, index: Int) =>
-                                val matrices = results.map(t => t.toList(index).asInstanceOf[PMatrix])
-                                val (resNRows, resNCols) = (matrices.head.nRows, matrices.head.nCols)
-                                createMatrixFromElements(matrices.length, resNRows * resNCols, matrices.flatMap(_.elements))
+                                val inputByOutputsElements = inputsByOutputElements.map(t => t.toList(index).asInstanceOf[PMatrix])
+                                val nInputElements = inputByOutputsElements.head.nRows * inputByOutputsElements.head.nCols
+                                createMatrixFromElements(nInputElements, inputByOutputsElements.length, inputByOutputsElements.map(_.elements).transpose.flatten)
                         })
                     case x: DualMatrix => 
-                        val results = for (i <- 0 until x.v.nRows * x.v.nCols) yield {
+                        // run reverse plan for matrix
+                        val inputsByOutputElements = for (i <- 0 until x.v.nRows * x.v.nCols) yield {
                             val res = eval.evalMatrix(oneHotMatrix(x.v.nRows, x.v.nCols, i), x.delta)
                             extractResults(res)
                         }
                         // map over inputs
-                        results.head.zip(ids).map[[X] =>> Any]([U] => (t2: U) => t2 match {
+                        inputsByOutputElements.head.zip(ids).map[[X] =>> Any]([U] => (t2: U) => t2 match {
                             case (_: PScalar, index: Int) => 
-                                val elements = results.map(t => t.toList(index).asInstanceOf[PScalar])
-                                createMatrixFromElements(x.v.nRows, x.v.nCols, elements)
+                                val inputByOutputsElements = inputsByOutputElements.map(t => t.toList(index).asInstanceOf[PScalar])
+                                createMatrixFromElements(x.v.nRows, x.v.nCols, inputByOutputsElements)
                             case (_: PColumnVector, index: Int) => 
-                                val columns = results.map(t => t.toList(index).asInstanceOf[PColumnVector])
-                                stackColumns(columns)
+                                val inputByOutputsElements = inputsByOutputElements.map(t => t.toList(index).asInstanceOf[PColumnVector])
+                                stackColumns(inputByOutputsElements)
                             case (_: PRowVector, index: Int) => 
-                                val rows = results.map(t => t.toList(index).asInstanceOf[PRowVector])
-                                stackRows(rows)
+                                val inputByOutputsElements = inputsByOutputElements.map(t => t.toList(index).asInstanceOf[PRowVector])
+                                stackRows(inputByOutputsElements).t
                             case (_: PMatrix, index: Int) =>
-                                val matrices = results.map(t => t.toList(index).asInstanceOf[PMatrix])
-                                val (resNRows, resNCols) = (matrices.head.nRows, matrices.head.nCols)
-                                createMatrixFromElements(matrices.length, resNRows * resNCols, matrices.flatMap(_.elements))
+                                val inputByOutputsElements = inputsByOutputElements.map(t => t.toList(index).asInstanceOf[PMatrix])
+                                val nInputElements = inputByOutputsElements.head.nRows * inputByOutputsElements.head.nCols
+                                createMatrixFromElements(nInputElements, inputByOutputsElements.length, inputByOutputsElements.flatMap(_.elements))
                         })
                 }).asInstanceOf[CartesianProductAndUpP[RT, DualTupleToPTuple[T]]]
                 // unzip res, e.g. make ((A1, A2, A3), (B1, B2, B3)) to ((A1, B1), (A2, B2), (A3, B3))
@@ -269,4 +272,3 @@ abstract class DeriverReversePlan[
                 finalRes.asInstanceOf[CartesianProductAndUpP[T, DualTupleToPTuple[RT]]]
             reversePlan(t)
         }
-        

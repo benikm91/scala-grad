@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<module external.linked.project.id="deepLearningShowcase [file:/Users/mebr/IdeaProjects/scala-grad-final/]" external.linked.project.path="$MODULE_DIR$/../../showcases/deeplearning" external.root.project.path="$MODULE_DIR$/../.." external.system.id="SBT" type="JAVA_MODULE" version="4">
+  <component name="NewModuleRootManager" LANGUAGE_LEVEL="JDK_19">
+    <output url="file://$MODULE_DIR$/../../showcases/deeplearning/target/scala-3.2.2/classes" />
+    <output-test url="file://$MODULE_DIR$/../../showcases/deeplearning/target/scala-3.2.2/test-classes" />
+    <exclude-output />
+    <content url="file://$MODULE_DIR$/../../showcases/deeplearning">
+      <sourceFolder url="file://$MODULE_DIR$/../../showcases/deeplearning/res" type="java-resource" />
+      <sourceFolder url="file://$MODULE_DIR$/../../showcases/deeplearning/src" isTestSource="false" />
+      <excludeFolder url="file://$MODULE_DIR$/../../showcases/deeplearning/target" />
+    </content>
+    <orderEntry type="inheritedJdk" />
+    <orderEntry type="sourceFolder" forTests="false" />
+    <orderEntry type="library" name="sbt: com.github.wendykierp:JTransforms:3.1:jar" level="project" />
+    <orderEntry type="library" name="sbt: dev.ludovic.netlib:arpack:3.0.1:jar" level="project" />
+    <orderEntry type="library" name="sbt: dev.ludovic.netlib:blas:3.0.1:jar" level="project" />
+    <orderEntry type="library" name="sbt: dev.ludovic.netlib:lapack:3.0.1:jar" level="project" />
+    <orderEntry type="library" name="sbt: net.sf.opencsv:opencsv:2.3:jar" level="project" />
+    <orderEntry type="library" name="sbt: net.sourceforge.f2j:arpack_combined_all:0.1:jar" level="project" />
+    <orderEntry type="library" name="sbt: org.apache.commons:commons-math3:3.5:jar" level="project" />
+    <orderEntry type="library" name="sbt: org.scala-lang.modules:scala-collection-compat_3:2.7.0:jar" level="project" />
+    <orderEntry type="library" name="sbt: org.scala-lang:scala-library:2.13.10:jar" level="project" />
+    <orderEntry type="library" name="sbt: org.scala-lang:scala3-library_3:3.2.2:jar" level="project" />
+    <orderEntry type="library" name="sbt: org.scalanlp:breeze-macros_3:2.1.0:jar" level="project" />
+    <orderEntry type="library" name="sbt: org.scalanlp:breeze_3:2.1.0:jar" level="project" />
+    <orderEntry type="library" name="sbt: org.slf4j:slf4j-api:1.7.5:jar" level="project" />
+    <orderEntry type="library" name="sbt: org.typelevel:algebra_3:2.8.0:jar" level="project" />
+    <orderEntry type="library" name="sbt: org.typelevel:cats-kernel_3:2.8.0:jar" level="project" />
+    <orderEntry type="library" name="sbt: org.typelevel:spire-macros_3:0.18.0:jar" level="project" />
+    <orderEntry type="library" name="sbt: org.typelevel:spire-platform_3:0.18.0:jar" level="project" />
+    <orderEntry type="library" name="sbt: org.typelevel:spire-util_3:0.18.0:jar" level="project" />
+    <orderEntry type="library" name="sbt: org.typelevel:spire_3:0.18.0:jar" level="project" />
+    <orderEntry type="library" name="sbt: pl.edu.icm:JLargeArrays:1.5:jar" level="project" />
+    <orderEntry type="module" module-name="scala-grad-auto-breeze" exported="" />
+  </component>
+</module>

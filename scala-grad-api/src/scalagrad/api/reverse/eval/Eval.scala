@@ -122,42 +122,29 @@ case class Eval[PScalar, PColumnVector, PRowVector, PMatrix](
                         val newOutput = zeroMatrix(nRows, nCols)
                         newOutput.setElementAt(iRow, jColumn, dOutput)
                     }
-                    if (index == -1) {
-                        // If dm is a Val, then we can directly update the result
-                        assert(dm.isInstanceOf[DeltaMatrix.Val[PScalar, PColumnVector, PRowVector, PMatrix]])
-                        evalMatrixStep(newOutput, dm, intermediateResults, endIndex, results)
-                    } else {
-                        // Store change in intermediateResults
-                        intermediateResults(index) = Option(intermediateResults(index).asInstanceOf[EvalStepMatrixResult]).fold(
-                            EvalStepMatrixResult(newOutput, dm)
-                        )(x =>
-                            assert(x.dm.index == dm.index)
-                            val existingOutput = x.dOutput.setElementAt(iRow, jColumn, x.dOutput.elementAt(iRow, jColumn) + dOutput)
-                            x.copy(dOutput = existingOutput)
-                        )
-                        results
-                    }
+                    intermediateResults(index) = Option(intermediateResults(index).asInstanceOf[EvalStepMatrixResult]).fold(
+                        EvalStepMatrixResult(newOutput, dm)
+                    )(x =>
+                        assert(x.dm.index == dm.index)
+                        val existingOutput = x.dOutput.setElementAt(iRow, jColumn, x.dOutput.elementAt(iRow, jColumn) + dOutput)
+                        x.copy(dOutput = existingOutput)
+                    )
+                    results
                 case ElementAtCV(dcv, iRow, length) => 
                     val index = dcv.index
                     lazy val newOutput = {
                         val newOutput = zeroColumnVector(length)
                         newOutput.setElementAt(iRow, dOutput)
                     }
-                    if (index == -1) {
-                        // If dm is a Val, then we can directly update the result
-                        assert(dcv.isInstanceOf[DeltaColumnVector.Val[PScalar, PColumnVector, PRowVector, PMatrix]])
-                        evalColumnVectorStep(newOutput, dcv, intermediateResults, endIndex, results)
-                    } else {
-                        intermediateResults(index) = 
-                            Option(intermediateResults(index).asInstanceOf[EvalStepColumnVectorResult]).fold(
-                                EvalStepColumnVectorResult(newOutput, dcv)
-                            )(x =>
-                                assert(x.dcv.index == dcv.index)
-                                val existingOutput = x.dOutput.setElementAt(iRow, dOutput)
-                                x.copy(dOutput = existingOutput)
-                            )
-                        results
-                    }
+                    intermediateResults(index) = 
+                        Option(intermediateResults(index).asInstanceOf[EvalStepColumnVectorResult]).fold(
+                            EvalStepColumnVectorResult(newOutput, dcv)
+                        )(x =>
+                            assert(x.dcv.index == dcv.index)
+                            val existingOutput = x.dOutput.setElementAt(iRow, x.dOutput.elementAt(iRow) + dOutput)
+                            x.copy(dOutput = existingOutput)
+                        )
+                    results
                 case NegateS(s) => 
                     evalScalarStep(-dOutput, s, intermediateResults, endIndex, results)
                 case Invert(s) => 
@@ -226,20 +213,14 @@ case class Eval[PScalar, PColumnVector, PRowVector, PMatrix](
                         val newOutput = pma.zeroMatrix(nRows, nColumns)
                         newOutput.setColumnAt(jColumn, dOutput)
                     }
-                    if (index == -1) {
-                        // If dm is a Val, then we can directly update the result
-                        assert(dm.isInstanceOf[DeltaMatrix.Val[PScalar, PColumnVector, PRowVector, PMatrix]])
-                        evalMatrixStep(newOutput, dm, intermediateResults, endIndex, results)
-                    } else {
-                        intermediateResults(index) =
-                            Option(intermediateResults(index).asInstanceOf[EvalStepMatrixResult]).fold(
-                                EvalStepMatrixResult(newOutput, dm)
-                            )(x =>
-                                assert(x.dm.index == dm.index)
-                                x.copy(dOutput = x.dOutput.setColumnAt(jColumn, x.dOutput.columnAt(jColumn) + dOutput))
-                            )
-                        results
-                    }
+                    intermediateResults(index) =
+                        Option(intermediateResults(index).asInstanceOf[EvalStepMatrixResult]).fold(
+                            EvalStepMatrixResult(newOutput, dm)
+                        )(x =>
+                            assert(x.dm.index == dm.index)
+                            x.copy(dOutput = x.dOutput.setColumnAt(jColumn, x.dOutput.columnAt(jColumn) + dOutput))
+                        )
+                    results
                 case NegateCV(dcv) => 
                     evalColumnVectorStep(-dOutput, dcv, intermediateResults, endIndex, results)
                 case TransposeRV(drv) => 

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ScalaCompilerConfiguration">
-    <profile name="sbt 1" modules="scala-grad,scala-grad-api,scala-grad-auto-breeze,scala-grad-final_1996" />
+    <profile name="sbt 1" modules="scala-grad,scala-grad-api,scala-grad-auto-breeze,scala-grad-final_1996,scala-grad-showcase-deeplearning" />
   </component>
 </project>

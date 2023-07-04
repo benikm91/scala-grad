@@ -13,7 +13,6 @@ import DeriverBreezeDoubleReversePlan.given
 import breeze.linalg.*
 import scalagrad.util.test.BreezeTestUtil
 
-/*
 case class BreezeReverseIdentityTestSuit() extends IdentityTestSuit(
     BreezeTestUtil.createGlobalTestSuitParams(
         "breeze reverse mode",
@@ -43,4 +42,4 @@ case class BreezeReverseIdentityTestSuit() extends IdentityTestSuit(
     f => ScalaGrad.derive(f),
     f => ScalaGrad.derive(f),
     f => ScalaGrad.derive(f)
-)*/
+)

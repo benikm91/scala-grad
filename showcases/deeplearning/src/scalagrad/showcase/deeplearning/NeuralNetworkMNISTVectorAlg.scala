@@ -86,12 +86,12 @@ def neuralNetwork(ops: DualMatrixAlgebraT)(
     deriver: DeriverFromTo[ops.Scalar => ops.Scalar, ops.PrimaryScalar => ops.PrimaryScalar],
 ): ops.Matrix = 
     import ops.*
+    import ops.innerAlgebra.*
     val h = xs * firstWs + firstW0.t
     val dRelu = ScalaGrad.derive(relu[ops.Scalar])
-    val hh = ops.innerAlgebra.elementWiseOpM(h, relu, dRelu)
+    val hh = h.mapDual(relu, dRelu)
     val o = hh * lastWs + lastW0.t
-    val res = o.mapRows(row => stableSoftmax(ops)(row.t).t)
-    res
+    o.mapRows(row => stableSoftmax(ops)(row.t).t)
 
 def clip(ops: MatrixAlgebraT)(x: ops.Scalar)(using n: Numeric[ops.Scalar]): ops.Scalar =
     val epsilon: Double = 1e-07
@@ -217,7 +217,7 @@ def getRandomWeights(nFeatures: Int, nHiddenUnits: Int, nOutputUnits: Int): (
         DenseVector.fill(nOutputUnits)(rand.nextDouble() - 0.5),
         DenseMatrix.fill(nHiddenUnits, nOutputUnits)(rand.nextDouble() - 0.5),
     )
-
+/*
 @main def neuralNetworkMNISTVectorAlg() = 
 
     val batchSize = 8
@@ -284,7 +284,7 @@ def getRandomWeights(nFeatures: Int, nHiddenUnits: Int, nOutputUnits: Int): (
         println("train acc: " + accuracy(ysHatM, ysM) * 100)
         println(f"${crossEntropy(BreezeDoubleMatrixAlgebraT)(ysM, ysHatM)}  -- with learned weights (${iters} iterations)")
     }
-
+*/
 
 @main def neuralNetworkMNISTVectorAlgPerformance() = 
     case class PerformanceTest(
@@ -305,15 +305,15 @@ def getRandomWeights(nFeatures: Int, nHiddenUnits: Int, nOutputUnits: Int): (
 
     println("****** START PERFORMANCE TESTS ******")
     val (xsTest, ysTest) = preprocess(MNISTDataSet.loadTest, 32)
-    val batchSizesReverseMode = List(64, 128)
+    val batchSizesReverseMode = List(64)
     // val batchSizesReverseMode = List(8, 16, 32, 64, 128, 256, 512)
-    val batchSizesForwardMode = List(8)
+    // val batchSizesForwardMode = List(8)
     //val batchSizesForwardMode = List(1, 2, 4, 8)
     
     for {
         test <-
-            PerformanceTest.create("forward", batchSizesForwardMode, 1)
-            ++ PerformanceTest.create("reverse", batchSizesReverseMode, 60_000)
+            //PerformanceTest.create("forward", batchSizesForwardMode, 1)
+            PerformanceTest.create("reverse", batchSizesReverseMode, 60_000)
     } {
             val (mode, batchSize, samples) = (test.mode, test.batchSize, test.samples)
             val (xsTrain, ysTrain) = preprocess(MNISTDataSet.loadTrain, batchSize)

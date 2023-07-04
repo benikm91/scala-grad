@@ -95,19 +95,19 @@ trait IdentityTestSuit[
             } yield if i == j then pma.one else pma.zeroScalar
         )
 
-        def columnVectorGen(minLength: Int = 1, maxLength: Int = 2): Gen[PColumnVector] =
+        def columnVectorGen(minLength: Int = 1, maxLength: Int = 25): Gen[PColumnVector] =
             for {
                 length <- Gen.choose(minLength, maxLength)
                 cv <- cvGen(length)
             } yield cv
 
-        def rowVectorGen(minLength: Int = 1, maxLength: Int = 2): Gen[PRowVector] =
+        def rowVectorGen(minLength: Int = 1, maxLength: Int = 25): Gen[PRowVector] =
             for {
                 length <- Gen.choose(minLength, maxLength)
                 rv <- rvGen(length)
             } yield rv
 
-        def matrixGen(minDim: Int = 1, maxDim: Int = 2): Gen[PMatrix] =
+        def matrixGen(minDim: Int = 1, maxDim: Int = 25): Gen[PMatrix] =
             for {
                 nRow <- Gen.choose(minDim, maxDim)
                 nCol <- Gen.choose(minDim, maxDim)
@@ -291,6 +291,17 @@ trait IdentityTestSuit[
                     deriverM2M(f)(m) should be (realDf(m))
                 }
             }
+            "support for M2M (non-diagonal)" in {
+                def f(m: dma.MatrixT): dma.MatrixT =
+                    import dma.*
+                    m.setElementAt(0, 0, m.elementAt(0, 0) + m.elementAt(1, 0))
+                def realDf(m: pma.MatrixT): pma.MatrixT = 
+                    val res = eyeM(m.nRows * m.nCols)
+                    res.setElementAt(1, 0, pma.one)
+                forAll(matrixGen(minDim=2, maxDim=2)) { (m) =>
+                    deriverM2M(f)(m) should be (realDf(m))
+                }
+            }
         }
         "two to two" should {
             "support for SS2SS" in {
@@ -370,7 +381,24 @@ trait IdentityTestSuit[
                     val numberOfOutputsM2 = m2.nRows * m2.nCols
                     ((eyeM2(numberOfInputsM1, numberOfOutputsM1), pma.zeroMatrix(numberOfInputsM1, numberOfOutputsM2)), (pma.zeroMatrix(numberOfInputsM2, numberOfOutputsM1), eyeM2(numberOfInputsM2, numberOfOutputsM2)))
 
-                forAll(mmGen()) { (m1, m2) =>
+                forAll(mmGen(maxDim=2)) { (m1, m2) =>
+                    val ((a1, a2), (a3, a4)) = deriverMM2MM(f.tupled)(m1, m2) 
+                    val ((b1, b2), (b3, b4)) = realDf(m1, m2)
+                    println("***")
+                    println(m1.nRows + " " + m1.nCols)
+                    println(m2.nRows + " " + m2.nCols)
+                    println("**")
+                    println(a1.nRows + " " + a1.nCols)
+                    println(b1.nRows + " " + b1.nCols)
+                    println("**")
+                    println(a2.nRows + " " + a2.nCols)
+                    println(b2.nRows + " " + b2.nCols)
+                    println("**")
+                    println(a3.nRows + " " + a3.nCols)
+                    println(b3.nRows + " " + b3.nCols)
+                    println("**")
+                    println(a4.nRows + " " + a4.nCols)
+                    println(b4.nRows + " " + b4.nCols)
                     deriverMM2MM(f.tupled)(m1, m2) should be(realDf(m1, m2))
                 }
             }

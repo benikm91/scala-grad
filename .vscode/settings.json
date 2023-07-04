@@ -2,5 +2,5 @@
     "files.watcherExclude": {
         "**/target": true
     },
-    "metals.showImplicitArguments": true
+    "metals.showImplicitArguments": false
 }
