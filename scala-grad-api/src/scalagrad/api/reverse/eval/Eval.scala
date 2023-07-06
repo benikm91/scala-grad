@@ -2,12 +2,39 @@ package scalagrad.api.reverse.eval
 
 import scalagrad.api.reverse.delta.*
 import scalagrad.api.matrixalgebra.MatrixAlgebra
+import scala.collection.mutable.PriorityQueue
+import scala.collection.mutable
 
 case class Eval[PScalar, PColumnVector, PRowVector, PMatrix](
     pma: MatrixAlgebra[PScalar, PColumnVector, PRowVector, PMatrix]
 ):
 
     import pma.*
+
+    case class PrioritySetQueue[K](
+        po: PriorityQueue[K],
+        hs: mutable.Set[Int]
+    ):
+        def nonEmpty = po.nonEmpty
+        def dequeue() = {
+            val res = po.dequeue()
+            hs.remove(toHashCode(res))
+            res
+        }
+        def addOne(elem: K): Boolean = 
+            if (!hs.contains(toHashCode(elem))) {
+                po.addOne(elem)
+                hs.add(toHashCode(elem))
+                return true
+            }
+            return false
+
+    case class DOutputs(
+        val scalar: mutable.Map[Int, PScalar] = mutable.Map(),
+        val columnVector: mutable.Map[Int, PColumnVector] = mutable.Map(),
+        val rowVector: mutable.Map[Int, PRowVector] = mutable.Map(),
+        val matrix: mutable.Map[Int, PMatrix] = mutable.Map(),
+    )
 
     type DeltaScalarT = DeltaScalar[PScalar, PColumnVector, PRowVector, PMatrix]
     type DeltaColumnVectorT = DeltaColumnVector[PScalar, PColumnVector, PRowVector, PMatrix]
@@ -22,379 +49,264 @@ case class Eval[PScalar, PColumnVector, PRowVector, PMatrix](
 
     import EvalStepResult.*
 
-    def evalScalar(dOutput: PScalar, delta: DeltaScalarT): Results = 
-        assert(delta.index != -1)
-        eval(EvalStepScalarResult(dOutput, delta), delta.index)
+    def toHashCode(x: Any) = System.identityHashCode(x)
 
-    def evalColumnVector(dOutput: PColumnVector, delta: DeltaColumnVectorT): Results = 
-        assert(delta.index != -1)
-        eval(EvalStepColumnVectorResult(dOutput, delta), delta.index)
+    def evalScalar(dOutput: PScalar, delta: DeltaScalar[PScalar, PColumnVector, PRowVector, PMatrix]): Results = 
+        eval(DOutputs(scalar = mutable.Map(toHashCode(delta) -> dOutput)), delta.asInstanceOf[DeltaVal])
 
-    def evalRowVector(dOutput: PRowVector, delta: DeltaRowVectorT): Results = 
-        assert(delta.index != -1)
-        eval(EvalStepRowVectorResult(dOutput, delta), delta.index)
+    def evalColumnVector(dOutput: PColumnVector, delta: DeltaColumnVector[PScalar, PColumnVector, PRowVector, PMatrix]): Results = 
+        eval(DOutputs(columnVector = mutable.Map(toHashCode(delta) -> dOutput)), delta.asInstanceOf[DeltaVal])
 
-    def evalMatrix(dOutput: PMatrix, delta: DeltaMatrixT): Results = 
-        assert(delta.index != -1)
-        eval(EvalStepMatrixResult(dOutput, delta), delta.index)
+    def evalRowVector(dOutput: PRowVector, delta: DeltaRowVector[PScalar, PColumnVector, PRowVector, PMatrix]): Results = 
+        eval(DOutputs(rowVector = mutable.Map(toHashCode(delta) -> dOutput)), delta.asInstanceOf[DeltaVal])
+
+    def evalMatrix(dOutput: PMatrix, delta: DeltaMatrix[PScalar, PColumnVector, PRowVector, PMatrix]): Results = 
+        eval(DOutputs(matrix = mutable.Map(toHashCode(delta) -> dOutput)), delta.asInstanceOf[DeltaVal])
 
     def eval(
-        start: EvalStepResult,
-        endIndex: Int,
+        dOutputs: DOutputs,
+        startVal: DeltaVal
     ): Results = 
         
-        var results = Results.empty
+        val nextDeltas = PrioritySetQueue(
+            PriorityQueue[DeltaVal]()(Ordering.by[DeltaVal, Int](_.index)),
+            mutable.HashSet[Int]()
+        )
+        var currentIndex = startVal.index
+        nextDeltas.addOne(startVal)
 
-        if (endIndex == -1) return results
+        val results = Results.empty
 
-        val intermediateResults = Array.ofDim[EvalStepResult](endIndex + 1)
-        intermediateResults(endIndex) = start
-
-        var i = endIndex
-        while(i >= 0) {
-            intermediateResults(i) match {
-                case null => // skip
-                case EvalStepScalarResult(dOutput, ds) =>
-                    val index = ds.index 
-                    ds.index = -1
-                    results = evalScalarStep(dOutput, ds, intermediateResults, endIndex, results)
-                    ds.index = index
-                case EvalStepColumnVectorResult(dOutput, dcv) =>
-                    val index = dcv.index 
-                    dcv.index = -1
-                    results = evalColumnVectorStep(dOutput, dcv, intermediateResults, endIndex, results)
-                    dcv.index = index
-                case EvalStepRowVectorResult(dOutput, drv) =>
-                    val index = drv.index 
-                    drv.index = -1
-                    results = evalRowVectorStep(dOutput, drv, intermediateResults, endIndex, results)
-                    drv.index = index
-                case EvalStepMatrixResult(dOutput, dm) =>
-                    val index = dm.index 
-                    dm.index = -1
-                    results = evalMatrixStep(dOutput, dm, intermediateResults, endIndex, results)
-                    dm.index = index
+        while(nextDeltas.nonEmpty) {
+            nextDeltas.dequeue() match {
+                case dsVal @ DeltaScalar.Val[PScalar, PColumnVector, PRowVector, PMatrix](nextIndex, ds) =>
+                    assert(currentIndex >= nextIndex, f"$currentIndex >= $nextIndex")
+                    currentIndex = nextIndex
+                    val dOutput = dOutputs.scalar.remove(toHashCode(dsVal)).get
+                    evalScalarStep(dOutput, ds, results, dOutputs, nextDeltas)
+                case dcvVal @ DeltaColumnVector.Val[PScalar, PColumnVector, PRowVector, PMatrix](nextIndex, dcv) =>
+                    assert(currentIndex >= nextIndex, f"$currentIndex >= $nextIndex")
+                    currentIndex = nextIndex
+                    val dOutput = dOutputs.columnVector.remove(toHashCode(dcvVal)).get
+                    evalColumnVectorStep(dOutput, dcv, results, dOutputs, nextDeltas)
+                case drvVal @ DeltaRowVector.Val[PScalar, PColumnVector, PRowVector, PMatrix](nextIndex, drv) =>
+                    assert(currentIndex >= nextIndex, f"$currentIndex >= $nextIndex")
+                    currentIndex = nextIndex
+                    val dOutput = dOutputs.rowVector.remove(toHashCode(drvVal)).get
+                    evalRowVectorStep(dOutput, drv, results, dOutputs, nextDeltas)
+                case dmVal @ DeltaMatrix.Val[PScalar, PColumnVector, PRowVector, PMatrix](nextIndex, dm) =>
+                    assert(currentIndex >= nextIndex, f"$currentIndex >= $nextIndex")
+                    currentIndex = nextIndex
+                    val dOutput = dOutputs.matrix.remove(toHashCode(dmVal)).get
+                    evalMatrixStep(dOutput, dm, results, dOutputs, nextDeltas)
             }
-            intermediateResults(i) = null // clear
-            i -= 1
         }
 
         results
-
-    private def storeIntoIntermediateResults(
-        dOutput: PScalar,
-        delta: DeltaScalarT,
-        intermediateResults: Array[EvalStepResult],
-    ): Unit =
-        val index = delta.index
-        intermediateResults(index) =
-            Option(intermediateResults(index).asInstanceOf[EvalStepScalarResult]).fold(
-                EvalStepScalarResult(dOutput, delta)
-            )(x =>
-                assert(x.ds.index == delta.index)
-                x.copy(dOutput = x.dOutput + dOutput)
-            )
     
     private def evalScalarStep(
         dOutput: PScalar, 
         delta: DeltaScalarT,
-        intermediateResults: Array[EvalStepResult],
-        endIndex: Int,
         results: Results,
-    ): Results =
-        if (delta.index != -1) then
-            storeIntoIntermediateResults(dOutput, delta, intermediateResults)
-            results
-        else
-            import DeltaScalar.*
-            delta match
-                case Zero() => results
-                case Val(id) =>
-                    results.copy(
-                        scalars =
-                            results.scalars.updatedWith(id)(v => Some(
-                                v.fold(dOutput)(_ + dOutput)
-                            ))
-                    )
-                case ElementAtM(dm, iRow, jColumn, nRows, nCols) => 
-                    val index = dm.index
-                    lazy val newOutput = {
-                        val newOutput = zeroMatrix(nRows, nCols)
-                        newOutput.setElementAt(iRow, jColumn, dOutput)
-                    }
-                    intermediateResults(index) = Option(intermediateResults(index).asInstanceOf[EvalStepMatrixResult]).fold(
-                        EvalStepMatrixResult(newOutput, dm)
-                    )(x =>
-                        assert(x.dm.index == dm.index)
-                        val existingOutput = x.dOutput.setElementAt(iRow, jColumn, x.dOutput.elementAt(iRow, jColumn) + dOutput)
-                        x.copy(dOutput = existingOutput)
-                    )
-                    results
-                case ElementAtCV(dcv, iRow, length) => 
-                    val index = dcv.index
-                    lazy val newOutput = {
-                        val newOutput = zeroColumnVector(length)
-                        newOutput.setElementAt(iRow, dOutput)
-                    }
-                    intermediateResults(index) = 
-                        Option(intermediateResults(index).asInstanceOf[EvalStepColumnVectorResult]).fold(
-                            EvalStepColumnVectorResult(newOutput, dcv)
-                        )(x =>
-                            assert(x.dcv.index == dcv.index)
-                            val existingOutput = x.dOutput.setElementAt(iRow, x.dOutput.elementAt(iRow) + dOutput)
-                            x.copy(dOutput = existingOutput)
-                        )
-                    results
-                case NegateS(s) => 
-                    evalScalarStep(-dOutput, s, intermediateResults, endIndex, results)
-                case Invert(s) => 
-                    evalScalarStep(invert(dOutput), s, intermediateResults, endIndex, results)
-                case SumCV(dcv, length) => 
-                    evalColumnVectorStep(
-                        pma.createColumnVectorFromElements(Vector.fill(length)(dOutput)), 
-                        dcv, intermediateResults, endIndex, results
-                    )
-                case SumM(dm, nRows, nCols) => 
-                    evalMatrixStep(
-                        pma.createMatrixFromElements(nRows, nCols, Vector.fill(nRows * nCols)(dOutput)), 
-                        dm, intermediateResults, endIndex, results
-                    )
-                case PlusDSDS(ds1, ds2) => 
-                    evalScalarStep(dOutput, ds1, intermediateResults, endIndex, 
-                        evalScalarStep(dOutput, ds2, intermediateResults, endIndex, results)
-                    )
-                case DotRVDCV(rv, dcv) => 
-                    evalColumnVectorStep(dOutput * rv.t, dcv, intermediateResults, endIndex, results)
-                case DotDRVCV(drv, cv) => 
-                    evalRowVectorStep((dOutput * cv).t, drv, intermediateResults, endIndex, results)
-                case MultiplySDS(s, ds) => 
-                    evalScalarStep(dOutput * s, ds, intermediateResults, endIndex, results)
-
-    private def storeIntoIntermediateResults(
-        dOutput: PColumnVector,
-        delta: DeltaColumnVectorT,
-        intermediateResults: Array[EvalStepResult],
+        dOutputs: DOutputs,
+        nextDeltas: PrioritySetQueue[DeltaVal],
     ): Unit =
-        val index = delta.index
-        intermediateResults(index) =
-            Option(intermediateResults(index).asInstanceOf[EvalStepColumnVectorResult]).fold(
-                EvalStepColumnVectorResult(dOutput, delta)
-            )(x =>
-                assert(x.dcv.index == delta.index)
-                x.copy(dOutput = x.dOutput + dOutput)
-            )
+        import DeltaScalar.*
+        delta match
+            case Zero() => ()
+            case Input(id) =>
+                results.scalars.updateWith(id)(v => Some(
+                    v.fold(dOutput)(_ + dOutput)
+                ))
+            case ds @ Val(_, _) =>
+                dOutputs.scalar.updateWith(toHashCode(ds))(v => Some(
+                    v.fold(dOutput)(_ + dOutput)
+                ))
+                nextDeltas.addOne(ds)
+            case ElementAtM(dm, iRow, jColumn, nRows, nCols) => 
+                dOutputs.matrix.updateWith(toHashCode(dm))(v =>
+                    val dmOutput = v.getOrElse(zeroMatrix(nRows, nCols))
+                    Some(dmOutput.setElementAt(iRow, jColumn, dmOutput.elementAt(iRow, jColumn) + dOutput))
+                )
+                nextDeltas.addOne(dm.asInstanceOf[DeltaVal])
+            case ElementAtCV(dcv, iRow, length) => 
+                dOutputs.columnVector.updateWith(toHashCode(dcv))(v =>
+                    val dcvOutput = v.getOrElse(zeroColumnVector(length))
+                    Some(dcvOutput.setElementAt(iRow, dcvOutput.elementAt(iRow) + dOutput))
+                )
+                nextDeltas.addOne(dcv.asInstanceOf[DeltaVal])
+            case NegateS(ds) => 
+                evalScalarStep(-dOutput, ds, results, dOutputs, nextDeltas)
+            case SumCV(dcv, length) => 
+                evalColumnVectorStep(
+                    pma.createColumnVectorFromElements(Vector.fill(length)(dOutput)), 
+                    dcv, results, dOutputs, nextDeltas
+                )
+            case SumM(dm, nRows, nCols) => 
+                evalMatrixStep(
+                    pma.createMatrixFromElements(nRows, nCols, Vector.fill(nRows * nCols)(dOutput)), 
+                    dm, results, dOutputs, nextDeltas
+                )
+            case PlusDSDS(ds1, ds2) => 
+                evalScalarStep(dOutput, ds2, results, dOutputs, nextDeltas)
+                evalScalarStep(dOutput, ds1, results, dOutputs, nextDeltas)
+            case DotRVDCV(rv, dcv) => 
+                evalColumnVectorStep(dOutput * rv.t, dcv, results, dOutputs, nextDeltas)
+            case DotDRVCV(drv, cv) => 
+                evalRowVectorStep((dOutput * cv).t, drv, results, dOutputs, nextDeltas)
+            case MultiplySDS(s, ds) => 
+                evalScalarStep(dOutput * s, ds, results, dOutputs, nextDeltas)
 
     private def evalColumnVectorStep(
         dOutput: PColumnVector,
         delta: DeltaColumnVectorT,
-        intermediateResults: Array[EvalStepResult],
-        endIndex: Int,
         results: Results,
-    ): Results =
-        if (delta.index != -1) then
-            val index = delta.index
-            storeIntoIntermediateResults(dOutput, delta, intermediateResults)
-            results
-        else
-            import DeltaColumnVector.*
-            delta match
-                case Zero() => results
-                case Val(id) =>
-                    results.copy(
-                        columnVectors =
-                            results.columnVectors.updatedWith(id)(v => Some(
-                                v.fold(dOutput)(_ + dOutput)
-                            ))
-                    )
-                case ColumnAtM(dm, jColumn, nRows, nColumns) => 
-                    assert(dOutput.length == nRows, f"dOutput.length == nRows, ${dOutput.length} == $nRows")
-                    val index = dm.index
-                    lazy val newOutput = {
-                        val newOutput = pma.zeroMatrix(nRows, nColumns)
-                        newOutput.setColumnAt(jColumn, dOutput)
-                    }
-                    intermediateResults(index) =
-                        Option(intermediateResults(index).asInstanceOf[EvalStepMatrixResult]).fold(
-                            EvalStepMatrixResult(newOutput, dm)
-                        )(x =>
-                            assert(x.dm.index == dm.index)
-                            x.copy(dOutput = x.dOutput.setColumnAt(jColumn, x.dOutput.columnAt(jColumn) + dOutput))
-                        )
-                    results
-                case NegateCV(dcv) => 
-                    evalColumnVectorStep(-dOutput, dcv, intermediateResults, endIndex, results)
-                case TransposeRV(drv) => 
-                    evalRowVectorStep(dOutput.t, drv, intermediateResults, endIndex, results)
-                case CreateCV(elements) => 
-                    elements.zipWithIndex.foldLeft(results)((results, t) => 
-                        val (dScalar, i) = t
-                        evalScalarStep(dOutput.elementAt(i), dScalar, intermediateResults, endIndex, results)
-                    )
-                case PlusDCVDCV(dcv1, dcv2) => 
-                    evalColumnVectorStep(dOutput, dcv1, intermediateResults, endIndex, 
-                        evalColumnVectorStep(dOutput, dcv2, intermediateResults, endIndex, results)
-                    )
-                case PlusDCVDS(dcv, ds) => 
-                    evalColumnVectorStep(dOutput, dcv, intermediateResults, endIndex, 
-                        dOutput.foldLeft(results)(
-                            (acc, x) => evalScalarStep(x, ds, intermediateResults, endIndex, acc)
-                        )
-                    )
-                case DotMDCV(m, dcv) => 
-                    evalColumnVectorStep(m.t * dOutput, dcv, intermediateResults, endIndex, results)
-                case DotDMCV(dm, cv) => 
-                    evalMatrixStep(dOutput * cv.t, dm, intermediateResults, endIndex, results)
-                case MultiplyCVDS(cv, ds) => 
-                    evalScalarStep((dOutput *:* cv).sum, ds, intermediateResults, endIndex, results)
-                case MultiplyDCVS(dcv, s) => 
-                    evalColumnVectorStep(dOutput * s, dcv, intermediateResults, endIndex, results)
-                case ElementWiseMultiplyCVDCV(cv, dcv) => 
-                    evalColumnVectorStep(dOutput *:* cv, dcv, intermediateResults, endIndex, results)
-                case SetElementAtCV(dcv, i, ds) =>
-                    val dOutputDs = dOutput.elementAt(i)
-                    evalColumnVectorStep(dOutput.setElementAt(i, zeroScalar), dcv, intermediateResults, endIndex, 
-                        evalScalarStep(dOutputDs, ds, intermediateResults, endIndex, results)
-                    )
-
-    private def storeIntoIntermediateResults(
-        dOutput: PRowVector,
-        delta: DeltaRowVectorT,
-        intermediateResults: Array[EvalStepResult],
+        dOutputs: DOutputs,
+        nextDeltas: PrioritySetQueue[DeltaVal],
     ): Unit =
-        val index = delta.index
-        intermediateResults(index) =
-            Option(intermediateResults(index).asInstanceOf[EvalStepRowVectorResult]).fold(
-                EvalStepRowVectorResult(dOutput, delta)
-            )(x =>
-                assert(x.drv.index == delta.index)
-                x.copy(dOutput = x.dOutput + dOutput)
-            )
+        import DeltaColumnVector.*
+        delta match
+            case Zero() => ()
+            case Input(id) =>
+                results.columnVectors.updateWith(id)(v => Some(
+                    v.fold(dOutput)(_ + dOutput)
+                ))
+            case dcv @ Val(_, _) =>
+                dOutputs.columnVector.updateWith(toHashCode(dcv))(cv => Some(
+                    cv.fold(dOutput)(_ + dOutput)
+                ))
+                nextDeltas.addOne(dcv)
+            case ColumnAtM(dm, jColumn, nRows, nCols) => 
+                dOutputs.matrix.updateWith(toHashCode(dm))(v =>
+                    val dmOutput = v.getOrElse(zeroMatrix(nRows, nCols))
+                    Some(dmOutput.setColumnAt(jColumn, dmOutput.columnAt(jColumn) + dOutput))
+                )
+                nextDeltas.addOne(dm.asInstanceOf[DeltaVal])
+            case NegateCV(dcv) => 
+                evalColumnVectorStep(-dOutput, dcv, results, dOutputs, nextDeltas)
+            case TransposeRV(drv) => 
+                evalRowVectorStep(dOutput.t, drv, results, dOutputs, nextDeltas)
+            case CreateCV(elements) => 
+                elements.zipWithIndex.foreach(t => 
+                    val (dScalar, i) = t
+                    evalScalarStep(dOutput.elementAt(i), dScalar, results, dOutputs, nextDeltas)
+                )
+            case PlusDCVDCV(dcv1, dcv2) => 
+                evalColumnVectorStep(dOutput, dcv2, results, dOutputs, nextDeltas)
+                evalColumnVectorStep(dOutput, dcv1, results, dOutputs, nextDeltas)
+            case PlusDCVDS(dcv, ds) => 
+                dOutput.elements.foreach(x => evalScalarStep(x, ds, results, dOutputs, nextDeltas))
+                evalColumnVectorStep(dOutput, dcv, results, dOutputs, nextDeltas)
+            case DotMDCV(m, dcv) => 
+                evalColumnVectorStep(m.t * dOutput, dcv, results, dOutputs, nextDeltas)
+            case DotDMCV(dm, cv) => 
+                evalMatrixStep(dOutput * cv.t, dm, results, dOutputs, nextDeltas)
+            case MultiplyCVDS(cv, ds) => 
+                evalScalarStep((dOutput *:* cv).sum, ds, results, dOutputs, nextDeltas)
+            case MultiplyDCVS(dcv, s) => 
+                evalColumnVectorStep(dOutput * s, dcv, results, dOutputs, nextDeltas)
+            case ElementWiseMultiplyCVDCV(cv, dcv) => 
+                evalColumnVectorStep(dOutput *:* cv, dcv, results, dOutputs, nextDeltas)
+            case SetElementAtCV(dcv, i, ds) =>
+                val dOutputDs = dOutput.elementAt(i)
+                evalScalarStep(dOutputDs, ds, results, dOutputs, nextDeltas)
+                evalColumnVectorStep(dOutput.setElementAt(i, zeroScalar), dcv, results, dOutputs, nextDeltas)
 
     def evalRowVectorStep(
-        output: PRowVector,
+        dOutput: PRowVector,
         delta: DeltaRowVectorT,
-        intermediateResults: Array[EvalStepResult],
-        endIndex: Int,
         results: Results,
-    ): Results =
-        if (delta.index != -1) then
-            val index = delta.index
-            storeIntoIntermediateResults(output, delta, intermediateResults)
-            results
-        else
-            import DeltaRowVector.*
-            delta match
-                case Zero() => results
-                case Val(id) =>
-                    results.copy(
-                        rowVectors =
-                            results.rowVectors.updatedWith(id)(v => Some(
-                                v.fold(output)(_ + output)
-                            ))
-                    )
-                case NegateRV(drv) => 
-                    evalRowVectorStep(-output, drv, intermediateResults, endIndex, results)
-                case TransposeCV(dcv) => 
-                    evalColumnVectorStep(output.t, dcv, intermediateResults, endIndex, results)
-
-    private def storeIntoIntermediateResults(
-                                              dOutput: PMatrix,
-                                              delta: DeltaMatrixT,
-                                              intermediateResults: Array[EvalStepResult],
-                                            ): Unit =
-        val index = delta.index
-        intermediateResults(index) =
-            Option(intermediateResults(index).asInstanceOf[EvalStepMatrixResult]).fold(
-                EvalStepMatrixResult(dOutput, delta)
-            )(x =>
-                assert(x.dm.index == delta.index, f"${x.dm.index} != ${delta.index}")
-                x.copy(dOutput = x.dOutput + dOutput)
-            )
+        dOutputs: DOutputs,
+        nextDeltas: PrioritySetQueue[DeltaVal],
+    ): Unit =
+        import DeltaRowVector.*
+        delta match
+            case Zero() => ()
+            case Input(id) =>
+                results.rowVectors.updateWith(id)(v => Some(
+                    v.fold(dOutput)(_ + dOutput)
+                ))
+            case drv @ Val(_, _) =>
+                dOutputs.rowVector.updateWith(toHashCode(drv))(rv => Some(
+                    rv.fold(dOutput)(_ + dOutput)
+                ))
+                nextDeltas.addOne(drv)
+            case NegateRV(drv) => 
+                evalRowVectorStep(-dOutput, drv, results, dOutputs, nextDeltas)
+            case TransposeCV(dcv) => 
+                evalColumnVectorStep(dOutput.t, dcv, results, dOutputs, nextDeltas)
 
     def evalMatrixStep(
         dOutput: PMatrix,
         delta: DeltaMatrixT,
-        intermediateResults: Array[EvalStepResult],
-        endIndex: Int,
         results: Results,
-    ): Results =
-        if (delta.index != -1) then
-            val index = delta.index
-            storeIntoIntermediateResults(dOutput, delta, intermediateResults)
-            results
-        else
-            import DeltaMatrix.*
-            delta match
-                case Zero() => results
-                case Val(id) =>
-                    results.copy(
-                        matrices =
-                            results.matrices.updatedWith(id)(v => Some(
-                                v.fold(dOutput)(_ + dOutput)
-                            ))
-                    )
-                case NegateM(dm) => 
-                    evalMatrixStep(-dOutput, dm, intermediateResults, endIndex, results)
-                case TransposeM(dm) => 
-                    evalMatrixStep(dOutput.t, dm, intermediateResults, endIndex, results)
-                case CreateM(nRows, nCols, elements) => 
-                    elements.zipWithIndex.foldLeft(results)((results, t) => 
-                        val (dScalar, i) = t
-                        val (jCol, iRow) = (i / dOutput.nRows, i % dOutput.nRows)
-                        evalScalarStep(dOutput.elementAt(iRow, jCol), dScalar, intermediateResults, endIndex, results)
-                    )
-                case StackColumns(columns) => 
-                    columns.zipWithIndex.foldLeft(results)((results, t) => 
-                        val (dColumnVector, i) = t
-                        evalColumnVectorStep(dOutput.columnAt(i), dColumnVector, intermediateResults, endIndex, results)
-                    )
-                case PlusDMDM(dm1, dm2) => 
-                    evalMatrixStep(dOutput, dm1, intermediateResults, endIndex, 
-                        evalMatrixStep(dOutput, dm2, intermediateResults, endIndex, results)
-                    )
-                case PlusDMDCV(dm, dcv) => 
-                    evalMatrixStep(dOutput, dm, intermediateResults, endIndex, 
-                        evalColumnVectorStep(dOutput.reduceRows(_.sum), dcv, intermediateResults, endIndex, results)
-                    )
-                case PlusDMDS(dm, ds) => 
-                    evalMatrixStep(dOutput, dm, intermediateResults, endIndex, 
-                        dOutput.foldLeft(results)(
-                            (acc, x) => evalScalarStep(x, ds, intermediateResults, endIndex, acc)
-                        )
-                    )
-                case DotMDM(m, dm) => 
-                    evalMatrixStep(m.t * dOutput, dm, intermediateResults, endIndex, results)
-                case DotDMM(dm, m) => 
-                    evalMatrixStep(dOutput * m.t, dm, intermediateResults, endIndex, results)
-                case DotDCVRV(dcv, rv) => 
-                    evalColumnVectorStep(dOutput * rv.t, dcv, intermediateResults, endIndex, results)
-                case DotCVDRV(cv, drv) => 
-                    evalRowVectorStep(cv.t * dOutput, drv, intermediateResults, endIndex, results)
-                case MultiplyMDS(m, ds) => 
-                    evalScalarStep((dOutput *:* m).sum, ds, intermediateResults, endIndex, results)
-                case MultiplyDMS(dm, s) => 
-                    evalMatrixStep(dOutput * s, dm, intermediateResults, endIndex, results)
-                case ElementWiseMultiplyMDM(m, dm) => 
-                    evalMatrixStep(dOutput *:* m, dm, intermediateResults, endIndex, results)
-                case SetElementAtM(dm, iRow: Int, jColumn: Int, ds) => 
-                    val dOutputDs = dOutput.elementAt(iRow, jColumn)
-                    evalMatrixStep(
-                        dOutput.setElementAt(iRow, jColumn, zeroScalar), dm, intermediateResults, endIndex,
-                        evalScalarStep(dOutputDs, ds, intermediateResults, endIndex, results)
-                    )
-                case SetColumnAtM(dm, jColumn, dcv, dcvLength) =>
-                    val dOutputCv = dOutput.columnAt(jColumn) 
-                    evalMatrixStep(
-                        dOutput.setColumnAt(jColumn, zeroColumnVector(dcvLength)), dm, intermediateResults, endIndex,
-                        evalColumnVectorStep(dOutputCv, dcv, intermediateResults, endIndex, results)
-                    )
+        dOutputs: DOutputs,
+        nextDeltas: PrioritySetQueue[DeltaVal],
+    ): Unit =
+        import DeltaMatrix.*
+        delta match
+            case Zero() => ()
+            case Input(id) =>
+                results.matrices.updateWith(id)(v => Some(
+                    v.fold(dOutput)(_ + dOutput)
+                ))
+            case dm @ Val(_, _) =>
+                dOutputs.matrix.updateWith(toHashCode(dm))(m => Some(
+                    m.fold(dOutput)(_ + dOutput)
+                ))
+                nextDeltas.addOne(dm)
+            case NegateM(dm) => 
+                evalMatrixStep(-dOutput, dm, results, dOutputs, nextDeltas)
+            case TransposeM(dm) => 
+                evalMatrixStep(dOutput.t, dm, results, dOutputs, nextDeltas)
+            case CreateM(nRows, nCols, elements) => 
+                elements.zipWithIndex.foreach(t => 
+                    val (dScalar, i) = t
+                    val (jCol, iRow) = (i / dOutput.nRows, i % dOutput.nRows)
+                    evalScalarStep(dOutput.elementAt(iRow, jCol), dScalar, results, dOutputs, nextDeltas)
+                )
+            case StackColumns(columns) => 
+                dOutput.columns.zip(columns).foreach((dcvOutput, dcv) =>
+                    evalColumnVectorStep(dcvOutput, dcv, results, dOutputs, nextDeltas)
+                )
+            case PlusDMDM(dm1, dm2) => 
+                evalMatrixStep(dOutput, dm2, results, dOutputs, nextDeltas)
+                evalMatrixStep(dOutput, dm1, results, dOutputs, nextDeltas)
+            case PlusDMDCV(dm, dcv) => 
+                evalColumnVectorStep(dOutput.reduceRows(_.sum), dcv, results, dOutputs, nextDeltas)
+                evalMatrixStep(dOutput, dm, results, dOutputs, nextDeltas)
+            case PlusDMDS(dm, ds) => 
+                evalScalarStep(dOutput.sum, ds, results, dOutputs, nextDeltas)
+                evalMatrixStep(dOutput, dm, results, dOutputs, nextDeltas)
+            case DotMDM(m, dm) => 
+                evalMatrixStep(m.t * dOutput, dm, results, dOutputs, nextDeltas)
+            case DotDMM(dm, m) => 
+                evalMatrixStep(dOutput * m.t, dm, results, dOutputs, nextDeltas)
+            case DotDCVRV(dcv, rv) => 
+                evalColumnVectorStep(dOutput * rv.t, dcv, results, dOutputs, nextDeltas)
+            case DotCVDRV(cv, drv) => 
+                evalRowVectorStep(cv.t * dOutput, drv, results, dOutputs, nextDeltas)
+            case MultiplyMDS(m, ds) => 
+                evalScalarStep((dOutput *:* m).sum, ds, results, dOutputs, nextDeltas)
+            case MultiplyDMS(dm, s) => 
+                evalMatrixStep(dOutput * s, dm, results, dOutputs, nextDeltas)
+            case ElementWiseMultiplyMDM(m, dm) => 
+                evalMatrixStep(dOutput *:* m, dm, results, dOutputs, nextDeltas)
+            case SetElementAtM(dm, iRow: Int, jColumn: Int, ds) => 
+                val dOutputDs = dOutput.elementAt(iRow, jColumn)
+                evalScalarStep(dOutputDs, ds, results, dOutputs, nextDeltas)
+                evalMatrixStep(dOutput.setElementAt(iRow, jColumn, zeroScalar), dm, results, dOutputs, nextDeltas)
+            case SetColumnAtM(dm, jColumn, dcv, dcvLength) =>
+                val dOutputCv = dOutput.columnAt(jColumn) 
+                evalColumnVectorStep(dOutputCv, dcv, results, dOutputs, nextDeltas)
+                evalMatrixStep(dOutput.setColumnAt(jColumn, zeroColumnVector(dcvLength)), dm, results, dOutputs, nextDeltas)
 
     case class Results(
-        scalars: Map[Int, PScalar],
-        columnVectors: Map[Int, PColumnVector],
-        rowVectors: Map[Int, PRowVector],
-        matrices: Map[Int, PMatrix]
+        scalars: mutable.Map[Int, PScalar],
+        columnVectors: mutable.Map[Int, PColumnVector],
+        rowVectors: mutable.Map[Int, PRowVector],
+        matrices: mutable.Map[Int, PMatrix]
     )
 
     object Results:
-        def empty: Results = Results(Map(), Map(), Map(), Map())
+        def empty: Results = Results(mutable.Map(), mutable.Map(), mutable.Map(), mutable.Map())

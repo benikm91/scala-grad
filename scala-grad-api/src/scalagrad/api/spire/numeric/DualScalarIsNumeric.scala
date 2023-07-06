@@ -39,10 +39,11 @@ object DualScalarIsNumeric:
         private def chain(f: PScalar => PScalar, df: PScalar => PScalar)(dn: DualScalar) =
             dma.createDualScalar(
                 f(dn.v), 
-                dma.multiplySDS(df(dn.v), dn.dv)
+                dma.multiplySDS(df(dn.v), dn.dv),
+                List(dn.dv)
             )
 
-        private def lift(v: PScalar) = dma.createDualScalar(v, dma.dZeroOps.zeroScalar)
+        private def lift(v: PScalar) = dma.createDualScalar(v, dma.dZeroOps.zeroScalar, List())
 
         def negate(x: DualScalar): DualScalar = dualMa.negateS(x)
         def one: DualScalar = dualMa.one
@@ -96,7 +97,7 @@ object DualScalarIsNumeric:
                     dma.multiplySDS(a.v * trig.log(a.v), b.dv)
                 )
             )
-            dma.createDualScalar(num.fpow(a.v, b.v), dfpow)
+            dma.createDualScalar(num.fpow(a.v, b.v), dfpow, List(a.dv, b.dv))
         def nroot(a: DualScalar, n: Int): DualScalar = 
             def dnroot(x: PScalar) = 
                 val denominator = pma.multiplySS(pma.liftToScalar(n), num.fpow((num.nroot(x, n)), num.fromInt(n - 1)))

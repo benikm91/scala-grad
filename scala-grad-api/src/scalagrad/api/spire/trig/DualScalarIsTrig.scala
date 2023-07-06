@@ -34,10 +34,11 @@ object DualScalarIsTrig:
         private def chain(f: PScalar => PScalar, df: PScalar => PScalar)(dn: DualScalar) =
             dma.createDualScalar(
                 f(dn.v), 
-                dma.multiplySDS(df(dn.v), dn.dv)
+                dma.multiplySDS(df(dn.v), dn.dv),
+                List(dn.dv)
             )
 
-        private def lift(v: PScalar) = dma.createDualScalar(v, dma.dZeroOps.zeroScalar)
+        private def lift(v: PScalar) = dma.createDualScalar(v, dma.dZeroOps.zeroScalar, List())
 
         def acos(a: DualScalar): DualScalar = 
             def dAcos(v: PScalar): PScalar = -(pma.one / nRoot.sqrt(pma.one - v * v))

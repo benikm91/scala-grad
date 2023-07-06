@@ -21,6 +21,7 @@ trait DerivativeMatrixAlgebra[
     DualMatrix <: dual.DualMatrix[PMatrix, DMatrix],
 ]:
 
+    type D = DScalar | DColumnVector | DRowVector | DMatrix
     type PScalarT = PScalar
     type PColumnVectorT = PColumnVector
     type PRowVectorT = PRowVector
@@ -35,15 +36,14 @@ trait DerivativeMatrixAlgebra[
     type DualMatrixT = DualMatrix
 
     val dNegateOps: NegateOps[DScalar, DColumnVector, DRowVector, DMatrix]
-    val dInvertOps: ScalarInvertOps[DScalar]
     val dZeroOps: ZeroOps[DScalar, DColumnVector, DRowVector, DMatrix]
     val dTransposeOps: TransposeOps[DColumnVector, DRowVector, DMatrix]
     val dCreateOps: CreateOps[DScalar, DColumnVector, DRowVector, DMatrix]
 
-    def createDualScalar(p: PScalar, d: DScalar): DualScalar
-    def createDualColumnVector(p: PColumnVector, d: DColumnVector): DualColumnVector
-    def createDualRowVector(p: PRowVector, d: DRowVector): DualRowVector
-    def createDualMatrix(p: PMatrix, d: DMatrix): DualMatrix
+    def createDualScalar(p: PScalar, d: DScalar, deps: => Seq[D]): DualScalar
+    def createDualColumnVector(p: PColumnVector, d: DColumnVector, deps: => Seq[D]): DualColumnVector
+    def createDualRowVector(p: PRowVector, d: DRowVector, deps: => Seq[D]): DualRowVector
+    def createDualMatrix(p: PMatrix, d: DMatrix, deps: => Seq[D]): DualMatrix
 
     def plusDMDM(dm1: DMatrix, dm2: DMatrix): DMatrix
     def plusDMDCV(dm: DMatrix, dcv: DColumnVector): DMatrix

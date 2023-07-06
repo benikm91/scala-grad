@@ -261,7 +261,7 @@ class DeriverForwardPlan[
                             case (_: DualNumberRowVector[PRowVector], index: Int) => 
                                 val elements2dOutput = elements2Outputs.map(t => t.toList(index).asInstanceOf[DualNumberRowVector[PRowVector]].dv)
                                 // fix "wrong" order due to oneHotEncoding of matrix being row-major wise.
-                                var elements2dOutputFixed = elements2dOutput.grouped(zeroDual.v.nCols).toVector.transpose.flatten
+                                val elements2dOutputFixed = elements2dOutput.grouped(zeroDual.v.nCols).toVector.transpose.flatten
                                 stackRows(elements2dOutputFixed)
                             case (_: DualNumberMatrix[PMatrix], index: Int) =>
                                 val elements2dOutput = elements2Outputs.map(t => t.toList(index).asInstanceOf[DualNumberMatrix[PMatrix]].dv)

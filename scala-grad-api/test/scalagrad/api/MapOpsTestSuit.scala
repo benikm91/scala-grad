@@ -134,7 +134,7 @@ trait MapOpsTestSuit[
                                 // complex operation in the middle
                                 x / m2Sum
                             ) 
-                        *:* m // do something after
+                        // *:* m // do something after
                     ).sum
                 val df = deriverM(f[DualScalar, DualColumnVector, DualRowVector, DualMatrix](dualAlgebra))
                 val dfApprox = ScalaGrad.derive(f[PScalar, PColumnVector, PRowVector, PMatrix](primaryAlgebra))

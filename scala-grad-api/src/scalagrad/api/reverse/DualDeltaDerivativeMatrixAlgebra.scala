@@ -28,13 +28,6 @@ with DeltaTransposeOps[PScalar, PColumnVector, PRowVector, PMatrix]
     override def negateS(s: DeltaScalar[PScalar, PColumnVector, PRowVector, PMatrix]): DeltaScalar[PScalar, PColumnVector, PRowVector, PMatrix] = 
         DeltaScalar.NegateS(s)
 
-trait DeltaScalarInvertOps[PScalar, PColumnVector, PRowVector, PMatrix]()
-extends ScalarInvertOps[
-    DeltaScalar[PScalar, PColumnVector, PRowVector, PMatrix], 
-]:
-    override def invert(s: DeltaScalar[PScalar, PColumnVector, PRowVector, PMatrix]): DeltaScalar[PScalar, PColumnVector, PRowVector, PMatrix] = 
-        DeltaScalar.Invert(s)
-
 trait DeltaZeroOps[PScalar, PColumnVector, PRowVector, PMatrix]()
 extends ZeroOps[
     DeltaScalar[PScalar, PColumnVector, PRowVector, PMatrix],
@@ -94,30 +87,29 @@ case class DualDeltaDerivativeMatrixAlgebra[
     DualDeltaMatrix[PScalar, PColumnVector, PRowVector, PMatrix]
 ]:
 
-    private[scalagrad] var nextIndex: Int = 0
-
-    private def markIndex[D <: DeltaIndexed](d: D): D =
-        d.index = nextIndex
-        nextIndex += 1
-        d
-
     override val dNegateOps = new DeltaNegateOps[PScalar, PColumnVector, PRowVector, PMatrix] { }
-    override val dInvertOps = new DeltaScalarInvertOps[PScalar, PColumnVector, PRowVector, PMatrix] { }
     override val dZeroOps = new DeltaZeroOps[PScalar, PColumnVector, PRowVector, PMatrix] { }
     override val dTransposeOps = new DeltaTransposeOps[PScalar, PColumnVector, PRowVector, PMatrix] { }
     override val dCreateOps = new DeltaCreateOps[PScalar, PColumnVector, PRowVector, PMatrix] { }
 
-    override def createDualScalar(s: PScalarT, ds: DScalarT): DualScalarT = 
-        DualDeltaScalar(s, markIndex(ds))
+    private def maxIndex(deps: => Seq[D]): Int = 
+        deps.filter(_.isInstanceOf[DeltaVal]).map(x => x.asInstanceOf[DeltaVal].index).maxOption.getOrElse(0)
 
-    override def createDualColumnVector(cv: PColumnVectorT, dcv: DColumnVectorT): DualColumnVectorT = 
-        DualDeltaColumnVector(cv, markIndex(dcv))
+    override def createDualScalar(s: PScalarT, ds: DScalarT, deps: => Seq[D] = List.empty): DualScalarT = 
+        val wrappedDs = if (ds.isInstanceOf[DeltaVal]) then ds else DeltaScalar.Val(maxIndex(deps) + 1, ds)
+        DualDeltaScalar(s, wrappedDs)
 
-    override def createDualRowVector(rv: PRowVectorT, drv: DRowVectorT): DualRowVectorT = 
-        DualDeltaRowVector(rv, markIndex(drv))
+    override def createDualColumnVector(cv: PColumnVectorT, dcv: DColumnVectorT, deps: => Seq[D] = List.empty): DualColumnVectorT = 
+        val wrappedDcv = if (dcv.isInstanceOf[DeltaVal]) then dcv else DeltaColumnVector.Val(maxIndex(deps) + 1, dcv)
+        DualDeltaColumnVector(cv, wrappedDcv)
 
-    override def createDualMatrix(m: PMatrixT, dm: DMatrixT): DualMatrixT = 
-        DualDeltaMatrix(m, markIndex(dm))
+    override def createDualRowVector(rv: PRowVectorT, drv: DRowVectorT, deps: => Seq[D] = List.empty): DualRowVectorT = 
+        val wrappedDrv = if (drv.isInstanceOf[DeltaVal]) then drv else DeltaRowVector.Val(maxIndex(deps) + 1, drv)
+        DualDeltaRowVector(rv, wrappedDrv)
+
+    override def createDualMatrix(m: PMatrixT, dm: DMatrixT, deps: => Seq[D] = List.empty): DualMatrixT =  
+        val wrappedDm = if (dm.isInstanceOf[DeltaVal]) then dm else DeltaMatrix.Val(maxIndex(deps) + 1, dm)
+        DualDeltaMatrix(m, wrappedDm)
 
     override def plusDMDM(dm1: DMatrixT, dm2: DMatrixT): DMatrixT = 
         DeltaMatrix.PlusDMDM(dm1, dm2)

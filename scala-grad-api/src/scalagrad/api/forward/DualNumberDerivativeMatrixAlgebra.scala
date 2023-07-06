@@ -14,18 +14,17 @@ case class DualNumberDerivativeMatrixAlgebra[Scalar, ColumnVector, RowVector, Ma
 ]:
 
     override val dNegateOps: NegateOps[DScalarT, PColumnVectorT, PRowVectorT, PMatrixT] = matrixAlgebra
-    override val dInvertOps: ScalarInvertOps[DScalarT] = matrixAlgebra
     override val dZeroOps: ZeroOps[DScalarT, PColumnVectorT, PRowVectorT, PMatrixT] = matrixAlgebra
     override val dTransposeOps: TransposeOps[PColumnVectorT, PRowVectorT, PMatrixT] = matrixAlgebra
     override val dCreateOps: CreateOps[DScalarT, PColumnVectorT, PRowVectorT, PMatrixT] = matrixAlgebra
 
-    override def createDualScalar(s: PScalarT, ds: DScalarT): DualScalarT = DualNumberScalar(s, ds)
+    override def createDualScalar(s: PScalarT, ds: DScalarT, deps: => Seq[D] = List.empty): DualScalarT = DualNumberScalar(s, ds)
 
-    override def createDualColumnVector(cv: PColumnVectorT, dcv: DColumnVectorT): DualColumnVectorT = DualNumberColumnVector(cv, dcv)
+    override def createDualColumnVector(cv: PColumnVectorT, dcv: DColumnVectorT, deps: => Seq[D] = List.empty): DualColumnVectorT = DualNumberColumnVector(cv, dcv)
 
-    override def createDualRowVector(rv: PRowVectorT, drv: DRowVectorT): DualRowVectorT = DualNumberRowVector(rv, drv)
+    override def createDualRowVector(rv: PRowVectorT, drv: DRowVectorT, deps: => Seq[D] = List.empty): DualRowVectorT = DualNumberRowVector(rv, drv)
 
-    override def createDualMatrix(m: PMatrixT, dm: DMatrixT): DualMatrixT = DualNumberMatrix(m, dm)
+    override def createDualMatrix(m: PMatrixT, dm: DMatrixT, deps: => Seq[D] = List.empty): DualMatrixT = DualNumberMatrix(m, dm)
 
     override def plusDMDM(dm1: DMatrixT, dm2: DMatrixT): DMatrixT = matrixAlgebra.plusMM(dm1, dm2)
 

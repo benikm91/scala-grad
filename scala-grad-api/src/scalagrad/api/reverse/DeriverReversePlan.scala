@@ -48,13 +48,6 @@ abstract class DeriverReversePlan[
     import primaryMatrixAlgebra.*
     import derivativeMatrixAlgebra.*
 
-    private def withResetIndex[R](f: => R) = 
-        val startNextIndex = derivativeMatrixAlgebra.nextIndex
-        derivativeMatrixAlgebra.nextIndex = 0
-        val res = f
-        derivativeMatrixAlgebra.nextIndex = startNextIndex
-        res
-
     // TODO can we move this to DeriverPlan?
     given scalar2Scalar: DeriverFromTo[DualScalar => DualScalar, PScalar => PScalar] with
         override def derive(f: DualScalar => DualScalar): PScalar => PScalar = x => 
@@ -174,15 +167,15 @@ abstract class DeriverReversePlan[
 
         private val ids = (0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22)
 
-        override def derive(f: T => RT): DualTupleToPTuple[T] => CartesianProductAndUpP[T, DualTupleToPTuple[RT]] = t => withResetIndex {
+        override def derive(f: T => RT): DualTupleToPTuple[T] => CartesianProductAndUpP[T, DualTupleToPTuple[RT]] = t =>
             def reversePlan(t: DualTupleToPTuple[T]): CartesianProductAndUpP[T, DualTupleToPTuple[RT]] = 
                 val tWithIndex = t.zip(ids)
                 val output = f(
                     tWithIndex.map[[X] =>> Any]([U] => (t: U) => t match {
-                        case (x: PScalar, id: Int) => createDualScalar(x, DeltaScalar.Val(id))
-                        case (x: PColumnVector, id: Int) => createDualColumnVector(x, DeltaColumnVector.Val(id))
-                        case (x: PRowVector, id: Int) => createDualRowVector(x, DeltaRowVector.Val(id))
-                        case (x: PMatrix, id: Int) => createDualMatrix(x, DeltaMatrix.Val(id))
+                        case (x: PScalar, id: Int) => createDualScalar(x, DeltaScalar.Val(0, DeltaScalar.Input(id)))
+                        case (x: PColumnVector, id: Int) => createDualColumnVector(x, DeltaColumnVector.Val(0, DeltaColumnVector.Input(id)))
+                        case (x: PRowVector, id: Int) => createDualRowVector(x, DeltaRowVector.Val(0, DeltaRowVector.Input(id)))
+                        case (x: PMatrix, id: Int) => createDualMatrix(x, DeltaMatrix.Val(0, DeltaMatrix.Input(id)))
                     }).asInstanceOf[T]
                 )
                 def extractResults(res: eval.Results): DualTupleToPTuple[RT] =
@@ -194,11 +187,11 @@ abstract class DeriverReversePlan[
                     }).asInstanceOf[DualTupleToPTuple[RT]]
                 // map over outputs
                 val res = output.map[[X] =>> Any]([U] => (t: U) => t match {
-                    case x: DualScalar => 
+                    case x: (DualScalar @unchecked) => 
                         // run reverse plan for scalar
                         val res = eval.evalScalar(one, x.delta)
                         extractResults(res)
-                    case x: DualColumnVector =>
+                    case x: (DualColumnVector @unchecked) =>
                         // run reverse plan for column vector
                         val inputsByOutputElements = for (i <- 0 until x.length) yield { 
                             val res = eval.evalColumnVector(oneHotColumnVector(x.length, i), x.delta)
@@ -220,7 +213,7 @@ abstract class DeriverReversePlan[
                                 val nInputElements = inputByOutputsElements.head.nRows * inputByOutputsElements.head.nCols
                                 createMatrixFromElements(nInputElements, inputByOutputsElements.length, inputByOutputsElements.flatMap(_.elements))
                         })
-                    case x: DualRowVector => 
+                    case x: (DualRowVector @unchecked) => 
                         // run reverse plan for row vector
                         val inputsByOutputElements = for (i <- 0 until x.length) yield { 
                             val res = eval.evalRowVector(oneHotRowVector(x.length, i), x.delta)
@@ -243,7 +236,7 @@ abstract class DeriverReversePlan[
                                 val cols = inputByOutputsElements.map(_.t.elements).map(x => createColumnVectorFromElements(x))
                                 stackColumns(cols)
                         })
-                    case x: DualMatrix => 
+                    case x: (DualMatrix @unchecked) => 
                         // run reverse plan for matrix
                         val inputsByOutputElements = for (i <- 0 until x.v.nRows * x.v.nCols) yield {
                             val res = eval.evalMatrix(oneHotMatrix(x.v.nRows, x.v.nCols, i), x.delta)
@@ -272,4 +265,3 @@ abstract class DeriverReversePlan[
                 })
                 finalRes.asInstanceOf[CartesianProductAndUpP[T, DualTupleToPTuple[RT]]]
             reversePlan(t)
-        }

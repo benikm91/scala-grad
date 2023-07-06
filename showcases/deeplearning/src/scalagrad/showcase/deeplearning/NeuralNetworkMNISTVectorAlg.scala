@@ -305,7 +305,7 @@ def getRandomWeights(nFeatures: Int, nHiddenUnits: Int, nOutputUnits: Int): (
 
     println("****** START PERFORMANCE TESTS ******")
     val (xsTest, ysTest) = preprocess(MNISTDataSet.loadTest, 32)
-    val batchSizesReverseMode = List(64)
+    val batchSizesReverseMode = List(32, 64, 128)
     // val batchSizesReverseMode = List(8, 16, 32, 64, 128, 256, 512)
     // val batchSizesForwardMode = List(8)
     //val batchSizesForwardMode = List(1, 2, 4, 8)
