@@ -70,3 +70,4 @@ lazy val root = (project in file("."))
     // Showcase
     deepLearningShowcase,
   )
+  .enablePlugins(MdocPlugin)

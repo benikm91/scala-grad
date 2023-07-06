@@ -21,7 +21,7 @@ object BreezeDoubleMatrixAlgebra extends MatrixAlgebra[
   override def elementAtCV(cv: ColumnVectorT, iRow: Int): ScalarT = cv(iRow)
 
   override def setElementAtM(m: MatrixT, iRow: Int, jColumn: Int, newValue: ScalarT): MatrixT =
-    val newM = m.copy
+    val newM = m.copy // TODO is copy necessary
     newM(iRow, jColumn) = newValue
     newM
 
