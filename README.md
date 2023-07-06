@@ -2,4 +2,4 @@
 
 # ScalaGrad
 
-## AD - Forward mode
+[QuickStart](doc/QuickStart.md)
