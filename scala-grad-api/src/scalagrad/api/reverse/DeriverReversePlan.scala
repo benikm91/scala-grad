@@ -240,7 +240,8 @@ abstract class DeriverReversePlan[
                             case (x: PMatrix, index: Int) =>
                                 val inputByOutputsElements = inputsByOutputElements.map(t => t.toList(index).asInstanceOf[PMatrix])
                                 val nInputElements = inputByOutputsElements.head.nRows * inputByOutputsElements.head.nCols
-                                createMatrixFromElements(nInputElements, inputByOutputsElements.length, inputByOutputsElements.map(_.elements).transpose.flatten)
+                                val cols = inputByOutputsElements.map(_.t.elements).map(x => createColumnVectorFromElements(x))
+                                stackColumns(cols)
                         })
                     case x: DualMatrix => 
                         // run reverse plan for matrix

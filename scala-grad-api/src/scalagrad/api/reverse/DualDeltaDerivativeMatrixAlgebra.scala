@@ -96,8 +96,6 @@ case class DualDeltaDerivativeMatrixAlgebra[
 
     private[scalagrad] var nextIndex: Int = 0
 
-    private[scalagrad] def resetIndex(): Unit = nextIndex = 0
-
     private def markIndex[D <: DeltaIndexed](d: D): D =
         d.index = nextIndex
         nextIndex += 1

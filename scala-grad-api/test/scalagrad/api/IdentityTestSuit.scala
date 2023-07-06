@@ -22,6 +22,19 @@ import scalagrad.api.reverse.DeriverReversePlan
 import breeze.linalg.*
 import scalagrad.api.matrixalgebra.MatrixAlgebra
 
+/**
+ * Functions can have a lot of different structures, like Scalar => Matrix or (Scalar, Scalar) => (Scalar, Scalar).
+ * 
+ * A deriver must support all combinations of input and output types.
+ * 
+ * This test suit tests:
+ *  - the basic combinations of one input type to one output type
+ *  - some complex combinations of two input types to two output types
+ * 
+ * For testing mostly the identity operation is used. 
+ * However there are some cases adding non-diagonal relations to the solution.
+ * Non-diagonality helps for example to detect errors of wrongly transposed results.
+ */
 trait IdentityTestSuit[
     PScalar, PColumnVector, PRowVector, PMatrix,
     DScalar, DColumnVector, DRowVector, DMatrix,
@@ -168,8 +181,8 @@ trait IdentityTestSuit[
                     cv.setElementAt(0, cv.elementAt(0) + cv.elementAt(1)) // add non diagonal relation
                 def realDf(cv: pma.ColumnVectorT): pma.MatrixT = 
                     import pma.*;
-                    val res = eyeM(cv.length)
-                    res.setElementAt(1, 0, pma.one) // add non diagonal relation to solution
+                    eyeM(cv.length)
+                        .setElementAt(1, 0, pma.one) // add non diagonal relation to solution
                 forAll(columnVectorGen(minLength=2)) { (cv) =>
                     deriverCV2CV(f)(cv) should be (realDf(cv))
                 }
@@ -188,8 +201,8 @@ trait IdentityTestSuit[
                     res.setElementAt(0, res.elementAt(0) + cv.elementAt(1)) // add non diagonal relation
                 }
                 def realDf(cv: pma.ColumnVectorT): pma.MatrixT = 
-                    val res = eyeM(cv.length)
-                    res.setElementAt(1, 0, pma.one) // add non diagonal relation to solution
+                    eyeM(cv.length)
+                        .setElementAt(1, 0, pma.one) // add non diagonal relation to solution
                 forAll(columnVectorGen(minLength = 2, maxLength = 2)) { (cv) =>
                     deriverCV2RV(f)(cv) should be (realDf(cv))
                 }
@@ -223,8 +236,8 @@ trait IdentityTestSuit[
                 }
                 def realDf(rv: pma.RowVectorT): pma.MatrixT = 
                     import pma.*;
-                    val res = eyeM(rv.length)
-                    res.setElementAt(1, 0, pma.one) // add non diagonal relation to solution
+                    eyeM(rv.length)
+                        .setElementAt(1, 0, pma.one) // add non diagonal relation to solution
                 forAll(rowVectorGen(minLength=2)) { (rv) =>
                     deriverRV2CV(f)(rv) should be (realDf(rv))
                 }
@@ -243,8 +256,8 @@ trait IdentityTestSuit[
                     res.setElementAt(0, res.elementAt(0) + rv.elementAt(1)) // add non diagonal relation
                 def realDf(rv: pma.RowVectorT): pma.MatrixT = 
                     import pma.*;
-                    val res = eyeM(rv.length)
-                    res.setElementAt(1, 0, pma.one) // add non diagonal relation to solution
+                    eyeM(rv.length)
+                        .setElementAt(1, 0, pma.one) // add non diagonal relation to solution
                 forAll(rowVectorGen(minLength=2)) { (rv) =>
                     deriverRV2RV(f)(rv) should be (realDf(rv))
                 }
@@ -277,10 +290,36 @@ trait IdentityTestSuit[
                     deriverM2CV(f)(m) should be (realDf(m))
                 }
             }
+            "support for M2CV (non-diagonal)" in {
+                def f(m: dma.MatrixT): dma.ColumnVectorT = { 
+                    import dma.*; 
+                    m   .columnAt(0)
+                        .setElementAt(0, m.elementAt(0, 0) + m.elementAt(1, 0)) // add non diagonal relation 
+                }
+                def realDf(m: pma.MatrixT): pma.MatrixT = 
+                    eyeM2(m.nRows * m.nCols, m.nRows)
+                        .setElementAt(1, 0, pma.one) // add non diagonal relation to solution
+                forAll(matrixGen(minDim=2)) { (m) =>
+                    deriverM2CV(f)(m) should be (realDf(m))
+                }
+            }
             "support for M2RV" in {
                 def f(m: dma.MatrixT): dma.RowVectorT = { import dma.*; m.rowAt(0) }
                 def realDf(m: pma.MatrixT): pma.MatrixT = eyeM2(m.nRows * m.nCols, m.nCols)
                 forAll(matrixGen(maxDim=2)) { (m) =>
+                    deriverM2RV(f)(m) should be (realDf(m))
+                }
+            }
+            "support for M2RV (non-diagonal)" in {
+                def f(m: dma.MatrixT): dma.RowVectorT = { 
+                    import dma.*; 
+                    m   .rowAt(0)
+                        .setElementAt(0, m.elementAt(0, 0) + m.elementAt(0, 1)) // add non diagonal relation 
+                }
+                def realDf(m: pma.MatrixT): pma.MatrixT = 
+                    eyeM2(m.nRows * m.nCols, m.nCols)
+                        .setElementAt(1, 0, pma.one) // add non diagonal relation to solution
+                forAll(matrixGen(minDim=2, maxDim=2)) { (m) =>
                     deriverM2RV(f)(m) should be (realDf(m))
                 }
             }
@@ -296,8 +335,8 @@ trait IdentityTestSuit[
                     import dma.*
                     m.setElementAt(0, 0, m.elementAt(0, 0) + m.elementAt(1, 0))
                 def realDf(m: pma.MatrixT): pma.MatrixT = 
-                    val res = eyeM(m.nRows * m.nCols)
-                    res.setElementAt(1, 0, pma.one)
+                    eyeM(m.nRows * m.nCols)
+                        .setElementAt(1, 0, pma.one)
                 forAll(matrixGen(minDim=2, maxDim=2)) { (m) =>
                     deriverM2M(f)(m) should be (realDf(m))
                 }
@@ -382,23 +421,6 @@ trait IdentityTestSuit[
                     ((eyeM2(numberOfInputsM1, numberOfOutputsM1), pma.zeroMatrix(numberOfInputsM1, numberOfOutputsM2)), (pma.zeroMatrix(numberOfInputsM2, numberOfOutputsM1), eyeM2(numberOfInputsM2, numberOfOutputsM2)))
 
                 forAll(mmGen(maxDim=2)) { (m1, m2) =>
-                    val ((a1, a2), (a3, a4)) = deriverMM2MM(f.tupled)(m1, m2) 
-                    val ((b1, b2), (b3, b4)) = realDf(m1, m2)
-                    println("***")
-                    println(m1.nRows + " " + m1.nCols)
-                    println(m2.nRows + " " + m2.nCols)
-                    println("**")
-                    println(a1.nRows + " " + a1.nCols)
-                    println(b1.nRows + " " + b1.nCols)
-                    println("**")
-                    println(a2.nRows + " " + a2.nCols)
-                    println(b2.nRows + " " + b2.nCols)
-                    println("**")
-                    println(a3.nRows + " " + a3.nCols)
-                    println(b3.nRows + " " + b3.nCols)
-                    println("**")
-                    println(a4.nRows + " " + a4.nCols)
-                    println(b4.nRows + " " + b4.nCols)
                     deriverMM2MM(f.tupled)(m1, m2) should be(realDf(m1, m2))
                 }
             }
