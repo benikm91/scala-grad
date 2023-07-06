@@ -2,4 +2,4 @@
 
 # ScalaGrad
 
-[QuickStart](doc/QuickStart.md)
+[QuickStart](docs/QuickStart.md)
