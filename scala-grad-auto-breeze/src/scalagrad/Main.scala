@@ -216,37 +216,3 @@ def reverse =
     println(df3(1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0))
 
     println("DONE")
-
-
-@main
-def forwardForward =
-    import spire.algebra.Trig
-    import scalagrad.api.forward.DeriverForwardPlan
-    import scalagrad.auto.forward.breeze.DeriverBreezeDoubleForwardPlan
-    import DeriverBreezeDoubleForwardPlan.{algebraGiven => _, given}
-    import scalagrad.api.forward.dual.*
-    import spire.implicits._
-    import scalagrad.api.spire.numeric.DualScalarIsNumeric.given
-    import scalagrad.api.spire.trig.DualScalarIsTrig.given
-    // construct DeriverPlan for deriving twice by chaining plan
-    val ffp = new DeriverForwardPlan(DeriverBreezeDoubleForwardPlan.algebraGiven)
-    import ffp.given
-
-    def f(x: ffp.algebraT.Scalar): ffp.algebraT.Scalar = x * x
-    // Apply ScalaGrad.derive twice on function
-    val ddf = ScalaGrad.derive(ScalaGrad.derive(f))
-    println(ddf(5.0))
-
-    // Example with Trig
-    def g(x: ffp.algebraT.Scalar)(
-        using trig: Trig[ffp.algebraT.Scalar]
-    ): ffp.algebraT.Scalar = trig.exp(x)
-    val ddg = ScalaGrad.derive(ScalaGrad.derive(g))
-    println(ddg(5.0))
-
-    def f2(x1: ffp.algebraT.Scalar, x2: ffp.algebraT.Scalar): ffp.algebraT.Scalar = x1 * x2
-    // Apply ScalaGrad.derive twice on function
-    val df2: Tuple2[DualNumberScalar[Double], DualNumberScalar[Double]] => Tuple2[DualNumberScalar[Double], DualNumberScalar[Double]] = ScalaGrad.derive(f2)
-    import DeriverBreezeDoubleForwardPlan.{algebraGiven => _, given}
-    val ddf2 = ScalaGrad.derive(df2)
-    println(ddf2(1.0, 1.0))
