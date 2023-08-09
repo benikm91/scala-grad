@@ -7,8 +7,8 @@ import scalagrad.api.Deriver
 import scalagrad.api.DeriverFromTo
 import org.scalacheck.Gen
 
-import scalagrad.auto.reverse.breeze.DeriverBreezeDoubleReversePlan
-import DeriverBreezeDoubleReversePlan.given
+import scalagrad.auto.reverse.breeze.BreezeDoubleReverseMode
+import BreezeDoubleReverseMode.given
 
 import spire.implicits._
 
@@ -21,7 +21,7 @@ import scalagrad.api.spire.trig.DualScalarIsTrig.given
 case class BreezeReverseMapOpsTestSuit() extends MapOpsTestSuit(
     BreezeTestUtil.createGlobalTestSuitParams(
         "breeze reverse mode",
-        DeriverBreezeDoubleReversePlan.algebra,
+        BreezeDoubleReverseMode.algebra,
     ),
     f => ScalaGrad.derive(f),
     f => ScalaGrad.derive(f),

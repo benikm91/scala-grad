@@ -9,7 +9,7 @@ import scalagrad.api.spire.trig.DualScalarIsTrig
 import scalagrad.api.matrixalgebra.MatrixAlgebraT
 import scalagrad.api.dual.DualMatrixAlgebraT
 
-abstract class DeriverPlan[
+abstract class Mode[
     PScalar, PColumnVector, PRowVector, PMatrix,
     DScalar, DColumnVector, DRowVector, DMatrix,
     DualScalar <: dual.DualScalar[PScalar, DScalar], 

@@ -17,9 +17,9 @@ Showcase the forward mode for a function f: (S, S) => (S, S)
 ```scala mdoc
 // import ScalaGrad and the forward plan
 import scalagrad.api.ScalaGrad
-import scalagrad.auto.forward.breeze.DeriverBreezeDoubleForwardPlan
-import scalagrad.auto.forward.breeze.DeriverBreezeDoubleForwardPlan.given
-import DeriverBreezeDoubleForwardPlan.{algebraT as alg}
+import scalagrad.auto.forward.breeze.BreezeDoubleForwardMode
+import scalagrad.auto.forward.breeze.BreezeDoubleForwardMode.given
+import BreezeDoubleForwardMode.{algebraT as alg}
 
 // define a function using the types inside algebraT (algebraT is from forward plan)
 def f(
@@ -42,9 +42,9 @@ assert(res == ((0.0, 1.0), (1.0, 0.0)))
 ```scala mdoc
 // import ScalaGrad and the reverse plan
 import scalagrad.api.ScalaGrad
-import scalagrad.auto.reverse.breeze.DeriverBreezeDoubleReversePlan
-import scalagrad.auto.reverse.breeze.DeriverBreezeDoubleReversePlan.given
-import DeriverBreezeDoubleReversePlan.{algebraT as alg}
+import scalagrad.auto.reverse.breeze.BreezeDoubleReverseMode
+import scalagrad.auto.reverse.breeze.BreezeDoubleReverseMode.given
+import BreezeDoubleReverseMode.{algebraT as alg}
 
 // define a function using the types inside algebraT  (algebraT is from reverse plan)
 def f(
@@ -67,9 +67,9 @@ assert(res == ((0.0, 1.0), (1.0, 0.0)))
 ```scala mdoc
 // import ScalaGrad stuff and the reverse plan
 import scalagrad.api.{ScalaGrad, DeriverFromTo}
-import scalagrad.auto.reverse.breeze.DeriverBreezeDoubleReversePlan
-import scalagrad.auto.reverse.breeze.DeriverBreezeDoubleReversePlan.given
-import DeriverBreezeDoubleReversePlan.{algebraT as alg}
+import scalagrad.auto.reverse.breeze.BreezeDoubleReverseMode
+import scalagrad.auto.reverse.breeze.BreezeDoubleReverseMode.given
+import BreezeDoubleReverseMode.{algebraT as alg}
 // import Numeric stuff needed in relu function
 import spire.math.Numeric
 import spire.implicits.*
@@ -90,7 +90,7 @@ def f(using DeriverFromTo[alg.Scalar => alg.Scalar, alg.PrimaryScalar => alg.Pri
     o.sum
 
 // import the forward plan which will be given to f.
-import scalagrad.auto.forward.breeze.DeriverBreezeDoubleForwardPlan.given
+import scalagrad.auto.forward.breeze.BreezeDoubleForwardMode.given
 
 // derive the function
 val df = ScalaGrad.derive(f)

@@ -7,8 +7,8 @@ import scalagrad.api.Deriver
 import scalagrad.api.DeriverFromTo
 import org.scalacheck.Gen
 
-import scalagrad.auto.forward.breeze.DeriverBreezeDoubleForwardPlan
-import DeriverBreezeDoubleForwardPlan.given
+import scalagrad.auto.forward.breeze.BreezeDoubleForwardMode
+import BreezeDoubleForwardMode.given
 
 import breeze.linalg.*
 import scalagrad.util.test.BreezeTestUtil
@@ -16,7 +16,7 @@ import scalagrad.util.test.BreezeTestUtil
 case class BreezeForwardIdentityTestSuit() extends IdentityTestSuit(
     BreezeTestUtil.createGlobalTestSuitParams(
         "breeze forward mode",
-        DeriverBreezeDoubleForwardPlan.algebra,
+        BreezeDoubleForwardMode.algebra,
     ),
     f => ScalaGrad.derive(f),
     f => ScalaGrad.derive(f),

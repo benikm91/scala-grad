@@ -1,6 +1,6 @@
 package scalagrad.api.forward
 
-import scalagrad.api.DeriverPlan
+import scalagrad.api.Mode
 import scalagrad.api.DeriverFromTo
 import scalagrad.api.dual.DualMatrixAlgebra
 import scalagrad.api.forward.dual.*
@@ -9,11 +9,11 @@ import scalagrad.api.matrixalgebra.CreateOps
 import scalagrad.api.matrixalgebra.MatrixAlgebra
 import scala.reflect.Typeable
 
-class DeriverForwardPlan[
+class ForwardMode[
     PScalar : Typeable, PColumnVector : Typeable, PRowVector : Typeable, PMatrix : Typeable,
 ](
     primaryMatrixAlgebra: MatrixAlgebra[PScalar, PColumnVector, PRowVector, PMatrix],
-) extends DeriverPlan[
+) extends Mode[
     PScalar, PColumnVector, PRowVector, PMatrix,
     PScalar, PColumnVector, PRowVector, PMatrix,
     DualNumberScalar[PScalar], 
@@ -36,7 +36,7 @@ class DeriverForwardPlan[
     val indices = (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22)
     val zeroIndices = (0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22)
 
-    // TODO can we move this to DeriverPlan?
+    // TODO can we move this to Mode?
     given scalar2Scalar: DeriverFromTo[DualScalar => DualScalar, PScalar => PScalar] with
         override def derive(f: DualScalar => DualScalar): PScalar => PScalar = x => 
             tuple2Scalar[Tuple1[DualScalar]].derive((t: Tuple1[DualScalar]) => f(t.head))(Tuple1(x)).head

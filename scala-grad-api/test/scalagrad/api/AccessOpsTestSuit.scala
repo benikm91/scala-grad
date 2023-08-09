@@ -1,7 +1,6 @@
 package scalagrad.api.test
 
 import scalagrad.api.ScalaGrad
-import scalagrad.api.DeriverPlan
 import scalagrad.api.matrixalgebra.derivative.DerivativeMatrixAlgebra
 import scalagrad.api.dual.DualMatrixAlgebra
 import scalagrad.api.dual
@@ -16,8 +15,6 @@ import org.scalacheck.Gen
 import scalagrad.api.Deriver
 import scalagrad.api.DeriverFromTo
 import scalagrad.numerical.DeriverNumericalPlan
-import scalagrad.api.forward.DeriverForwardPlan
-import scalagrad.api.reverse.DeriverReversePlan
 
 import scalagrad.api.matrixalgebra.MatrixAlgebra
 

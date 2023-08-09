@@ -17,40 +17,40 @@ import scalagrad.api.matrixalgebra.MatrixAlgebraT
 import scalagrad.api.forward.dual.DualNumberMatrix
 import scalagrad.api.spire.numeric.DualScalarIsNumeric.given
 import scalagrad.api.spire.trig.DualScalarIsTrig.given
-import scalagrad.auto.forward.breeze.DeriverBreezeDoubleForwardPlan
-import DeriverBreezeDoubleForwardPlan.given
+import scalagrad.auto.forward.breeze.BreezeDoubleForwardMode
+import BreezeDoubleForwardMode.given
 import scalagrad.api.dual.DualMatrixAlgebraT
 import scalagrad.api.forward.dual.DualNumberScalar
 import scalagrad.api.reverse.dual.DualDeltaScalar
 import Util.*
 
 import scalagrad.api.DualBreezeMatrixAlgebraT.*
-import scalagrad.auto.reverse.breeze.DeriverBreezeDoubleReversePlan
-import DeriverBreezeDoubleReversePlan.given
+import scalagrad.auto.reverse.breeze.BreezeDoubleReverseMode
+import BreezeDoubleReverseMode.given
 
 object NeuralNetworkMNIST:
 
-    def neuralNetwork(ops: MatrixAlgebraT)(
-        xs: ops.Matrix,
-        firstW0: ops.ColumnVector, 
-        firstWs: ops.Matrix,
-        lastW0: ops.ColumnVector,
-        lastWs: ops.Matrix,
-    )(using num: Numeric[ops.Scalar], trig: Trig[ops.Scalar]): ops.Matrix = 
+    def neuralNetwork(alg: MatrixAlgebraT)(
+        xs: alg.Matrix,
+        firstW0: alg.ColumnVector, 
+        firstWs: alg.Matrix,
+        lastW0: alg.ColumnVector,
+        lastWs: alg.Matrix,
+    )(using num: Numeric[alg.Scalar], trig: Trig[alg.Scalar]): alg.Matrix = 
         val h = (xs * firstWs + firstW0.t).map(relu)
         (h * lastWs + lastW0.t)
-            .mapRows(row => softmax(ops)(row.t).t)
+            .mapRows(row => softmax(alg)(row.t).t)
 
     def relu[P: Numeric](x: P): P = 
         val num = summon[Numeric[P]]
         if x < num.zero then num.zero else x
 
-    def softmax(ops: MatrixAlgebraT)(x: ops.ColumnVector)(using trig: Trig[ops.Scalar]): ops.ColumnVector = 
-        def unstableSoftmax(ops: MatrixAlgebraT)(x: ops.ColumnVector)(using trig: Trig[ops.Scalar]): ops.ColumnVector = 
+    def softmax(alg: MatrixAlgebraT)(x: alg.ColumnVector)(using trig: Trig[alg.Scalar]): alg.ColumnVector = 
+        def unstableSoftmax(x: alg.ColumnVector)(using trig: Trig[alg.Scalar]): alg.ColumnVector = 
             val exps = x.map(trig.exp)
             exps / exps.sum
         val maxElement = x.elements.maxBy(_.toDouble)
-        unstableSoftmax(ops)(x - maxElement)
+        unstableSoftmax(x - maxElement)
 
     def miniBatchGradientDescent
     (data: LazyList[(DenseMatrix[Double], DenseMatrix[Double])])
@@ -65,7 +65,7 @@ object NeuralNetworkMNIST:
         if n == 0 then (firstW0, firstWs, lastW0, lastWs)
         else
             val (xsBatch, ysBatch) = data.head
-            val algebra = DeriverBreezeDoubleReversePlan.algebraT
+            val algebra = BreezeDoubleReverseMode.algebraT
             val dLoss = ScalaGrad.derive(loss(algebra)(
                 algebra.lift(xsBatch),
                 algebra.lift(ysBatch)
@@ -81,26 +81,26 @@ object NeuralNetworkMNIST:
                 n - 1,
             )
 
-    def loss(ops: MatrixAlgebraT)(xs: ops.Matrix, ys: ops.Matrix)(
-        firstW0: ops.ColumnVector,
-        firstWs: ops.Matrix,
-        lastW0: ops.ColumnVector,
-        lastWs: ops.Matrix,
-    )(using Numeric[ops.Scalar], Trig[ops.Scalar]): ops.Scalar =
-        val ysHat = neuralNetwork(ops)(xs, firstW0, firstWs, lastW0, lastWs)
-        crossEntropy(ops)(ys, ysHat)
+    def loss(alg: MatrixAlgebraT)(xs: alg.Matrix, ys: alg.Matrix)(
+        firstW0: alg.ColumnVector,
+        firstWs: alg.Matrix,
+        lastW0: alg.ColumnVector,
+        lastWs: alg.Matrix,
+    )(using Numeric[alg.Scalar], Trig[alg.Scalar]): alg.Scalar =
+        val ysHat = neuralNetwork(alg)(xs, firstW0, firstWs, lastW0, lastWs)
+        crossEntropy(alg)(ys, ysHat)
 
-    def crossEntropy(ops: MatrixAlgebraT)(ys: ops.Matrix, ysHat: ops.Matrix)(using n: Numeric[ops.Scalar], trig: Trig[ops.Scalar]): ops.Scalar =
-        def clip(ops: MatrixAlgebraT)(x: ops.Scalar)(using n: Numeric[ops.Scalar]): ops.Scalar =
+    def crossEntropy(alg: MatrixAlgebraT)(ys: alg.Matrix, ysHat: alg.Matrix)(using n: Numeric[alg.Scalar], trig: Trig[alg.Scalar]): alg.Scalar =
+        def clip(x: alg.Scalar)(using n: Numeric[alg.Scalar]): alg.Scalar =
             val epsilon: Double = 1e-07
-            val minS = ops.liftToScalar(epsilon)
-            val maxS = ops.liftToScalar(1.0 - epsilon)
+            val minS = alg.liftToScalar(epsilon)
+            val maxS = alg.liftToScalar(1.0 - epsilon)
             if x < minS then minS
             else if x > maxS then maxS
             else x
-        val logYsHat = ysHat.map(clip(ops)).map(trig.log)
+        val logYsHat = ysHat.map(clip).map(trig.log)
         val logYsHatYs = logYsHat *:* ys
-        ops.liftToScalar(-1) * ops.divideSS(logYsHatYs.sum, ops.liftToScalar(logYsHat.nRows))
+        -(logYsHatYs.sum / alg.liftToScalar(logYsHat.nRows))
 
     def accuracy(yHatProp: DenseMatrix[Double], yM: DenseMatrix[Double]): Double =
         import breeze.linalg.*

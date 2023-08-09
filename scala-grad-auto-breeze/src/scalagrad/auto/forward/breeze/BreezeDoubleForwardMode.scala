@@ -1,6 +1,6 @@
 package scalagrad.auto.forward.breeze
 
-import scalagrad.api.forward.DeriverForwardPlan
+import scalagrad.api.forward.ForwardMode
 import breeze.linalg.*
 import scalagrad.api.Deriver
 import scalagrad.api.forward.dual.DualNumberMatrix
@@ -13,7 +13,7 @@ import scalagrad.api.matrixalgebra.MatrixAlgebra
 import scalagrad.auto.breeze.BreezeDoubleMatrixAlgebra
 import scalagrad.api.dual.DualMatrixAlgebra
 
-object DeriverBreezeDoubleForwardPlan extends DeriverForwardPlan[
+object BreezeDoubleForwardMode extends ForwardMode[
     Double, DenseVector[Double], Transpose[DenseVector[Double]], DenseMatrix[Double],
 ](
     BreezeDoubleMatrixAlgebra

@@ -7,8 +7,8 @@ import scalagrad.api.matrixalgebra.MatrixAlgebraT
 import breeze.linalg.{DenseMatrix, DenseVector}
 import scalagrad.api.ScalaGrad
 import scalagrad.api.dual.DualMatrixAlgebraT
-import scalagrad.auto.reverse.breeze.DeriverBreezeDoubleReversePlan
-import DeriverBreezeDoubleReversePlan.given
+import scalagrad.auto.reverse.breeze.BreezeDoubleReverseMode
+import BreezeDoubleReverseMode.given
 import scalagrad.auto.breeze.BreezeDoubleMatrixAlgebraT
 import scala.annotation.tailrec
 
@@ -46,7 +46,7 @@ import scala.annotation.tailrec
         n: Int,
     ): (Double, DenseVector[Double]) =
         // create dLoss with auto differentiation (reverse mode)
-        val alg = DeriverBreezeDoubleReversePlan.algebraT
+        val alg = BreezeDoubleReverseMode.algebraT
         val dLoss = ScalaGrad.derive(loss(alg)(
                 alg.lift(xs),
                 alg.lift(ys)

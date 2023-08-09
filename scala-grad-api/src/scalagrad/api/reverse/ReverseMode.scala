@@ -1,6 +1,6 @@
 package scalagrad.api.reverse
 
-import scalagrad.api.DeriverPlan
+import scalagrad.api.Mode
 import scalagrad.api.DeriverFromTo
 import scalagrad.api.dual.DualMatrixAlgebra
 import scalagrad.api.reverse.dual.*
@@ -13,11 +13,11 @@ import scalagrad.api.reverse.eval.Eval
 import scalagrad.api.reverse.DualDeltaDerivativeMatrixAlgebra
 import scala.reflect.Typeable
 
-abstract class DeriverReversePlan[
+abstract class ReverseMode[
     PScalar : Typeable, PColumnVector : Typeable, PRowVector : Typeable, PMatrix : Typeable,
 ](
     primaryMatrixAlgebra: MatrixAlgebra[PScalar, PColumnVector, PRowVector, PMatrix],
-) extends DeriverPlan[
+) extends Mode[
     PScalar, PColumnVector, PRowVector, PMatrix,
     DeltaScalar[PScalar, PColumnVector, PRowVector, PMatrix], 
     DeltaColumnVector[PScalar, PColumnVector, PRowVector, PMatrix], 
@@ -48,7 +48,7 @@ abstract class DeriverReversePlan[
     import primaryMatrixAlgebra.*
     import derivativeMatrixAlgebra.*
 
-    // TODO can we move this to DeriverPlan?
+    // TODO can we move this to Mode?
     given scalar2Scalar: DeriverFromTo[DualScalar => DualScalar, PScalar => PScalar] with
         override def derive(f: DualScalar => DualScalar): PScalar => PScalar = x => 
             tuple2Scalar[Tuple1[DualScalar]].derive((t: Tuple1[DualScalar]) => f(t.head))(Tuple1(x)).head

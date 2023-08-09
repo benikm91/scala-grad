@@ -3,12 +3,12 @@ package scalagrad
 @main
 def higherOrderSample =
     import scalagrad.api.ScalaGrad
-    import scalagrad.api.forward.DeriverForwardPlan
-    import scalagrad.auto.forward.breeze.DeriverBreezeDoubleForwardPlan
-    import DeriverBreezeDoubleForwardPlan.{algebraGiven => _, given}
+    import scalagrad.api.forward.ForwardMode
+    import scalagrad.auto.forward.breeze.BreezeDoubleForwardMode
+    import BreezeDoubleForwardMode.{algebraGiven => _, given}
 
-    // construct DeriverPlan for deriving twice by chaining plan
-    val ffp = new DeriverForwardPlan(DeriverBreezeDoubleForwardPlan.algebraGiven)
+    // stack modes for deriving twice
+    val ffp = new ForwardMode(BreezeDoubleForwardMode.algebraGiven)
     import ffp.given
 
     def f(x: ffp.algebraT.Scalar): ffp.algebraT.Scalar = x * x

@@ -4,9 +4,9 @@ package scalagrad
 def forwardSample = 
     // import ScalaGrad and the forward plan
     import scalagrad.api.ScalaGrad
-    import scalagrad.auto.forward.breeze.DeriverBreezeDoubleForwardPlan
-    import scalagrad.auto.forward.breeze.DeriverBreezeDoubleForwardPlan.given
-    import DeriverBreezeDoubleForwardPlan.{algebraT as alg}
+    import scalagrad.auto.forward.breeze.BreezeDoubleForwardMode
+    import scalagrad.auto.forward.breeze.BreezeDoubleForwardMode.given
+    import BreezeDoubleForwardMode.{algebraT as alg}
 
     // define a function using the types inside algebraT (algebraT is from forward plan)
     def f(

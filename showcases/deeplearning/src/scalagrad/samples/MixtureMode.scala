@@ -4,9 +4,9 @@ package scalagrad
 def mixtureSample = 
     // import ScalaGrad stuff and the reverse plan
     import scalagrad.api.{ScalaGrad, DeriverFromTo}
-    import scalagrad.auto.reverse.breeze.DeriverBreezeDoubleReversePlan
-    import scalagrad.auto.reverse.breeze.DeriverBreezeDoubleReversePlan.given
-    import DeriverBreezeDoubleReversePlan.{algebraT as alg}
+    import scalagrad.auto.reverse.breeze.BreezeDoubleReverseMode
+    import scalagrad.auto.reverse.breeze.BreezeDoubleReverseMode.given
+    import BreezeDoubleReverseMode.{algebraT as alg}
     // import Numeric stuff needed in relu function
     import spire.math.Numeric
     import spire.implicits.*
@@ -27,7 +27,7 @@ def mixtureSample =
         o.sum
 
     // import the forward plan which will be given to f.
-    import scalagrad.auto.forward.breeze.DeriverBreezeDoubleForwardPlan.given
+    import scalagrad.auto.forward.breeze.BreezeDoubleForwardMode.given
     
     // derive the function
     val df = ScalaGrad.derive(f)

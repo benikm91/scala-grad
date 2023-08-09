@@ -4,9 +4,9 @@ package scalagrad
 def reverseSample = 
     // import ScalaGrad and the reverse plan
     import scalagrad.api.ScalaGrad
-    import scalagrad.auto.reverse.breeze.DeriverBreezeDoubleReversePlan
-    import scalagrad.auto.reverse.breeze.DeriverBreezeDoubleReversePlan.given
-    import DeriverBreezeDoubleReversePlan.{algebraT as alg}
+    import scalagrad.auto.reverse.breeze.BreezeDoubleReverseMode
+    import scalagrad.auto.reverse.breeze.BreezeDoubleReverseMode.given
+    import BreezeDoubleReverseMode.{algebraT as alg}
 
     // define a function using the types inside algebraT  (algebraT is from reverse plan)
     def f(
