@@ -1,5 +1,5 @@
 ThisBuild / version := "0.0.1"
-ThisBuild / scalaVersion := "3.2.2"
+ThisBuild / scalaVersion := "3.3.0"
 ThisBuild / organization := "ch.benikm91"
 
 lazy val spireDependency = Seq(
@@ -10,6 +10,11 @@ lazy val breezeDependency = Seq(
   libraryDependencies ++= Seq(
     "org.scalanlp" %% "breeze" % "2.1.0",
   )
+)
+
+lazy val scaltirDependency = Seq(
+      resolvers +=  Resolver.sonatypeRepo("snapshots"), 
+      libraryDependencies += "ch.unibas.cs.gravis" %% "scaltair" % "0.1-SNAPSHOT" changing()
 )
 
 lazy val basicSettings = Seq(
@@ -54,6 +59,7 @@ lazy val deepLearningShowcase = (project in file("./showcases/deeplearning"))
     name := "scala-grad-showcase-deeplearning",
     basicSettings,
     breezeDependency,
+    scaltirDependency,
   ).dependsOn(
     scalaGradAutoBreezeApi
   )

@@ -4,8 +4,7 @@ trait OneOps[
     Scalar, ColumnVector, RowVector, Matrix,
 ]:
     
-    this: 
-        One[Scalar]
+    this: One[Scalar]
         with TransposeOps[ColumnVector, RowVector, Matrix]
         with ZeroOps[Scalar, ColumnVector, RowVector, Matrix]
         with AccessSetOps[Scalar, ColumnVector, RowVector, Matrix] =>

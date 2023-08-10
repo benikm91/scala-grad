@@ -8,6 +8,7 @@ import scalagrad.api.matrixalgebra.derivative.DerivativeMatrixAlgebra
 import scalagrad.api.matrixalgebra.CreateOps
 import scalagrad.api.matrixalgebra.MatrixAlgebra
 import scala.reflect.Typeable
+import scala.annotation.nowarn
 
 class ForwardMode[
     PScalar : Typeable, PColumnVector : Typeable, PRowVector : Typeable, PMatrix : Typeable,
@@ -153,6 +154,7 @@ class ForwardMode[
         DualTupleToPTuple[T] => CartesianProductAndUpP[T, DualTupleToPTuple[RT]]
     ] with
 
+        @nowarn
         override def derive(f: T => RT): DualTupleToPTuple[T] => CartesianProductAndUpP[T, DualTupleToPTuple[RT]] = inputs =>
 
             def toZeroDuals[T <: Tuple : DualTuple](t: DualTupleToPTuple[T]): T = 
