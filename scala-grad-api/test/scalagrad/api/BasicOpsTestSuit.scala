@@ -19,12 +19,10 @@ import scalagrad.numerical.DeriverNumericalPlan
 import scalagrad.api.forward.ForwardMode
 import scalagrad.api.reverse.ReverseMode
 
-import breeze.linalg.*
 import scalagrad.api.matrixalgebra.MatrixAlgebra
 
 trait BasicOpsTestSuit[
-    // TODO Remove breeze type bounds
-    PScalar <: Double, PColumnVector <: DenseVector[Double], PRowVector <: Transpose[DenseVector[Double]], PMatrix <: DenseMatrix[Double],
+    PScalar, PColumnVector, PRowVector, PMatrix,
     DScalar, DColumnVector, DRowVector, DMatrix,
     DualScalar <: dual.DualScalar[PScalar, DScalar],
     DualColumnVector <: dual.DualColumnVector[PColumnVector, DColumnVector],

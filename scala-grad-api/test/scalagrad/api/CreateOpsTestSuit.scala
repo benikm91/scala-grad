@@ -19,7 +19,6 @@ import scalagrad.numerical.DeriverNumericalPlan
 import scalagrad.api.forward.ForwardMode
 import scalagrad.api.reverse.ReverseMode
 
-import breeze.linalg.{DenseVector, Transpose, DenseMatrix}
 import scalagrad.api.matrixalgebra.MatrixAlgebra
 import scala.math.Fractional.Implicits.given
 import spire.algebra.Trig

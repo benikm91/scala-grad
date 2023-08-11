@@ -38,7 +38,6 @@ lazy val scalaGradApi = (project in file("./scala-grad-api"))
     name := "scala-grad-api",
     basicSettings,
     spireDependency,
-    breezeDependency,
     scalaTestSettings,
   )
 
