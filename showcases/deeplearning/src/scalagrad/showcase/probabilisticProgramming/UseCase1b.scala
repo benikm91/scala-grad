@@ -7,7 +7,7 @@ import spire.implicits._
 import spire.algebra.Trig
 import spire.compat.numeric
 
-import scalagrad.api.matrixalgebra.MatrixAlgebraT
+import scalagrad.api.matrixalgebra.MatrixAlgebraDSL
 
 import scalagrad.api.forward.dual.DualNumberScalar
 import scalagrad.api.spire.numeric.DualScalarIsNumeric.given
@@ -27,7 +27,7 @@ import scaltair.PlotTargetBrowser.given
 
 import breeze.stats.meanAndVariance
 import breeze.linalg.{DenseVector, DenseMatrix}
-import scalagrad.auto.breeze.BreezeDoubleMatrixAlgebraT
+import scalagrad.auto.breeze.BreezeDoubleMatrixAlgebraDSL
 
 object UseCase1b extends App:
     // config
@@ -53,7 +53,7 @@ object UseCase1b extends App:
         (xs, ys)
     }
 
-    def logLikelihood(alg: MatrixAlgebraT)(xs: alg.Matrix, ys: alg.ColumnVector)(a: alg.ColumnVector, b: alg.Scalar, sigma: alg.Scalar)
+    def logLikelihood(using alg: MatrixAlgebraDSL)(xs: alg.Matrix, ys: alg.ColumnVector)(a: alg.ColumnVector, b: alg.Scalar, sigma: alg.Scalar)
         (using num: Numeric[alg.Scalar], trig: Trig[alg.Scalar]): alg.Scalar =
         xs.rows.zip(ys.elements).map { case (x, y) =>
             val mu = (x * a) + b
@@ -63,7 +63,7 @@ object UseCase1b extends App:
             trig.log(normalization) + exponent
         }.sum
 
-    def logPrior(alg: MatrixAlgebraT)(a: alg.ColumnVector, b: alg.Scalar, sigma: alg.Scalar)
+    def logPrior(using alg: MatrixAlgebraDSL)(a: alg.ColumnVector, b: alg.Scalar, sigma: alg.Scalar)
         (using num: Numeric[alg.Scalar], trig: Trig[alg.Scalar]): alg.Scalar =
         def logPriorDistA[T: Trig](x: T)(using num: Numeric[T]) = 
             gaussianLogPdf[T](num.zero, num.fromInt(1))(x)
@@ -73,20 +73,20 @@ object UseCase1b extends App:
             logNormalLogPdf[T](num.zero, num.fromDouble(0.25))(trig.log(x))
         a.map(logPriorDistA(_)).sum + logPriorDistB(b) + logPriorDistSigma(sigma)
 
-    def logPosterior(alg: MatrixAlgebraT)(xs: alg.Matrix, ys: alg.ColumnVector)(a: alg.ColumnVector, b: alg.Scalar, sigma: alg.Scalar)
+    def logPosterior(using alg: MatrixAlgebraDSL)(xs: alg.Matrix, ys: alg.ColumnVector)(a: alg.ColumnVector, b: alg.Scalar, sigma: alg.Scalar)
         (using num: Numeric[alg.Scalar], trig: Trig[alg.Scalar]): alg.Scalar =
-        logLikelihood(alg)(xs, ys)(a, b, sigma) + logPrior(alg)(a, b, sigma)
+        logLikelihood(xs, ys)(a, b, sigma) + logPrior(a, b, sigma)
 
     def paramsToVector(a: DenseVector[Double], b: Double, sigma: Double): Vector[Double] = a.toScalaVector ++ Seq(b, sigma)
     def vectorToParams(v: Vector[Double]): (DenseVector[Double], Double, Double) = (DenseVector(v.take(10).toArray), v(10), v(11))
 
     // derive logPosterior for MALA and Hamiltonian Monte Carlo
-    val dLogPosterior = ScalaGrad.derive(logPosterior(algebra)(algebra.lift(xs), algebra.lift(ys)))
+    val dLogPosterior = ScalaGrad.derive(logPosterior(using algebra)(algebra.lift(xs), algebra.lift(ys)))
     val dLogPosteriorVector = vectorToParams andThen dLogPosterior andThen paramsToVector
     
     // bring logPosterior into a form that can be used by the samplers
     def logPosteriorDouble(a: DenseVector[Double], b: Double, sigma: Double) =
-        logPosterior(BreezeDoubleMatrixAlgebraT)(xs, ys)(a, b, sigma)
+        logPosterior(using BreezeDoubleMatrixAlgebraDSL)(xs, ys)(a, b, sigma)
     val logPosteriorDoubleVector = vectorToParams andThen logPosteriorDouble
 
     // define initial parameter setting

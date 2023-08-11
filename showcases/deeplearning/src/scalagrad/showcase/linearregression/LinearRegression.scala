@@ -2,13 +2,13 @@ package scalagrad.showcase.linearregression
 
 import scala.io.Source
 import scalagrad.showcase.deeplearning.Util.*
-import scalagrad.api.matrixalgebra.MatrixAlgebraT
+import scalagrad.api.matrixalgebra.MatrixAlgebraDSL
 import breeze.linalg.{DenseMatrix, DenseVector}
 import scalagrad.api.ScalaGrad
-import scalagrad.api.dual.DualMatrixAlgebraT
+import scalagrad.api.dual.DualMatrixAlgebraDSL
 import scalagrad.auto.reverse.breeze.BreezeDoubleReverseMode
 import BreezeDoubleReverseMode.given
-import scalagrad.auto.breeze.BreezeDoubleMatrixAlgebraT
+import scalagrad.auto.breeze.BreezeDoubleMatrixAlgebraDSL
 import scala.annotation.tailrec
 
 @main def linearRegression() = 
@@ -26,15 +26,15 @@ import scala.annotation.tailrec
     val (ysScala, ysMean, ysStd) = StandardScaler.scaleColumn(ysUnscaled)
     val ys = DenseVector(ysScala.toArray)
     
-    def linearModel(alg: MatrixAlgebraT)(xs: alg.Matrix, w0: alg.Scalar, ws: alg.ColumnVector): alg.ColumnVector = 
+    def linearModel(using alg: MatrixAlgebraDSL)(xs: alg.Matrix, w0: alg.Scalar, ws: alg.ColumnVector): alg.ColumnVector = 
         (xs * ws) + w0
 
-    def meanSquaredError(alg: MatrixAlgebraT)(ys: alg.ColumnVector, ysHat: alg.ColumnVector): alg.Scalar =
+    def meanSquaredError(using alg: MatrixAlgebraDSL)(ys: alg.ColumnVector, ysHat: alg.ColumnVector): alg.Scalar =
         (ys - ysHat).map(x => x * x).sum / alg.liftToScalar(ys.length * 2)
 
-    def loss(alg: MatrixAlgebraT)(xs: alg.Matrix, ys: alg.ColumnVector)(w0: alg.Scalar, ws: alg.ColumnVector): alg.Scalar =
-        val ysHat = linearModel(alg)(xs, w0, ws)
-        meanSquaredError(alg)(ys, ysHat)
+    def loss(using alg: MatrixAlgebraDSL)(xs: alg.Matrix, ys: alg.ColumnVector)(w0: alg.Scalar, ws: alg.ColumnVector): alg.Scalar =
+        val ysHat = linearModel(xs, w0, ws)
+        meanSquaredError(ys, ysHat)
 
     def gradientDescent(
         xs: DenseMatrix[Double],
@@ -46,7 +46,7 @@ import scala.annotation.tailrec
     ): (Double, DenseVector[Double]) =
         // create dLoss with auto differentiation (reverse mode)
         val alg = BreezeDoubleReverseMode.algebraT
-        val dLoss = ScalaGrad.derive(loss(alg)(
+        val dLoss = ScalaGrad.derive(loss(using alg)(
                 alg.lift(xs),
                 alg.lift(ys)
             ))
@@ -68,12 +68,12 @@ import scala.annotation.tailrec
         iterate(w0, ws, n)
 
     def rootMeanSquaredError(ys: DenseVector[Double], ysHat: DenseVector[Double]): Double =
-        Math.sqrt(meanSquaredError(BreezeDoubleMatrixAlgebraT)(ys, ysHat))
+        Math.sqrt(meanSquaredError(using BreezeDoubleMatrixAlgebraDSL)(ys, ysHat))
 
     val (initW0, initWs) = (0.0, DenseVector.fill(nFeatures)(0.0))
 
     val initYsHat = StandardScaler.inverseScaleColumn(
-        linearModel(BreezeDoubleMatrixAlgebraT)(xs, initW0, initWs).toScalaVector, 
+        linearModel(using BreezeDoubleMatrixAlgebraDSL)(xs, initW0, initWs).toScalaVector, 
         ysMean, ysStd
     )
     println(f"${rootMeanSquaredError(DenseVector(ysUnscaled.toArray), DenseVector(initYsHat.toArray))}g  -- RMSE with initial weights")
@@ -81,7 +81,7 @@ import scala.annotation.tailrec
     val (w0, ws) = gradientDescent(xs, ys, initW0, initWs, 0.01, 100)
 
     val ysHat = StandardScaler.inverseScaleColumn(
-        linearModel(BreezeDoubleMatrixAlgebraT)(xs, w0, ws).toScalaVector, 
+        linearModel(using BreezeDoubleMatrixAlgebraDSL)(xs, w0, ws).toScalaVector, 
         ysMean, ysStd
     )
     println(f"${rootMeanSquaredError(DenseVector(ysUnscaled.toArray), DenseVector(ysHat.toArray))}g  -- RMSE with learned weights")

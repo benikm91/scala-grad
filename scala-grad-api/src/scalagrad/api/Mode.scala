@@ -6,8 +6,8 @@ import scalagrad.api.dual.DualMatrixAlgebra
 import scalagrad.api.matrixalgebra.MatrixAlgebra
 import scalagrad.api.matrixalgebra.derivative.DerivativeMatrixAlgebra
 import scalagrad.api.spire.trig.DualScalarIsTrig
-import scalagrad.api.matrixalgebra.MatrixAlgebraT
-import scalagrad.api.dual.DualMatrixAlgebraT
+import scalagrad.api.matrixalgebra.MatrixAlgebraDSL
+import scalagrad.api.dual.DualMatrixAlgebraDSL
 
 abstract class Mode[
     PScalar, PColumnVector, PRowVector, PMatrix,
@@ -45,7 +45,7 @@ abstract class Mode[
 
     given derivativeMatrixAlgebraGiven: DerivativeMatrixAlgebraT = derivativeMatrixAlgebra
 
-    val algebraT = new DualMatrixAlgebraT {
+    val algebraT = new DualMatrixAlgebraDSL {
         override type PrimaryScalar = PScalar
         override type PrimaryColumnVector = PColumnVector
         override type PrimaryRowVector = PRowVector

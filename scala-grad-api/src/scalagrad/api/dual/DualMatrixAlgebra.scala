@@ -11,11 +11,11 @@ import scalagrad.api.matrixalgebra.CreateOps
 import scalagrad.api.matrixalgebra.SumOps
 import scalagrad.api.dual
 import scalagrad.api.matrixalgebra.derivative.DerivativeMatrixAlgebra
-import scalagrad.api.matrixalgebra.MatrixAlgebraT
+import scalagrad.api.matrixalgebra.MatrixAlgebraDSL
 import scalagrad.api.dual.DualMatrixAlgebra
 
 
-trait DualMatrixAlgebraT extends MatrixAlgebraT:
+trait DualMatrixAlgebraDSL extends MatrixAlgebraDSL:
 
     type PrimaryScalar
     type PrimaryColumnVector

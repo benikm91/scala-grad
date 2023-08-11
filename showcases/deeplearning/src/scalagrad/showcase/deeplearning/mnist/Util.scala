@@ -1,7 +1,7 @@
 package scalagrad.showcase.deeplearning.mnist
 
 import breeze.linalg.{DenseMatrix, DenseVector}
-import scalagrad.api.matrixalgebra.MatrixAlgebraT
+import scalagrad.api.matrixalgebra.MatrixAlgebraDSL
 import spire.math.Numeric
 import spire.algebra.Trig
 import spire.syntax.all.partialOrderOps

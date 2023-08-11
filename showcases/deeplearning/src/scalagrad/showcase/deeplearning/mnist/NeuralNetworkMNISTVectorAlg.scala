@@ -3,9 +3,8 @@ package scalagrad.showcase.deeplearning.mnist
 import scalagrad.showcase.deeplearning.Util.{time, timeMeasure}
 import scala.io.Source
 import scalagrad.api.matrixalgebra.MatrixAlgebra
-import scalagrad.api.matrixalgebra.MatrixAlgebraT
 import scalagrad.api.ScalaGrad
-import scalagrad.auto.breeze.BreezeDoubleMatrixAlgebraT
+import scalagrad.auto.breeze.BreezeDoubleMatrixAlgebraDSL
 import breeze.linalg.{DenseMatrix, DenseVector}
 import spire.math.Numeric
 import spire.algebra.Trig
@@ -13,13 +12,13 @@ import spire.implicits.*
 import scalagrad.api.DeriverFromTo
 
 import MNISTDataSet.MNISTEntry
-import scalagrad.api.matrixalgebra.MatrixAlgebraT
+import scalagrad.api.matrixalgebra.MatrixAlgebraDSL
 import scalagrad.api.forward.dual.DualNumberMatrix
 import scalagrad.api.spire.numeric.DualScalarIsNumeric.given
 import scalagrad.api.spire.trig.DualScalarIsTrig.given
 import scalagrad.auto.forward.breeze.BreezeDoubleForwardMode
 import BreezeDoubleForwardMode.given
-import scalagrad.api.dual.DualMatrixAlgebraT
+import scalagrad.api.dual.DualMatrixAlgebraDSL
 import scalagrad.api.forward.dual.DualNumberScalar
 import scalagrad.api.reverse.dual.DualDeltaScalar
 import Util.*
@@ -29,7 +28,7 @@ import BreezeDoubleReverseMode.given
 
 object NeuralNetworkMNIST:
 
-    def neuralNetwork(alg: MatrixAlgebraT)(
+    def neuralNetwork(using alg: MatrixAlgebraDSL)(
         xs: alg.Matrix,
         firstW0: alg.ColumnVector, 
         firstWs: alg.Matrix,
@@ -38,13 +37,13 @@ object NeuralNetworkMNIST:
     )(using num: Numeric[alg.Scalar], trig: Trig[alg.Scalar]): alg.Matrix = 
         val h = (xs * firstWs + firstW0.t).map(relu)
         (h * lastWs + lastW0.t)
-            .mapRows(row => softmax(alg)(row.t).t)
+            .mapRows(row => softmax(row.t).t)
 
     def relu[P: Numeric](x: P): P = 
         val num = summon[Numeric[P]]
         if x < num.zero then num.zero else x
 
-    def softmax(alg: MatrixAlgebraT)(x: alg.ColumnVector)(using trig: Trig[alg.Scalar]): alg.ColumnVector = 
+    def softmax(using alg: MatrixAlgebraDSL)(x: alg.ColumnVector)(using trig: Trig[alg.Scalar]): alg.ColumnVector = 
         def unstableSoftmax(x: alg.ColumnVector)(using trig: Trig[alg.Scalar]): alg.ColumnVector = 
             val exps = x.map(trig.exp)
             exps / exps.sum
@@ -65,7 +64,7 @@ object NeuralNetworkMNIST:
         else
             val (xsBatch, ysBatch) = data.head
             val algebra = BreezeDoubleReverseMode.algebraT
-            val dLoss = ScalaGrad.derive(loss(algebra)(
+            val dLoss = ScalaGrad.derive(loss(using algebra)(
                 algebra.lift(xsBatch),
                 algebra.lift(ysBatch)
             ))
@@ -80,16 +79,16 @@ object NeuralNetworkMNIST:
                 n - 1,
             )
 
-    def loss(alg: MatrixAlgebraT)(xs: alg.Matrix, ys: alg.Matrix)(
+    def loss(using alg: MatrixAlgebraDSL)(xs: alg.Matrix, ys: alg.Matrix)(
         firstW0: alg.ColumnVector,
         firstWs: alg.Matrix,
         lastW0: alg.ColumnVector,
         lastWs: alg.Matrix,
     )(using Numeric[alg.Scalar], Trig[alg.Scalar]): alg.Scalar =
-        val ysHat = neuralNetwork(alg)(xs, firstW0, firstWs, lastW0, lastWs)
-        crossEntropy(alg)(ys, ysHat)
+        val ysHat = neuralNetwork(xs, firstW0, firstWs, lastW0, lastWs)
+        crossEntropy(ys, ysHat)
 
-    def crossEntropy(alg: MatrixAlgebraT)(ys: alg.Matrix, ysHat: alg.Matrix)(using n: Numeric[alg.Scalar], trig: Trig[alg.Scalar]): alg.Scalar =
+    def crossEntropy(using alg: MatrixAlgebraDSL)(ys: alg.Matrix, ysHat: alg.Matrix)(using n: Numeric[alg.Scalar], trig: Trig[alg.Scalar]): alg.Scalar =
         def clip(x: alg.Scalar)(using n: Numeric[alg.Scalar]): alg.Scalar =
             val epsilon: Double = 1e-07
             val minS = alg.liftToScalar(epsilon)
@@ -142,10 +141,10 @@ object NeuralNetworkMNIST:
             (initFirstW0, initFirstWs, initLastW0, initLastWs, 0.01, iters)
 
         val (xsTest, ysTest) = preprocess(MNISTDataSet.loadTest, 32)
-        val ysHatTest = xsTest.map(xs => neuralNetwork(BreezeDoubleMatrixAlgebraT)(xs, firstW0, firstWs, lastW0, lastWs))
+        val ysHatTest = xsTest.map(xs => neuralNetwork(using BreezeDoubleMatrixAlgebraDSL)(xs, firstW0, firstWs, lastW0, lastWs))
         val accuracyTestBatch = ysHatTest.zip(ysTest).map((ysHat, ys) => accuracy(ysHat, ys)).toList
         val accuracyTest = accuracyTestBatch.sum / accuracyTestBatch.length
-        val lossTestBatch = ysHatTest.zip(ysTest).map((ysHat, ys) => crossEntropy(BreezeDoubleMatrixAlgebraT)(ys, ysHat)).toList
+        val lossTestBatch = ysHatTest.zip(ysTest).map((ysHat, ys) => crossEntropy(using BreezeDoubleMatrixAlgebraDSL)(ys, ysHat)).toList
         val lossTest = lossTestBatch.sum / lossTestBatch.length
 
         println(

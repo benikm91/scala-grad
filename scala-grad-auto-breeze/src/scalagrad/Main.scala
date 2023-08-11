@@ -7,12 +7,12 @@ import scalagrad.api.DeriverFromTo
 import breeze.linalg.{DenseVector, Transpose, DenseMatrix}
 import scala.util.TupledFunction
 import scalagrad.auto.reverse.breeze.BreezeDoubleReverseMode
-import scalagrad.api.matrixalgebra.MatrixAlgebraT
+import scalagrad.api.matrixalgebra.MatrixAlgebraDSL
 
-def gWithTypeDependency(mat: MatrixAlgebraT)(
-    x1: mat.Scalar,
-    x2: mat.Scalar
-): mat.Scalar = x1 * x2
+def gWithTypeDependency(using alg: MatrixAlgebraDSL)(
+    x1: alg.Scalar,
+    x2: alg.Scalar
+): alg.Scalar = x1 * x2
 
 def gWithTypeClass[Scalar, ColumnVector, RowVector, Matrix](
     x1: Scalar,
@@ -166,7 +166,7 @@ def forward =
     ])
     println(dgWithTypeClass(1.0, 2.0))
     
-    val dgWithTypeDependency = ScalaGrad.derive(gWithTypeDependency(BreezeDoubleForwardMode.algebraT))
+    val dgWithTypeDependency = ScalaGrad.derive(gWithTypeDependency(using BreezeDoubleForwardMode.algebraT))
     println(dgWithTypeDependency(1.0, 2.0))
     
     println("DONE")

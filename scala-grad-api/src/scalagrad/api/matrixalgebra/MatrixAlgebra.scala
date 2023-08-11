@@ -1,12 +1,12 @@
 package scalagrad.api.matrixalgebra
 
-trait MatrixAlgebraTypes:
-  type Scalar
-  type ColumnVector
-  type RowVector
-  type Matrix
+trait MatrixAlgebraDSL:
+  
+    type Scalar
+    type ColumnVector
+    type RowVector
+    type Matrix
 
-trait MatrixAlgebraT extends MatrixAlgebraTypes:
     val innerAlgebra: MatrixAlgebra[Scalar, ColumnVector, RowVector, Matrix]
     export innerAlgebra.*
 
