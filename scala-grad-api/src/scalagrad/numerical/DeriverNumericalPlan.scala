@@ -10,13 +10,6 @@ abstract class DeriverNumericalPlan[
     val algebra: MatrixAlgebra[PScalar, PColumnVector, PRowVector, PMatrix],
 ):
 
-    type PTuple[T <: Tuple] = T match
-        case PScalar *: t => PTuple[t]
-        case PColumnVector *: t => PTuple[t]
-        case PRowVector *: t => PTuple[t]
-        case PMatrix *: t => PTuple[t]
-        case EmptyTuple => DummyImplicit
-
     private val indices = (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22)
 
     import algebra.*
@@ -71,7 +64,7 @@ abstract class DeriverNumericalPlan[
             }
         createMatrixFromElements(m.nRows, m.nCols, res)
 
-    given approxTuple2ScalarDefault[T <: Tuple : PTuple]: DeriverFromTo[T => PScalar, T => T] = approxTuple2ScalarWith(1e-6)
+    given approxTuple2ScalarDefault[T <: Tuple]: DeriverFromTo[T => PScalar, T => T] = approxTuple2ScalarWith(1e-6)
     given approxScalar2ScalarDefault: DeriverFromTo[PScalar => PScalar, PScalar => PScalar] = approxScalar2ScalarWith(1e-6)
     given approxColumnVector2ScalarDefault: DeriverFromTo[PColumnVector => PScalar, PColumnVector => PColumnVector] = approxColumnVector2ScalarWith(1e-6)
     given approxRowVector2ScalarDefault: DeriverFromTo[PRowVector => PScalar, PRowVector => PRowVector] = approxRowVector2ScalarWith(1e-6)
@@ -93,7 +86,7 @@ abstract class DeriverNumericalPlan[
         override def derive(f: PMatrix => PScalar): PMatrix => PMatrix = m =>
             approxMatrix(m, a.liftToScalar(epsilon), f)
 
-    def approxTuple2ScalarWith[T <: Tuple : PTuple](epsilon: Double): DeriverFromTo[T => PScalar, T => T] = new DeriverFromTo[T => PScalar, T => T]:
+    def approxTuple2ScalarWith[T <: Tuple](epsilon: Double): DeriverFromTo[T => PScalar, T => T] = new DeriverFromTo[T => PScalar, T => T]:
 
         val epsilonScalar = a.liftToScalar(epsilon)
 
