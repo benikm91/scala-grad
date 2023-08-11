@@ -8,7 +8,7 @@ def higherOrderSample =
     import BreezeDoubleForwardMode.{algebraGiven => _, given}
 
     // stack modes for deriving twice
-    val ffp = new ForwardMode(BreezeDoubleForwardMode.algebraGiven)
+    val ffp = new ForwardMode(BreezeDoubleForwardMode.algebra)
     import ffp.given
 
     def f(x: ffp.algebraT.Scalar): ffp.algebraT.Scalar = x * x

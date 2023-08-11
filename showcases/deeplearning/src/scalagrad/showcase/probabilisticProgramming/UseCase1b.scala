@@ -8,7 +8,6 @@ import spire.algebra.Trig
 import spire.compat.numeric
 
 import scalagrad.api.matrixalgebra.MatrixAlgebraT
-import scalagrad.api.DualBreezeMatrixAlgebraT.*
 
 import scalagrad.api.forward.dual.DualNumberScalar
 import scalagrad.api.spire.numeric.DualScalarIsNumeric.given
@@ -32,8 +31,8 @@ import scalagrad.auto.breeze.BreezeDoubleMatrixAlgebraT
 
 object UseCase1b extends App:
     // config
-    val numWarmup = 100 // 5_000
-    val numSamples = 100 // 1_000
+    val numWarmup = 5_000
+    val numSamples = 1_000
     val numDataPoints = 100
 
     // (unknown) target variables

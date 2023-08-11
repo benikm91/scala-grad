@@ -24,7 +24,6 @@ import scalagrad.api.forward.dual.DualNumberScalar
 import scalagrad.api.reverse.dual.DualDeltaScalar
 import Util.*
 
-import scalagrad.api.DualBreezeMatrixAlgebraT.*
 import scalagrad.auto.reverse.breeze.BreezeDoubleReverseMode
 import BreezeDoubleReverseMode.given
 

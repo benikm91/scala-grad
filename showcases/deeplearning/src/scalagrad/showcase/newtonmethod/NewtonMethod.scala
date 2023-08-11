@@ -11,7 +11,7 @@ import BreezeDoubleReverseMode.given
 import scalagrad.auto.breeze.BreezeDoubleMatrixAlgebraT
 import scala.annotation.tailrec
 
-@main def linearRegression() = 
+@main def newtonMethod() = 
 
     val fishs = FishDataSet.load
 
@@ -36,36 +36,19 @@ import scala.annotation.tailrec
         val ysHat = linearModel(alg)(xs, w0, ws)
         meanSquaredError(alg)(ys, ysHat)
 
-    def gradientDescent(
-        xs: DenseMatrix[Double],
-        ys: DenseVector[Double],
-        w0: Double,
-        ws: DenseVector[Double],
-        lr: Double, // learn rate
-        n: Int,
+    def newtonMethod(alg: MatrixAlgebraT)(w0: Double, ws: DenseVector[Double])(
+        dLoss: ((Double, DenseVector[Double])) => (Double, DenseVector[Double]),
+        d2Loss: ((Double, DenseVector[Double])) => ((Double, DenseVector[Double]), (DenseVector[Double], DenseMatrix[Double]))
     ): (Double, DenseVector[Double]) =
-        // create dLoss with auto differentiation (reverse mode)
-        val alg = BreezeDoubleReverseMode.algebraT
-        val dLoss = ScalaGrad.derive(loss(alg)(
-                alg.lift(xs),
-                alg.lift(ys)
-            ))
-        // implement gradient descent recursively using dLoss
-        @tailrec
-        def iterate(
-            w0: Double,
-            ws: DenseVector[Double],
-            n: Int
-        ): (Double, DenseVector[Double]) =
-            if n == 0 then (w0, ws)
-            else
-                val (dW0, dWs) = dLoss(w0, ws)
-                iterate(
-                    w0 - lr * dW0,
-                    ws - lr * dWs,
-                    n - 1
-                )
-        iterate(w0, ws, n)
+        import breeze.linalg._
+        val (dW0, dWs) = dLoss(w0, ws)
+        val ((ddW0, ddW0Ws), (ddWsW0, ddWs)) = d2Loss(w0, ws)
+        val dWsT = dWs.t
+        val ddW0Inv = 1.0 / ddW0
+        val ddWsInv = inv(ddWs)
+        val w0New = w0 - (ddW0Inv * dW0)
+        val wsNew = ws - (ddWsInv * dWs)
+        (w0New, wsNew)
 
     def rootMeanSquaredError(ys: DenseVector[Double], ysHat: DenseVector[Double]): Double =
         Math.sqrt(meanSquaredError(BreezeDoubleMatrixAlgebraT)(ys, ysHat))
@@ -78,7 +61,28 @@ import scala.annotation.tailrec
     )
     println(f"${rootMeanSquaredError(DenseVector(ysUnscaled.toArray), DenseVector(initYsHat.toArray))}g  -- RMSE with initial weights")
 
-    val (w0, ws) = gradientDescent(xs, ys, initW0, initWs, 0.01, 100)
+    import scalagrad.api.forward.ForwardMode
+    import scalagrad.auto.forward.breeze.BreezeDoubleForwardMode
+    import BreezeDoubleForwardMode.{algebraT => alg}
+    import BreezeDoubleForwardMode.given
+
+    println("Forward-Forward mode")
+    val dLoss = ScalaGrad.derive(loss(alg)(
+        alg.lift(xs), 
+        alg.lift(ys)
+    ))
+    val ffad = new ForwardMode(BreezeDoubleForwardMode.algebra)
+    val alg2 = ffad.algebraT
+    import ffad.given
+
+    import BreezeDoubleForwardMode.given // TODO why is this needed?
+    val d2Loss = ScalaGrad.derive(
+        ScalaGrad.derive(loss(alg2)(
+            alg2.lift(alg.lift(xs)), 
+            alg2.lift(alg.lift(ys))
+        ))
+    )
+    val (w0, ws) = newtonMethod(BreezeDoubleMatrixAlgebraT)(initW0, initWs)(dLoss, d2Loss)
 
     val ysHat = StandardScaler.inverseScaleColumn(
         linearModel(BreezeDoubleMatrixAlgebraT)(xs, w0, ws).toScalaVector, 
