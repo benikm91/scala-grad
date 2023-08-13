@@ -81,3 +81,9 @@ trait DerivativeMatrixAlgebra[
     def elementAtM(m: DMatrix, iRow: Int, jColumn: Int, nRows: Int, nCols: Int): DScalar
     def columnAtM(m: DMatrix, jColumn: Int, nRows: Int, nCols: Int): DColumnVector
     def elementAtCV(cv: DColumnVector, iRow: Int, length: Int): DScalar 
+
+    def trace(m: DMatrix, nRows: Int, nCols: Int): DScalar = 
+        var sum = dZeroOps.zeroScalar
+        for i <- 0 until nRows do
+            sum = plusDSDS(sum, elementAtM(m, i, i, nRows, nCols))
+        sum

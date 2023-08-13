@@ -10,9 +10,9 @@ object BreezeDoubleMatrixAlgebra extends MatrixAlgebra[
 
   override def one: ScalarT = 1.0
 
-  override def inverse(m: MatrixT): MatrixT = ???
+  override def inverse(m: MatrixT): MatrixT = breeze.linalg.inv(m)
 
-  override def determinant(m: MatrixT): ScalarT = ???
+  override def determinant(m: MatrixT): ScalarT = breeze.linalg.det(m)
 
   override def elementAtM(m: MatrixT, iRow: Int, jColumn: Int): ScalarT = m(iRow, jColumn)
 

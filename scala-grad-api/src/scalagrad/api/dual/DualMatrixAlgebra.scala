@@ -105,9 +105,26 @@ with MapDualOps[
 
     override def one = createDualScalar(pma.one, dma.dZeroOps.zeroScalar, List())
 
-    override def inverse(m: MatrixT): MatrixT = ???
+    override def inverse(m: MatrixT): MatrixT = 
+        def dInverse(v: PMatrix, dv: DMatrix): DMatrix = 
+            dotDMM(dotMDM(pma.negateM(pma.inverse(m.v)), m.dv), pma.inverse(m.v))
+        createDualMatrix(
+            pma.inverse(m.v),
+            dInverse(m.v, m.dv),
+            List(m.dv)
+        )
 
-    override def determinant(m: MatrixT): ScalarT = ???
+    override def determinant(m: MatrixT): ScalarT = 
+        def dDeterminant(v: PMatrix, dv: DMatrix): DScalar = 
+            val inverseTransposed = pma.transpose(pma.inverse(v))
+            val dDeterminant = pma.multiplyMS(inverseTransposed, pma.determinant(m.v))
+            dma.sumM(elementWiseMultiplyDMM(dv, dDeterminant), m.nRows, m.nCols)
+        createDualScalar(
+            pma.determinant(m.v),
+            dDeterminant(m.v, m.dv),
+            List(m.dv)
+        )
+        
 
     override def elementAtM(m: MatrixT, iRow: Int, jColumn: Int): ScalarT = 
         createDualScalar(
