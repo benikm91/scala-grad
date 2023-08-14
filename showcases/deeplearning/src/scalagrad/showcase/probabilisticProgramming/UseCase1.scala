@@ -79,23 +79,27 @@ object UseCase1 extends App:
     def logPrior[T: Numeric: Trig](p: Parameters[T]): T =
         logPriorDistA(p.a) + logPriorDistB(p.b) + logPriorDistSigma(p.sigma)
 
-    def logPosterior[T: Numeric: Trig](a : T, b:  T, sigma : T): T =
-        val p = Parameters(a, b, sigma)
+    def logPosterior[T: Numeric: Trig](p: Parameters[T]): T =
         logLikelihood(p) + logPrior(p)
 
+    import scala.deriving.Mirror
+    def toTupleFunction[P <: Product, R](f: P => R)(using m: Mirror.ProductOf[P]): m.MirroredElemTypes => R = 
+        t => f(m.fromProduct(t))
+
     val stepSize = 0.1
-    println(f"Initial Gradient: ${ScalaGrad.derive(logPosterior[DualNumberScalar[Double]])(0.0, 0.0, 1.0)}")
+    val dLogPosterior = ScalaGrad.derive(toTupleFunction(logPosterior[DualNumberScalar[Double]]))
+    val dParameters = summon[Mirror.Of[Parameters[Double]]].fromProduct(dLogPosterior(0.0, 0.0, 1.0))
+    println(f"Initial Gradient: ${dParameters}")
 
     lazy val metroSamples =
         GaussianMetropolisSampler(
             new Random(),
             stepSize, 
         )
-            .apply(UnnormalizedLogDistribution(v => logPosterior[Double](v(0), v(1), v(2))), Vector(0.0, 0.0, 1.0))
+            .apply(UnnormalizedLogDistribution(v => toTupleFunction(logPosterior[Double])(v(0), v(1), v(2))), Vector(0.0, 0.0, 1.0))
             .drop(5_000)
             .take(10_000).toSeq
 
-    val dLogPosterior = ScalaGrad.derive(logPosterior[DualNumberScalar[Double]])
     lazy val malaSamples = 
         MetropolisAdjustedLangevinAlgorithmSampler(
             new Random(),
@@ -103,7 +107,7 @@ object UseCase1 extends App:
             stepSize = 1e-6,
             sigma = 1.0
         )
-            .apply(UnnormalizedLogDistribution(v => logPosterior[Double](v(0), v(1), v(2))), Vector(0.0, 0.0, 1.0))
+            .apply(UnnormalizedLogDistribution(v => toTupleFunction(logPosterior[Double])(v(0), v(1), v(2))), Vector(0.0, 0.0, 1.0))
             .drop(50_000)
             .take(50_000).toSeq
 
@@ -131,7 +135,7 @@ object UseCase1 extends App:
         println(s"Estimates for parameter sigma: mean = ${meanAndVariancesigma.mean}, var = ${meanAndVariancesigma.variance}")
         println("***")
         
-        println(f"End Gradient: ${ScalaGrad.derive(logPosterior[DualNumberScalar[Double]])(meanAndVarianceA.mean, meanAndVarianceB.mean, meanAndVariancesigma.mean)}")
+        println(f"End Gradient: ${ScalaGrad.derive(toTupleFunction(logPosterior[DualNumberScalar[Double]]))(meanAndVarianceA.mean, meanAndVarianceB.mean, meanAndVariancesigma.mean)}")
 
     }
 
