@@ -5,10 +5,7 @@ import scala.io.Source
 import scalagrad.api.matrixalgebra.MatrixAlgebra
 import scalagrad.api.ScalaGrad
 import scalagrad.auto.breeze.BreezeDoubleMatrixAlgebraDSL
-import breeze.linalg.{DenseMatrix, DenseVector}
-import spire.math.Numeric
-import spire.algebra.Trig
-import spire.implicits.*
+
 import scalagrad.api.DeriverFromTo
 
 import MNISTDataSet.MNISTEntry
@@ -26,7 +23,18 @@ import Util.*
 import scalagrad.auto.reverse.breeze.BreezeDoubleReverseMode
 import BreezeDoubleReverseMode.given
 
+import spire.math.Numeric
+import spire.algebra.Trig
+import spire.std.double.*
+import spire.syntax.numeric.partialOrderOps
+
+import breeze.linalg.{DenseMatrix, DenseVector}
+import breeze.linalg.*
+
 object NeuralNetworkMNIST:
+
+    val tt = summon[Trig[Double]]
+    val nn = summon[Numeric[Double]]
 
     def neuralNetwork(using alg: MatrixAlgebraDSL)(
         xs: alg.Matrix,
@@ -101,7 +109,6 @@ object NeuralNetworkMNIST:
         -(logYsHatYs.sum / alg.liftToScalar(logYsHat.nRows))
 
     def accuracy(yHatProp: DenseMatrix[Double], yM: DenseMatrix[Double]): Double =
-        import breeze.linalg.*
         val yHat = yHatProp(*, ::).map(x => argmax(x))
         val y = yM(*, ::).map(x => argmax(x))
         val correct = yHat.toArray.zip(y.toArray).map((yHat, y) => if yHat == y then 1 else 0).sum

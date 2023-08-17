@@ -37,42 +37,8 @@ trait DualMatrixAlgebraDSL extends MatrixAlgebraDSL:
         Scalar, ColumnVector, RowVector, Matrix,
     ]
 
-    def lift(xs: PrimaryMatrix): Matrix = 
-        val algebra = innerAlgebra
-        algebra.derivativeMatrixAlgebra.createDualMatrix(
-            xs,
-            algebra.derivativeMatrixAlgebra.dZeroOps.zeroMatrix(
-                innerAlgebra.primaryMatrixAlgebra.numberOfRows(xs),
-                innerAlgebra.primaryMatrixAlgebra.numberOfCols(xs)
-            ),
-            List(),
-        )
-    def lift(xs: PrimaryColumnVector): ColumnVector = 
-        val algebra = innerAlgebra
-        algebra.derivativeMatrixAlgebra.createDualColumnVector(
-            xs,
-            algebra.derivativeMatrixAlgebra.dZeroOps.zeroColumnVector(
-                innerAlgebra.primaryMatrixAlgebra.lengthColumnVector(xs)
-            ),
-            List(),
-        )
-    def lift(xs: PrimaryRowVector): RowVector = 
-        val algebra = innerAlgebra
-        algebra.derivativeMatrixAlgebra.createDualRowVector(
-            xs,
-            algebra.derivativeMatrixAlgebra.dZeroOps.zeroRowVector(
-                innerAlgebra.primaryMatrixAlgebra.lengthRowVector(xs)
-            ),
-            List(),
-        )
-    def lift(xs: PrimaryScalar): Scalar = 
-        val algebra = innerAlgebra
-        algebra.derivativeMatrixAlgebra.createDualScalar(
-            xs,
-            algebra.derivativeMatrixAlgebra.dZeroOps.zeroScalar,
-            List(),
-        )
-    
+    export innerAlgebra.lift
+
 
 case class DualMatrixAlgebra[
     PScalar, PColumnVector, PRowVector, PMatrix,
@@ -460,6 +426,38 @@ with MapDualOps[
                 pma.elementWiseOpCV(cv.v, dOp)
             ),
             List(cv.dv)
+        )
+    
+    def lift(xs: PMatrix): DualMatrix = 
+        dma.createDualMatrix(
+            xs,
+            dma.dZeroOps.zeroMatrix(
+                pma.numberOfRows(xs),
+                pma.numberOfCols(xs)
+            ),
+            List(),
+        )
+    def lift(xs: PColumnVector): DualColumnVector = 
+        dma.createDualColumnVector(
+            xs,
+            dma.dZeroOps.zeroColumnVector(
+                pma.lengthColumnVector(xs)
+            ),
+            List(),
+        )
+    def lift(xs: PRowVector): DualRowVector = 
+        dma.createDualRowVector(
+            xs,
+            dma.dZeroOps.zeroRowVector(
+                pma.lengthRowVector(xs)
+            ),
+            List(),
+        )
+    def lift(xs: PScalar): DualScalar = 
+        dma.createDualScalar(
+            xs,
+            dma.dZeroOps.zeroScalar,
+            List(),
         )
     
 }

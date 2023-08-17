@@ -82,6 +82,17 @@ trait DerivativeMatrixAlgebra[
     def columnAtM(m: DMatrix, jColumn: Int, nRows: Int, nCols: Int): DColumnVector
     def elementAtCV(cv: DColumnVector, iRow: Int, length: Int): DScalar 
 
+    def applyOn(ds: DualScalar, f: PScalar => PScalar, df: PScalar => PScalar): DualScalar =
+        createDualScalar(
+            f(ds.v), 
+            multiplySDS(df(ds.v), ds.dv),
+            List(ds.dv)
+        )
+
+    extension (ds: DualScalar)
+        def mapDual(f: PScalar => PScalar, df: PScalar => PScalar): DualScalar = 
+            applyOn(ds, f, df)
+
     def trace(m: DMatrix, nRows: Int, nCols: Int): DScalar = 
         var sum = dZeroOps.zeroScalar
         for i <- 0 until nRows do

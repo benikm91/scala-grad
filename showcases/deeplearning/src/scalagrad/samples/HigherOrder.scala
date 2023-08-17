@@ -5,7 +5,7 @@ def higherOrderSample =
     import scalagrad.api.ScalaGrad
     import scalagrad.api.forward.ForwardMode
     import scalagrad.auto.forward.breeze.BreezeDoubleForwardMode
-    import BreezeDoubleForwardMode.{algebraGiven => _, given}
+    import BreezeDoubleForwardMode.{dualAlgebraGiven => _, given}
 
     // stack modes for deriving twice
     val ffp = new ForwardMode(BreezeDoubleForwardMode.algebra)

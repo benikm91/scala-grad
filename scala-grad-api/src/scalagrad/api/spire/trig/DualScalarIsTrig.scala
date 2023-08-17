@@ -7,6 +7,7 @@ import scalagrad.api.dual
 import scalagrad.api.matrixalgebra.derivative.DerivativeMatrixAlgebra
 import scalagrad.api.matrixalgebra.One
 import spire.algebra.NRoot
+import scalagrad.api.dual.DualMatrixAlgebra
 
 object DualScalarIsTrig:
 
@@ -20,68 +21,63 @@ object DualScalarIsTrig:
     ](using 
         trig: Trig[PScalar],
         nRoot: NRoot[PScalar],
-        matrixAlgebra: MatrixAlgebra[PScalar, PColumnVector, PRowVector, PMatrix],
-        derivativeMatrixAlgebra: DerivativeMatrixAlgebra[
+        dualMa: DualMatrixAlgebra[
             PScalar, PColumnVector, PRowVector, PMatrix,
             DScalar, DColumnVector, DRowVector, DMatrix,
             DualScalar, DualColumnVector, DualRowVector, DualMatrix,
         ],
     ): Trig[DualScalar] with
 
-        val pma = matrixAlgebra
-        val dma = derivativeMatrixAlgebra
+        val pma = dualMa.primaryMatrixAlgebra
+        val dma = dualMa.derivativeMatrixAlgebra
 
-        private def chain(f: PScalar => PScalar, df: PScalar => PScalar)(dn: DualScalar) =
-            dma.createDualScalar(
-                f(dn.v), 
-                dma.multiplySDS(df(dn.v), dn.dv),
-                List(dn.dv)
-            )
+        import dma.mapDual
+        import pma.*
 
-        private def lift(v: PScalar) = dma.createDualScalar(v, dma.dZeroOps.zeroScalar, List())
+        private def lift(v: PScalar) = dualMa.lift(v)
 
         def acos(a: DualScalar): DualScalar = 
             def dAcos(v: PScalar): PScalar = -(pma.one / nRoot.sqrt(pma.one - v * v))
-            chain(trig.acos, dAcos)(a)
+            a.mapDual(trig.acos, dAcos)
         def asin(a: DualScalar): DualScalar = 
             def dAsin(v: PScalar): PScalar = pma.one / nRoot.sqrt(pma.one - v * v)
-            chain(trig.asin, dAsin)(a)
+            a.mapDual(trig.asin, dAsin)
         def atan(a: DualScalar): DualScalar = 
             def dAtan(v: PScalar): PScalar = pma.one / (v * v + pma.one)
-            chain(trig.atan, dAtan)(a)
+            a.mapDual(trig.atan, dAtan)
         def atan2(y: DualScalar, x: DualScalar): DualScalar = ???
         def cos(a: DualScalar): DualScalar = 
             def dCos(v: PScalar): PScalar = -trig.sin(v)
-            chain(trig.cos, dCos)(a)
-        def cosh(x: DualScalar): DualScalar = 
+            a.mapDual(trig.cos, dCos)
+        def cosh(a: DualScalar): DualScalar = 
             def dCosh(v: PScalar): PScalar = trig.sinh(v)
-            chain(trig.cosh, dCosh)(x)
+            a.mapDual(trig.cosh, dCosh)
         def e: DualScalar = lift(trig.e)
         private def dExp(a: PScalar): PScalar = trig.exp(a)
-        def exp(a: DualScalar): DualScalar = chain(trig.exp, dExp)(a)
-        def expm1(a: DualScalar): DualScalar = chain(trig.expm1, dExp)(a)
+        def exp(a: DualScalar): DualScalar = a.mapDual(trig.exp, dExp)
+        def expm1(a: DualScalar): DualScalar = a.mapDual(trig.expm1, dExp)
         def log(a: DualScalar): DualScalar = 
             def dLog(a: PScalar): PScalar = pma.one / a
-            chain(trig.log, dLog)(a)
+            a.mapDual(trig.log, dLog)
         def log1p(a: DualScalar): DualScalar = 
             def dLog1p(a: PScalar): PScalar = pma.one / (pma.one + a)
-            chain(trig.log1p, dLog1p)(a)
+            a.mapDual(trig.log1p, dLog1p)
         def pi: DualScalar = lift(trig.pi)
         def sin(a: DualScalar): DualScalar = 
             def dSin(v: PScalar): PScalar = trig.cos(v)
-            chain(trig.sin, dSin)(a)
-        def sinh(x: DualScalar): DualScalar = 
+            a.mapDual(trig.sin, dSin)
+        def sinh(a: DualScalar): DualScalar = 
             def dSinh(v: PScalar): PScalar = trig.cosh(v)
-            chain(trig.sinh, dSinh)(x)
+            a.mapDual(trig.sinh, dSinh)
         def tan(a: DualScalar): DualScalar = 
             def dTan(v: PScalar): PScalar = pma.one / (trig.cos(v) * trig.cos(v))
-            chain(trig.tan, dTan)(a)
-        def tanh(x: DualScalar): DualScalar = 
+            a.mapDual(trig.tan, dTan)
+        def tanh(a: DualScalar): DualScalar = 
             def dTanh(v: PScalar): PScalar = pma.one / (trig.cosh(v) * trig.cosh(v))
-            chain(trig.tanh, dTanh)(x)
+            a.mapDual(trig.tanh, dTanh)
         def toDegrees(a: DualScalar): DualScalar = 
             def dToDegrees(v: PScalar): PScalar = pma.liftToScalar(180) / trig.pi
-            chain(trig.toDegrees, dToDegrees)(a)
+            a.mapDual(trig.toDegrees, dToDegrees)
         def toRadians(a: DualScalar): DualScalar = 
             def dToRadians(v: PScalar): PScalar = trig.pi / pma.liftToScalar(180)
-            chain(trig.toRadians, dToRadians)(a)
+            a.mapDual(trig.toRadians, dToRadians)

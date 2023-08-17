@@ -45,9 +45,6 @@ abstract class ReverseMode[
 
     val eval = Eval[PScalar, PColumnVector, PRowVector, PMatrix](primaryMatrixAlgebra)
 
-    import primaryMatrixAlgebra.*
-    import derivativeMatrixAlgebra.*
-
     // TODO can we move this to Mode?
     given scalar2Scalar: DeriverFromTo[DualScalar => DualScalar, PScalar => PScalar] with
         override def derive(f: DualScalar => DualScalar): PScalar => PScalar = x => 
@@ -166,7 +163,10 @@ abstract class ReverseMode[
     ] with
 
         private val ids = (0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22)
-
+ 
+        import primaryMatrixAlgebra.*
+        import derivativeMatrixAlgebra.*
+            
         override def derive(f: T => RT): DualTupleToPTuple[T] => CartesianProductAndUpP[T, DualTupleToPTuple[RT]] = t =>
             def reversePlan(t: DualTupleToPTuple[T]): CartesianProductAndUpP[T, DualTupleToPTuple[RT]] = 
                 val tWithIndex = t.zip(ids)

@@ -35,15 +35,11 @@ abstract class Mode[
         derivativeMatrixAlgebra,
     )
 
-    given algebraGiven: MatrixAlgebra[
+    given dualAlgebraGiven: DualMatrixAlgebra[
+        PScalar, PColumnVector, PRowVector, PMatrix, 
+        DScalar, DColumnVector, DRowVector, DMatrix, 
         DualScalar, DualColumnVector, DualRowVector, DualMatrix
     ] = algebra
-
-    given primaryMatrixAlgebraGiven: MatrixAlgebra[
-        PScalar, PColumnVector, PRowVector, PMatrix
-    ] = primaryMatrixAlgebra
-
-    given derivativeMatrixAlgebraGiven: DerivativeMatrixAlgebraT = derivativeMatrixAlgebra
 
     val algebraT = new DualMatrixAlgebraDSL {
         override type PrimaryScalar = PScalar

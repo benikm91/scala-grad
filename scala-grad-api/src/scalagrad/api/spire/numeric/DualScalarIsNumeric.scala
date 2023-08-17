@@ -6,6 +6,7 @@ import scalagrad.api.matrixalgebra.MatrixAlgebra
 import scalagrad.api.dual
 import scalagrad.api.matrixalgebra.derivative.DerivativeMatrixAlgebra
 import cats.kernel.Order
+import scalagrad.api.dual.DualMatrixAlgebra
 
 object DualScalarIsNumeric:
 
@@ -19,13 +20,7 @@ object DualScalarIsNumeric:
     ](using 
         num: Numeric[PScalar],
         trig: Trig[PScalar],
-        dualMatrixAlgebra: MatrixAlgebra[
-            DualScalar, DualColumnVector, DualRowVector, DualMatrix,
-        ],
-        matrixAlgebra: MatrixAlgebra[
-            PScalar, PColumnVector, PRowVector, PMatrix,
-        ],
-        derivativeMatrixAlgebra: DerivativeMatrixAlgebra[
+        dualMatrixAlgebra: DualMatrixAlgebra[
             PScalar, PColumnVector, PRowVector, PMatrix,
             DScalar, DColumnVector, DRowVector, DMatrix,
             DualScalar, DualColumnVector, DualRowVector, DualMatrix,
@@ -33,17 +28,13 @@ object DualScalarIsNumeric:
     ): Numeric[DualScalar] with {
 
         private val dualMa = dualMatrixAlgebra
-        private val pma = matrixAlgebra
-        private val dma = derivativeMatrixAlgebra
+        private val pma = dualMatrixAlgebra.primaryMatrixAlgebra
+        private val dma = dualMatrixAlgebra.derivativeMatrixAlgebra
 
-        private def chain(f: PScalar => PScalar, df: PScalar => PScalar)(dn: DualScalar) =
-            dma.createDualScalar(
-                f(dn.v), 
-                dma.multiplySDS(df(dn.v), dn.dv),
-                List(dn.dv)
-            )
+        import dma.mapDual
+        import pma.*
 
-        private def lift(v: PScalar) = dma.createDualScalar(v, dma.dZeroOps.zeroScalar, List())
+        private def lift(v: PScalar) = dualMa.lift(v)
 
         def negate(x: DualScalar): DualScalar = dualMa.negateS(x)
         def one: DualScalar = dualMa.one
@@ -76,16 +67,16 @@ object DualScalarIsNumeric:
         def ceil(a: DualScalar): DualScalar = 
             def dCeil(v: PScalar): PScalar = 
                 return pma.zeroScalar
-            chain(num.ceil, dCeil)(a)
+            a.mapDual(num.ceil, dCeil)
         def floor(a: DualScalar): DualScalar = 
             def dFloor(v: PScalar): PScalar = 
                 return pma.zeroScalar
-            chain(num.ceil, dFloor)(a)
+            a.mapDual(num.ceil, dFloor)
         def isWhole(a: DualScalar): Boolean = num.isWhole(a.v)
         def round(a: DualScalar): DualScalar = 
             def dRound(v: PScalar): PScalar = 
                 return num.zero
-            chain(num.round, dRound)(a)
+            a.mapDual(num.round, dRound)
         def div(x: DualScalar, y: DualScalar): DualScalar = dualMa.divideSS(x, y)
         def times(x: DualScalar, y: DualScalar): DualScalar = dualMa.multiplySS(x, y)
         def fpow(a: DualScalar, b: DualScalar): DualScalar = 
@@ -102,12 +93,12 @@ object DualScalarIsNumeric:
             def dnroot(x: PScalar) = 
                 val denominator = pma.multiplySS(pma.liftToScalar(n), num.fpow((num.nroot(x, n)), num.fromInt(n - 1)))
                 num.one / denominator
-            chain(x => num.nroot(x, n), dnroot)(a)
+            a.mapDual(x => num.nroot(x, n), dnroot)
         def compare(x: DualScalar, y: DualScalar): Int = num.compare(x.v, y.v)
         def abs(a: DualScalar): DualScalar = 
             def dAbs(v: PScalar): PScalar = 
                 num.fromInt(num.signum(v))
-            chain(num.abs, dAbs)(a)
+            a.mapDual(num.abs, dAbs)
         def additiveCommutativeMonoid: algebra.ring.AdditiveCommutativeMonoid[DualScalar] = ???
         def order: cats.kernel.Order[DualScalar] = new Order {
           override def compare(x: DualScalar, y: DualScalar): Int = num.order.compare(x.v, y.v)
