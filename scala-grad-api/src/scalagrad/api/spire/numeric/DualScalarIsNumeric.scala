@@ -10,7 +10,7 @@ import scalagrad.api.dual.DualMatrixAlgebra
 
 object DualScalarIsNumeric:
 
-    given [
+    given dualNum[
         PScalar, PColumnVector, PRowVector, PMatrix,
         DScalar, DColumnVector, DRowVector, DMatrix,
         DualScalar <: dual.DualScalar[PScalar, DScalar], 

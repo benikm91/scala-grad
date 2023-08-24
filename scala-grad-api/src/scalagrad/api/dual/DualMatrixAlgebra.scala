@@ -13,6 +13,10 @@ import scalagrad.api.dual
 import scalagrad.api.matrixalgebra.derivative.DerivativeMatrixAlgebra
 import scalagrad.api.matrixalgebra.MatrixAlgebraDSL
 import scalagrad.api.dual.DualMatrixAlgebra
+import spire.math.Numeric
+import spire.algebra.Trig
+import spire.algebra.NRoot
+import spire.syntax.nroot
 
 
 trait DualMatrixAlgebraDSL extends MatrixAlgebraDSL:
@@ -54,6 +58,10 @@ case class DualMatrixAlgebra[
         DScalar, DColumnVector, DRowVector, DMatrix,
         DualScalar, DualColumnVector, DualRowVector, DualMatrix,
     ]
+)(using
+    Numeric[PScalar],
+    Trig[PScalar],
+    NRoot[PScalar],
 ) extends MatrixAlgebra[
     DualScalar, DualColumnVector, DualRowVector, DualMatrix
 ]
@@ -63,6 +71,19 @@ with MapDualOps[
     DualScalar, DualColumnVector, DualRowVector, DualMatrix,
 ](primaryMatrixAlgebra)
 {
+    import scalagrad.api.spire.numeric.DualScalarIsNumeric
+    import scalagrad.api.spire.trig.DualScalarIsTrig
+
+    override given num: Numeric[DualScalar] = DualScalarIsNumeric.dualNum(using
+        summon[Numeric[PScalar]],
+        summon[Trig[PScalar]],
+        this
+    )
+    override given trig: Trig[DualScalar] = DualScalarIsTrig.dualTrig(using
+        summon[Trig[PScalar]],
+        summon[NRoot[PScalar]],
+        this
+    )
 
     private val pma = primaryMatrixAlgebra
     private val dma = derivativeMatrixAlgebra

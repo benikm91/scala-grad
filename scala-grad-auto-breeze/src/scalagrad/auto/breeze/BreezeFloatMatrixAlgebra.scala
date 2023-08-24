@@ -3,16 +3,21 @@ package scalagrad.auto.breeze
 import scalagrad.api.matrixalgebra.MatrixAlgebra
 import breeze.linalg.*
 import scalagrad.api.forward.dual.*
+import spire.math.Numeric
+import spire.algebra.Trig
 
 object BreezeFloatMatrixAlgebra extends MatrixAlgebra[
     Float, DenseVector[Float], Transpose[DenseVector[Float]], DenseMatrix[Float],
 ]:
 
+  override given trig: Trig[Float] = spire.implicits.FloatAlgebra
+  override given num: Numeric[Float] = Numeric.FloatIsNumeric
+
   override def one: ScalarT = 1.0
 
   override def inverse(m: MatrixT): MatrixT = breeze.linalg.inv(m)
 
-  override def determinant(m: MatrixT): ScalarT = breeze.linalg.det(m.mapValues(_.toDouble)).toFloat
+  override def determinant(m: MatrixT): ScalarT = breeze.linalg.det(m.mapValues(_.toFloat)).toFloat
 
   override def elementAtM(m: MatrixT, iRow: Int, jColumn: Int): ScalarT = m(iRow, jColumn)
 

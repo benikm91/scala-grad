@@ -24,17 +24,14 @@ import scalagrad.auto.reverse.breeze.BreezeDoubleReverseMode
 import BreezeDoubleReverseMode.given
 
 import spire.math.Numeric
-import spire.algebra.Trig
 import spire.std.double.*
 import spire.syntax.numeric.partialOrderOps
 
 import breeze.linalg.{DenseMatrix, DenseVector}
 import breeze.linalg.*
+import spire.syntax.all.trigOps
 
 object NeuralNetworkMNIST:
-
-    val tt = summon[Trig[Double]]
-    val nn = summon[Numeric[Double]]
 
     def neuralNetwork(using alg: MatrixAlgebraDSL)(
         xs: alg.Matrix,
@@ -42,7 +39,7 @@ object NeuralNetworkMNIST:
         firstWs: alg.Matrix,
         lastW0: alg.ColumnVector,
         lastWs: alg.Matrix,
-    )(using num: Numeric[alg.Scalar], trig: Trig[alg.Scalar]): alg.Matrix = 
+    ): alg.Matrix = 
         val h = (xs * firstWs + firstW0.t).map(relu)
         (h * lastWs + lastW0.t)
             .mapRows(row => softmax(row.t).t)
@@ -51,9 +48,9 @@ object NeuralNetworkMNIST:
         val num = summon[Numeric[P]]
         if x < num.zero then num.zero else x
 
-    def softmax(using alg: MatrixAlgebraDSL)(x: alg.ColumnVector)(using trig: Trig[alg.Scalar]): alg.ColumnVector = 
-        def unstableSoftmax(x: alg.ColumnVector)(using trig: Trig[alg.Scalar]): alg.ColumnVector = 
-            val exps = x.map(trig.exp)
+    def softmax(using alg: MatrixAlgebraDSL)(x: alg.ColumnVector): alg.ColumnVector = 
+        def unstableSoftmax(x: alg.ColumnVector): alg.ColumnVector = 
+            val exps = x.map(_.exp)
             exps / exps.sum
         val maxElement = x.elements.maxBy(_.toDouble)
         unstableSoftmax(x - maxElement)
@@ -92,19 +89,19 @@ object NeuralNetworkMNIST:
         firstWs: alg.Matrix,
         lastW0: alg.ColumnVector,
         lastWs: alg.Matrix,
-    )(using Numeric[alg.Scalar], Trig[alg.Scalar]): alg.Scalar =
+    ): alg.Scalar =
         val ysHat = neuralNetwork(xs, firstW0, firstWs, lastW0, lastWs)
         crossEntropy(ys, ysHat)
 
-    def crossEntropy(using alg: MatrixAlgebraDSL)(ys: alg.Matrix, ysHat: alg.Matrix)(using n: Numeric[alg.Scalar], trig: Trig[alg.Scalar]): alg.Scalar =
-        def clip(x: alg.Scalar)(using n: Numeric[alg.Scalar]): alg.Scalar =
+    def crossEntropy(using alg: MatrixAlgebraDSL)(ys: alg.Matrix, ysHat: alg.Matrix): alg.Scalar =
+        def clip(x: alg.Scalar): alg.Scalar =
             val epsilon: Double = 1e-07
             val minS = alg.liftToScalar(epsilon)
             val maxS = alg.liftToScalar(1.0 - epsilon)
             if x < minS then minS
             else if x > maxS then maxS
             else x
-        val logYsHat = ysHat.map(clip).map(trig.log)
+        val logYsHat = ysHat.map(clip).map(_.log)
         val logYsHatYs = logYsHat *:* ys
         -(logYsHatYs.sum / alg.liftToScalar(logYsHat.nRows))
 

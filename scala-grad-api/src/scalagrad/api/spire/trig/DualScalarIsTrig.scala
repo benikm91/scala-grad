@@ -11,7 +11,7 @@ import scalagrad.api.dual.DualMatrixAlgebra
 
 object DualScalarIsTrig:
 
-    given [
+    given dualTrig[
         PScalar, PColumnVector, PRowVector, PMatrix,
         DScalar, DColumnVector, DRowVector, DMatrix,
         DualScalar <: dual.DualScalar[PScalar, DScalar], 

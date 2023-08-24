@@ -3,10 +3,17 @@ package scalagrad.auto.breeze
 import scalagrad.api.matrixalgebra.MatrixAlgebra
 import breeze.linalg.*
 import scalagrad.api.forward.dual.*
+import spire.math.Numeric
+import spire.algebra.Trig
 
 object BreezeDoubleMatrixAlgebra extends MatrixAlgebra[
     Double, DenseVector[Double], Transpose[DenseVector[Double]], DenseMatrix[Double],
 ]:
+
+  import spire.implicits._
+  override given trig: Trig[Double] = spire.implicits.DoubleAlgebra
+
+  override given num: Numeric[Double] = Numeric.DoubleIsNumeric
 
   override def one: ScalarT = 1.0
 

@@ -1,5 +1,9 @@
 package scalagrad.api.matrixalgebra
 
+import spire.math.Numeric
+import spire.algebra.Trig
+import spire.algebra.NRoot
+
 trait MatrixAlgebraDSL:
   
     type Scalar
@@ -9,6 +13,7 @@ trait MatrixAlgebraDSL:
 
     val innerAlgebra: MatrixAlgebra[Scalar, ColumnVector, RowVector, Matrix]
     export innerAlgebra.*
+    export innerAlgebra.given
 
 trait MatrixAlgebra[Scalar, ColumnVector, RowVector, Matrix] 
     extends LengthOps[ColumnVector, RowVector, Matrix]
@@ -34,6 +39,9 @@ trait MatrixAlgebra[Scalar, ColumnVector, RowVector, Matrix]
     type ColumnVectorT = ColumnVector
     type RowVectorT = RowVector
     type MatrixT = Matrix
+
+    given num: Numeric[Scalar]
+    given trig: Trig[Scalar]
 
     override def trace(m: Matrix): Scalar = 
         val n = m.nRows min m.nCols

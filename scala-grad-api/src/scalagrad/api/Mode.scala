@@ -26,6 +26,8 @@ abstract class Mode[
     val derivativeMatrixAlgebra: DerivativeMatrixAlgebraT
 ):
 
+    import primaryMatrixAlgebra.given
+
     val algebra = DualMatrixAlgebra[
         PScalar, PColumnVector, PRowVector, PMatrix, 
         DScalar, DColumnVector, DRowVector, DMatrix, 
