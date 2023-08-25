@@ -7,8 +7,176 @@ import scalagrad.api.forward.dual.*
 import scalagrad.api.matrixalgebra.derivative.DerivativeMatrixAlgebra
 import scalagrad.api.matrixalgebra.CreateOps
 import scalagrad.api.matrixalgebra.MatrixAlgebra
+import scalagrad.api.matrixalgebra.MatrixAlgebraDSL
 import scala.reflect.Typeable
 import scala.annotation.nowarn
+import scala.annotation.targetName
+import scalagrad.api.ScalaGrad
+
+import scalagrad.api.dual
+import scalagrad.api.dual.DualMatrixAlgebraDSL
+
+object ForwardMode:
+
+    @targetName("deriveS2S")
+    def derive[MA >: DualMatrixAlgebraDSL <: MatrixAlgebraDSL](
+        f: (alg: MA) => alg.Scalar => alg.Scalar
+    ):(alg: MatrixAlgebraDSL) => alg.Scalar => alg.Scalar = 
+        alg => x =>
+            val mode = new ForwardMode(alg.innerAlgebra)
+            mode.tuple2Scalar[Tuple1[mode.DualScalar]].derive((t: Tuple1[mode.DualScalar]) => f(mode.algebraDSL)(t.head))(Tuple1(x)).head
+                
+    @targetName("deriveCV2S")
+    def derive[MA >: DualMatrixAlgebraDSL <: MatrixAlgebraDSL](
+        f: (alg: MA) => alg.ColumnVector => alg.Scalar
+    ): (alg: MatrixAlgebraDSL) => alg.ColumnVector => alg.ColumnVector = 
+        alg => x => 
+            val mode = ForwardMode(alg.innerAlgebra)
+            mode.tuple2Scalar[Tuple1[mode.DualColumnVector]].derive((t: Tuple1[mode.DualColumnVector]) => f(mode.algebraDSL)(t.head))(Tuple1(x)).head
+
+    @targetName("deriveRV2S")
+    def derive[MA >: DualMatrixAlgebraDSL <: MatrixAlgebraDSL](
+        f: (alg: MA) => alg.RowVector => alg.Scalar
+    ): (alg: MatrixAlgebraDSL) => alg.RowVector => alg.RowVector = 
+        alg => x => 
+            val mode = ForwardMode(alg.innerAlgebra)
+            mode.tuple2Scalar[Tuple1[mode.DualRowVector]].derive((t: Tuple1[mode.DualRowVector]) => f(mode.algebraDSL)(t.head))(Tuple1(x)).head
+
+    @targetName("deriveM2S")
+    def derive[MA >: DualMatrixAlgebraDSL <: MatrixAlgebraDSL](
+        f: (alg: MA) => alg.Matrix => alg.Scalar
+    ): (alg: MatrixAlgebraDSL) => alg.Matrix => alg.Matrix = 
+        alg => x => 
+            val mode = ForwardMode(alg.innerAlgebra)
+            mode.tuple2Scalar[Tuple1[mode.DualMatrix]].derive((t: Tuple1[mode.DualMatrix]) => f(mode.algebraDSL)(t.head))(Tuple1(x)).head
+        
+    @targetName("deriveS2CV")
+    def derive[MA >: DualMatrixAlgebraDSL <: MatrixAlgebraDSL](
+        f: (alg: MA) => alg.Scalar => alg.ColumnVector
+    ): (alg: MatrixAlgebraDSL) => alg.Scalar => alg.ColumnVector = 
+            alg => x => 
+                val mode = ForwardMode(alg.innerAlgebra)
+                mode.tuple2ColumnVector[Tuple1[mode.DualScalar]].derive((t: Tuple1[mode.DualScalar]) => f(mode.algebraDSL)(t.head))(Tuple1(x)).head
+
+    @targetName("deriveCV2CV")
+    def derive[MA >: DualMatrixAlgebraDSL <: MatrixAlgebraDSL](
+        f: (alg: MA) => alg.ColumnVector => alg.ColumnVector
+    ): (alg: MatrixAlgebraDSL) => alg.ColumnVector => alg.Matrix = 
+            alg => x => 
+                val mode = ForwardMode(alg.innerAlgebra)
+                mode.tuple2ColumnVector[Tuple1[mode.DualColumnVector]].derive((t: Tuple1[mode.DualColumnVector]) => f(mode.algebraDSL)(t.head))(Tuple1(x)).head
+                .asInstanceOf[alg.Matrix]
+
+    @targetName("deriveRV2CV")
+    def derive[MA >: DualMatrixAlgebraDSL <: MatrixAlgebraDSL](
+        f: (alg: MA) => alg.RowVector => alg.ColumnVector
+    ): (alg: MatrixAlgebraDSL) => alg.RowVector => alg.Matrix = 
+            alg => x => 
+                val mode = ForwardMode(alg.innerAlgebra)
+                mode.tuple2ColumnVector[Tuple1[mode.DualRowVector]].derive((t: Tuple1[mode.DualRowVector]) => f(mode.algebraDSL)(t.head))(Tuple1(x)).head
+                .asInstanceOf[alg.Matrix]
+
+    @targetName("deriveM2CV")
+    def derive[MA >: DualMatrixAlgebraDSL <: MatrixAlgebraDSL](
+        f: (alg: MA) => alg.Matrix => alg.ColumnVector
+    ): (alg: MatrixAlgebraDSL) => alg.Matrix => alg.Matrix = 
+            alg => x => 
+                val mode = ForwardMode(alg.innerAlgebra)
+                mode.tuple2ColumnVector[Tuple1[mode.DualMatrix]].derive((t: Tuple1[mode.DualMatrix]) => f(mode.algebraDSL)(t.head))(Tuple1(x)).head
+                .asInstanceOf[alg.Matrix]
+
+    @targetName("deriveS2RV")
+    def derive[MA >: DualMatrixAlgebraDSL <: MatrixAlgebraDSL](
+        f: (alg: MA) => alg.Scalar => alg.RowVector
+    ): (alg: MatrixAlgebraDSL) => alg.Scalar => alg.RowVector = 
+        alg => x => 
+            val mode = ForwardMode(alg.innerAlgebra)
+            mode.tuple2RowVector[Tuple1[mode.DualScalar]].derive((t: Tuple1[mode.DualScalar]) => f(mode.algebraDSL)(t.head))(Tuple1(x)).head
+
+    @targetName("deriveCV2RV")
+    def derive[MA >: DualMatrixAlgebraDSL <: MatrixAlgebraDSL](
+        f: (alg: MA) => alg.ColumnVector => alg.RowVector
+    ): (alg: MatrixAlgebraDSL) => alg.ColumnVector => alg.Matrix = 
+        alg => x => 
+            val mode = ForwardMode(alg.innerAlgebra)
+            mode.tuple2RowVector[Tuple1[mode.DualColumnVector]].derive((t: Tuple1[mode.DualColumnVector]) => f(mode.algebraDSL)(t.head))(Tuple1(x)).head
+            .asInstanceOf[alg.Matrix]
+
+    @targetName("deriveRV2RV")
+    def derive[MA >: DualMatrixAlgebraDSL <: MatrixAlgebraDSL](
+        f: (alg: MA) => alg.RowVector => alg.RowVector
+    ): (alg: MatrixAlgebraDSL) => alg.RowVector => alg.Matrix = 
+        alg => x => 
+            val mode = ForwardMode(alg.innerAlgebra)
+            mode.tuple2RowVector[Tuple1[mode.DualRowVector]].derive((t: Tuple1[mode.DualRowVector]) => f(mode.algebraDSL)(t.head))(Tuple1(x)).head
+            .asInstanceOf[alg.Matrix]
+
+    @targetName("deriveM2RV")
+    def derive[MA >: DualMatrixAlgebraDSL <: MatrixAlgebraDSL](
+        f: (alg: MA) => alg.Matrix => alg.RowVector
+    ): (alg: MatrixAlgebraDSL) => alg.Matrix => alg.Matrix = 
+        alg => x => 
+            val mode = ForwardMode(alg.innerAlgebra)
+            mode.tuple2RowVector[Tuple1[mode.DualMatrix]].derive((t: Tuple1[mode.DualMatrix]) => f(mode.algebraDSL)(t.head))(Tuple1(x)).head
+            .asInstanceOf[alg.Matrix]
+
+    @targetName("deriveS2M")
+    def derive[MA >: DualMatrixAlgebraDSL <: MatrixAlgebraDSL](
+        f: (alg: MA) => alg.Scalar => alg.Matrix
+    ): (alg: MatrixAlgebraDSL) => alg.Scalar => alg.Matrix = 
+        alg => x => 
+            val mode = ForwardMode(alg.innerAlgebra)
+            mode.tuple2Matrix[Tuple1[mode.DualScalar]].derive((t: Tuple1[mode.DualScalar]) => f(mode.algebraDSL)(t.head))(Tuple1(x)).head
+
+    @targetName("deriveCV2M")
+    def derive[MA >: DualMatrixAlgebraDSL <: MatrixAlgebraDSL](
+        f: (alg: MA) => alg.ColumnVector => alg.Matrix
+    ): (alg: MatrixAlgebraDSL) => alg.ColumnVector => alg.Matrix = 
+        alg => x => 
+            val mode = ForwardMode(alg.innerAlgebra)
+            mode.tuple2Matrix[Tuple1[mode.DualColumnVector]].derive((t: Tuple1[mode.DualColumnVector]) => f(mode.algebraDSL)(t.head))(Tuple1(x)).head
+            .asInstanceOf[alg.Matrix]
+
+    @targetName("deriveRV2M")
+    def derive[MA >: DualMatrixAlgebraDSL <: MatrixAlgebraDSL](
+        f: (alg: MA) => alg.RowVector => alg.Matrix
+    ): (alg: MatrixAlgebraDSL) => alg.RowVector => alg.Matrix = 
+        alg => x => 
+            val mode = ForwardMode(alg.innerAlgebra)
+            mode.tuple2Matrix[Tuple1[mode.DualRowVector]].derive((t: Tuple1[mode.DualRowVector]) => f(mode.algebraDSL)(t.head))(Tuple1(x)).head
+            .asInstanceOf[alg.Matrix]
+
+    @targetName("deriveM2M")
+    def derive[MA >: DualMatrixAlgebraDSL <: MatrixAlgebraDSL](
+        f: (alg: MA) => alg.Matrix => alg.Matrix
+    ): (alg: MatrixAlgebraDSL) => alg.Matrix => alg.Matrix = 
+        alg => x => 
+            val mode = ForwardMode(alg.innerAlgebra)
+            mode.tuple2Matrix[Tuple1[mode.DualMatrix]].derive((t: Tuple1[mode.DualMatrix]) => f(mode.algebraDSL)(t.head))(Tuple1(x)).head
+            .asInstanceOf[alg.Matrix]
+
+    @targetName("deriveSS2SS")
+    def derive[MA >: DualMatrixAlgebraDSL <: MatrixAlgebraDSL](
+        f: (alg: MA) => (alg.Scalar, alg.Scalar) => (alg.Scalar, alg.Scalar)
+    ): (alg: MatrixAlgebraDSL) => (alg.Scalar, alg.Scalar) => ((alg.Scalar, alg.Scalar), (alg.Scalar, alg.Scalar)) = 
+        alg => (s1, s2) =>
+            val mode = ForwardMode(alg.innerAlgebra)
+            import mode.tuple2Tuple
+            ScalaGrad.derive(f(mode.algebraDSL))(s1, s2)
+
+    @targetName("deriveSCV2S")
+    def derive[MA >: DualMatrixAlgebraDSL <: MatrixAlgebraDSL](f: (alg: MatrixAlgebraDSL) => (alg.Scalar, alg.ColumnVector) => alg.Scalar):
+        (alg: MA) => (alg.Scalar, alg.ColumnVector) => (alg.Scalar, alg.ColumnVector) = alg => (s, cv) =>
+            val mode = new ForwardMode(alg.innerAlgebra)
+            import mode.given
+            ScalaGrad.derive(f(mode.algebraDSL))(s, cv)
+
+    @targetName("deriveSCV2SCV")
+    def derive[MA >: DualMatrixAlgebraDSL <: MatrixAlgebraDSL](f: (alg: MatrixAlgebraDSL) => (alg.Scalar, alg.ColumnVector) => (alg.Scalar, alg.ColumnVector)):
+        (alg: MA) => (alg.Scalar, alg.ColumnVector) => ((alg.Scalar, alg.ColumnVector), (alg.ColumnVector, alg.Matrix)) = alg => (s, cv) =>
+            val mode = new ForwardMode(alg.innerAlgebra)
+            import mode.given
+            ScalaGrad.derive(f(mode.algebraDSL))(s, cv).asInstanceOf[((alg.Scalar, alg.ColumnVector), (alg.ColumnVector, alg.Matrix))]
 
 class ForwardMode[
     PScalar : Typeable, PColumnVector : Typeable, PRowVector : Typeable, PMatrix : Typeable,
@@ -36,71 +204,6 @@ class ForwardMode[
 
     val indices = (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22)
     val zeroIndices = (0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22)
-
-    // TODO can we move this to Mode?
-    given scalar2Scalar: DeriverFromTo[DualScalar => DualScalar, PScalar => PScalar] with
-        override def derive(f: DualScalar => DualScalar): PScalar => PScalar = x => 
-            tuple2Scalar[Tuple1[DualScalar]].derive((t: Tuple1[DualScalar]) => f(t.head))(Tuple1(x)).head
-
-    given columnVector2Scalar: DeriverFromTo[DualColumnVector => DualScalar, PColumnVector => PColumnVector] with
-        override def derive(f: DualColumnVector => DualScalar): PColumnVector => PColumnVector = x => 
-            tuple2Scalar[Tuple1[DualColumnVector]].derive((t: Tuple1[DualColumnVector]) => f(t.head))(Tuple1(x)).head
-
-    given rowVector2Scalar: DeriverFromTo[DualRowVector => DualScalar, PRowVector => PRowVector] with
-        override def derive(f: DualRowVector => DualScalar): PRowVector => PRowVector = x => 
-            tuple2Scalar[Tuple1[DualRowVector]].derive((t: Tuple1[DualRowVector]) => f(t.head))(Tuple1(x)).head
-
-    given matrix2Scalar: DeriverFromTo[DualMatrix => DualScalar, PMatrix => PMatrix] with
-        override def derive(f: DualMatrix => DualScalar): PMatrix => PMatrix = x => 
-            tuple2Scalar[Tuple1[DualMatrix]].derive((t: Tuple1[DualMatrix]) => f(t.head))(Tuple1(x)).head
-    
-    given scalar2ColumnVector: DeriverFromTo[DualScalar => DualColumnVector, PScalar => PColumnVector] with
-        override def derive(f: DualScalar => DualColumnVector): PScalar => PColumnVector = x => 
-            tuple2ColumnVector[Tuple1[DualScalar]].derive((t: Tuple1[DualScalar]) => f(t.head))(Tuple1(x)).head
-
-    given columnVector2ColumnVector: DeriverFromTo[DualColumnVector => DualColumnVector, PColumnVector => UpPByColumnVector[PColumnVector]] with
-        override def derive(f: DualColumnVector => DualColumnVector): PColumnVector => UpPByColumnVector[PColumnVector] = x => 
-            tuple2ColumnVector[Tuple1[DualColumnVector]].derive((t: Tuple1[DualColumnVector]) => f(t.head))(Tuple1(x)).head
-
-    given rowVector2ColumnVector: DeriverFromTo[DualRowVector => DualColumnVector, PRowVector => UpPByColumnVector[PRowVector]] with
-        override def derive(f: DualRowVector => DualColumnVector): PRowVector => UpPByColumnVector[PRowVector] = x => 
-            tuple2ColumnVector[Tuple1[DualRowVector]].derive((t: Tuple1[DualRowVector]) => f(t.head))(Tuple1(x)).head
-
-    given matrix2ColumnVector: DeriverFromTo[DualMatrix => DualColumnVector, PMatrix => UpPByColumnVector[PMatrix]] with
-        override def derive(f: DualMatrix => DualColumnVector): PMatrix => UpPByColumnVector[PMatrix] = x => 
-            tuple2ColumnVector[Tuple1[DualMatrix]].derive((t: Tuple1[DualMatrix]) => f(t.head))(Tuple1(x)).head
-
-    given scalar2RowVector: DeriverFromTo[DualScalar => DualRowVector, PScalar => PRowVector] with
-        override def derive(f: DualScalar => DualRowVector): PScalar => PRowVector = x => 
-            tuple2RowVector[Tuple1[DualScalar]].derive((t: Tuple1[DualScalar]) => f(t.head))(Tuple1(x)).head
-
-    given columnVector2RowVector: DeriverFromTo[DualColumnVector => DualRowVector, PColumnVector => UpPByRowVector[PColumnVector]] with
-        override def derive(f: DualColumnVector => DualRowVector): PColumnVector => UpPByRowVector[PColumnVector] = x => 
-            tuple2RowVector[Tuple1[DualColumnVector]].derive((t: Tuple1[DualColumnVector]) => f(t.head))(Tuple1(x)).head
-
-    given rowVector2RowVector: DeriverFromTo[DualRowVector => DualRowVector, PRowVector => UpPByRowVector[PRowVector]] with
-        override def derive(f: DualRowVector => DualRowVector): PRowVector => UpPByRowVector[PRowVector] = x => 
-            tuple2RowVector[Tuple1[DualRowVector]].derive((t: Tuple1[DualRowVector]) => f(t.head))(Tuple1(x)).head
-
-    given matrix2RowVector: DeriverFromTo[DualMatrix => DualRowVector, PMatrix => UpPByRowVector[PMatrix]] with
-        override def derive(f: DualMatrix => DualRowVector): PMatrix => UpPByRowVector[PMatrix] = x => 
-            tuple2RowVector[Tuple1[DualMatrix]].derive((t: Tuple1[DualMatrix]) => f(t.head))(Tuple1(x)).head
-
-    given scalar2Matrix: DeriverFromTo[DualScalar => DualMatrix, PScalar => PMatrix] with
-        override def derive(f: DualScalar => DualMatrix): PScalar => PMatrix = x => 
-            tuple2Matrix[Tuple1[DualScalar]].derive((t: Tuple1[DualScalar]) => f(t.head))(Tuple1(x)).head
-
-    given columnVector2Matrix: DeriverFromTo[DualColumnVector => DualMatrix, PColumnVector => UpPByMatrix[PColumnVector]] with
-        override def derive(f: DualColumnVector => DualMatrix): PColumnVector => UpPByMatrix[PColumnVector] = x => 
-            tuple2Matrix[Tuple1[DualColumnVector]].derive((t: Tuple1[DualColumnVector]) => f(t.head))(Tuple1(x)).head
-
-    given rowVector2Matrix: DeriverFromTo[DualRowVector => DualMatrix, PRowVector => UpPByMatrix[PRowVector]] with
-        override def derive(f: DualRowVector => DualMatrix): PRowVector => UpPByMatrix[PRowVector] = x => 
-            tuple2Matrix[Tuple1[DualRowVector]].derive((t: Tuple1[DualRowVector]) => f(t.head))(Tuple1(x)).head
-
-    given matrix2Matrix: DeriverFromTo[DualMatrix => DualMatrix, PMatrix => UpPByMatrix[PMatrix]] with
-        override def derive(f: DualMatrix => DualMatrix): PMatrix => UpPByMatrix[PMatrix] = x => 
-            tuple2Matrix[Tuple1[DualMatrix]].derive((t: Tuple1[DualMatrix]) => f(t.head))(Tuple1(x)).head
 
     given tuple2Scalar[T <: Tuple : DualTuple]: DeriverFromTo[T => DualScalar, DualTupleToPTuple[T] => DualTupleToPTuple[T]] with
 

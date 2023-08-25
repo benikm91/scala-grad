@@ -1,5 +1,5 @@
 package scalagrad.showcase.probabilisticProgramming
-
+/*
 import breeze.stats.distributions.Gaussian
 import breeze.stats.distributions.Rand.FixedSeed.randBasis
 import spire.math.Numeric
@@ -225,3 +225,4 @@ object UseCase1b extends App:
         val trig = summon[Trig[T]]
         val pi = num.fromDouble(math.Pi)
         gaussianLogPdf(mean, sigma)(x)
+*/

@@ -1,5 +1,6 @@
 package scalagrad.showcase.linearregression
 
+/*
 import scala.io.Source
 import scalagrad.showcase.deeplearning.Util.*
 import scalagrad.api.matrixalgebra.MatrixAlgebraDSL
@@ -10,6 +11,7 @@ import scalagrad.auto.reverse.breeze.BreezeDoubleReverseMode
 import BreezeDoubleReverseMode.given
 import scalagrad.auto.breeze.BreezeDoubleMatrixAlgebraDSL
 import scala.annotation.tailrec
+import scalagrad.auto.breeze.BreezeDoubleMatrixAlgebra
 
 @main def newtonMethod() = 
 
@@ -32,13 +34,13 @@ import scala.annotation.tailrec
     def meanSquaredError(using alg: MatrixAlgebraDSL)(ys: alg.ColumnVector, ysHat: alg.ColumnVector): alg.Scalar =
         (ys - ysHat).map(x => x * x).sum / alg.liftToScalar(ys.length * 2)
 
-    def loss(using alg: MatrixAlgebraDSL)(xs: alg.Matrix, ys: alg.ColumnVector)(w0: alg.Scalar, ws: alg.ColumnVector): alg.Scalar =
-        val ysHat = linearModel(xs, w0, ws)
-        meanSquaredError(ys, ysHat)
+    def loss(xs: DenseMatrix[Double], ys: DenseVector[Double])(alg: MatrixAlgebraDSL)(w0: alg.Scalar, ws: alg.ColumnVector): alg.Scalar =
+        val ysHat = linearModel(using alg)(alg.liftBreezeMatrix(xs), w0, ws)
+        meanSquaredError(using alg)(alg.liftBreezeVector(ys), ysHat)
 
-    def newtonMethod(using alg: MatrixAlgebraDSL)(w0: Double, ws: DenseVector[Double])(
-        dLoss: ((Double, DenseVector[Double])) => (Double, DenseVector[Double]),
-        d2Loss: ((Double, DenseVector[Double])) => ((Double, DenseVector[Double]), (DenseVector[Double], DenseMatrix[Double]))
+    def newtonMethod(w0: Double, ws: DenseVector[Double])(
+        dLoss: (Double, DenseVector[Double]) => (Double, DenseVector[Double]),
+        d2Loss: (Double, DenseVector[Double]) => ((Double, DenseVector[Double]), (DenseVector[Double], DenseMatrix[Double]))
     ): (Double, DenseVector[Double]) =
         import breeze.linalg._
         val (dW0, dWs) = dLoss(w0, ws)
@@ -67,25 +69,12 @@ import scala.annotation.tailrec
     import BreezeDoubleForwardMode.given
 
     println("Forward-Forward mode")
-    val dLoss = ScalaGrad.derive(loss(using alg)(
-        alg.lift(xs), 
-        alg.lift(ys)
-    ))
-    val ffad = new ForwardMode(BreezeDoubleForwardMode.algebra)
-    val alg2 = ffad.algebraT
-    import ffad.given
-
-    import BreezeDoubleForwardMode.given // TODO why is this needed?
-    val d2Loss = ScalaGrad.derive(
-        ScalaGrad.derive(loss(using alg2)(
-            alg2.lift(alg.lift(xs)), 
-            alg2.lift(alg.lift(ys))
-        ))
-    )
-    val (w0, ws) = newtonMethod(using BreezeDoubleMatrixAlgebraDSL)(initW0, initWs)(dLoss, d2Loss)
+    val dLoss = ForwardMode.derive(loss(xs, ys))
+    val ddLoss = ForwardMode.deriveM(dLoss)
+    val (w0, ws) = newtonMethod(initW0, initWs)(dLoss(BreezeDoubleMatrixAlgebraDSL), ddLoss(BreezeDoubleMatrixAlgebraDSL))
 
     val ysHat = StandardScaler.inverseScaleColumn(
         linearModel(using BreezeDoubleMatrixAlgebraDSL)(xs, w0, ws).toScalaVector, 
         ysMean, ysStd
     )
-    println(f"${rootMeanSquaredError(DenseVector(ysUnscaled.toArray), DenseVector(ysHat.toArray))}g  -- RMSE with learned weights")
+    println(f"${rootMeanSquaredError(DenseVector(ysUnscaled.toArray), DenseVector(ysHat.toArray))}g  -- RMSE with learned weights")*/

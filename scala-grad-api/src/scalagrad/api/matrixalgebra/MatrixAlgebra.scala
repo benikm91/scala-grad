@@ -3,6 +3,9 @@ package scalagrad.api.matrixalgebra
 import spire.math.Numeric
 import spire.algebra.Trig
 import spire.algebra.NRoot
+import breeze.linalg.DenseMatrix
+import breeze.linalg.DenseVector
+import scala.reflect.Typeable
 
 trait MatrixAlgebraDSL:
   
@@ -11,11 +14,17 @@ trait MatrixAlgebraDSL:
     type RowVector
     type Matrix
 
+    given st: Typeable[Scalar]
+    given cvt: Typeable[ColumnVector]
+    given rvt: Typeable[RowVector]
+    given mt: Typeable[Matrix]
+
     val innerAlgebra: MatrixAlgebra[Scalar, ColumnVector, RowVector, Matrix]
     export innerAlgebra.*
     export innerAlgebra.given
 
-trait MatrixAlgebra[Scalar, ColumnVector, RowVector, Matrix] 
+
+trait MatrixAlgebra[Scalar : Typeable, ColumnVector : Typeable, RowVector : Typeable, Matrix : Typeable] 
     extends LengthOps[ColumnVector, RowVector, Matrix]
     with LiftOps[Scalar]
     with MatrixOps[Matrix, Scalar]
@@ -49,3 +58,30 @@ trait MatrixAlgebra[Scalar, ColumnVector, RowVector, Matrix]
         for i <- 0 until n do
             res = res + m.elementAt(i, i)
         res
+
+    // TODO How to not define them here, but still be easy to use/lift with breeze
+    def liftBreezeMatrix(m: DenseMatrix[Double]): Matrix
+    def liftBreezeVector(cv: DenseVector[Double]): ColumnVector
+
+    def asDSL: MatrixAlgebraDSL {
+        type Scalar = ScalarT
+        type ColumnVector = ColumnVectorT
+        type RowVector = RowVectorT
+        type Matrix = MatrixT
+    } = 
+        val self = this
+        val stE = summon[Typeable[Scalar]]
+        val cvtE = summon[Typeable[ColumnVector]]
+        val rvtE = summon[Typeable[RowVector]]
+        val mtE = summon[Typeable[Matrix]]
+        new MatrixAlgebraDSL {
+            override given st: Typeable[Scalar] = stE
+            override given cvt: Typeable[ColumnVector] = cvtE
+            override given rvt: Typeable[RowVector] = rvtE
+            override given mt: Typeable[Matrix] = mtE
+            override type Scalar = self.ScalarT
+            override type ColumnVector = self.ColumnVectorT
+            override type RowVector = self.RowVectorT
+            override type Matrix = self.MatrixT
+            override val innerAlgebra = self
+        }

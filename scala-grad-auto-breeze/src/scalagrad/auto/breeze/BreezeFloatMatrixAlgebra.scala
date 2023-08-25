@@ -10,6 +10,9 @@ object BreezeFloatMatrixAlgebra extends MatrixAlgebra[
     Float, DenseVector[Float], Transpose[DenseVector[Float]], DenseMatrix[Float],
 ]:
 
+  def liftBreezeMatrix(m: DenseMatrix[Double]): MatrixT = m.mapValues(_.toFloat)
+  def liftBreezeVector(cv: DenseVector[Double]): ColumnVectorT = cv.mapValues(_.toFloat)
+
   override given trig: Trig[Float] = spire.implicits.FloatAlgebra
   override given num: Numeric[Float] = Numeric.FloatIsNumeric
 

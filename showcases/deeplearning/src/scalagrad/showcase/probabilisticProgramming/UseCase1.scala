@@ -1,5 +1,5 @@
 package scalagrad.showcase.probabilisticProgramming
-
+/*
 import breeze.stats.distributions.Gaussian
 import breeze.stats.distributions.Rand.FixedSeed.randBasis
 import spire.math.Numeric
@@ -141,4 +141,4 @@ object UseCase1 extends App:
 
 
 
-    
+    */

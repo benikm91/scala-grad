@@ -3,16 +3,15 @@ package scalagrad
 @main
 def minimalExample = 
     // imports
-    import scalagrad.api.ScalaGrad
     import scalagrad.api.matrixalgebra.MatrixAlgebraDSL
-    import scalagrad.auto.forward.breeze.BreezeDoubleForwardMode
-    import BreezeDoubleForwardMode.given
+    import scalagrad.auto.breeze.BreezeDoubleMatrixAlgebraDSL
+    import scalagrad.api.forward.ForwardMode
 
     // define a function
-    def f(using alg: MatrixAlgebraDSL)(x: alg.Scalar): (alg.Scalar) = x * x
+    def f(alg: MatrixAlgebraDSL)(x: alg.Scalar): (alg.Scalar) = x * x
 
     // derive the function
-    val df = ScalaGrad.derive(f(using BreezeDoubleForwardMode.algebraT))
+    val df = ForwardMode.derive(f)(BreezeDoubleMatrixAlgebraDSL)
 
     // call the derived function (Note that df(x) = 2 * x)
     assert(df(3.0) == (2 * 3.0)) 

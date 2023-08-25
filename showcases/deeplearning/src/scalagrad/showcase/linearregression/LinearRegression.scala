@@ -1,5 +1,6 @@
 package scalagrad.showcase.linearregression
 
+/*
 import scala.io.Source
 import scalagrad.showcase.deeplearning.Util.*
 import scalagrad.api.matrixalgebra.MatrixAlgebraDSL
@@ -85,4 +86,4 @@ import breeze.linalg.{Vector => _, *}
         linearModel(using BreezeDoubleMatrixAlgebraDSL)(xs, w0, ws).toScalaVector, 
         ysMean, ysStd
     )
-    println(f"${rootMeanSquaredError(DenseVector(ysUnscaled.toArray), DenseVector(ysHat.toArray))}g  -- RMSE with learned weights")
+    println(f"${rootMeanSquaredError(DenseVector(ysUnscaled.toArray), DenseVector(ysHat.toArray))}g  -- RMSE with learned weights")*/

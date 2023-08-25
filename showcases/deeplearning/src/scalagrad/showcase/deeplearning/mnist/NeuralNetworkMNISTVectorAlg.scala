@@ -2,26 +2,13 @@ package scalagrad.showcase.deeplearning.mnist
 
 import scalagrad.showcase.deeplearning.Util.{time, timeMeasure}
 import scala.io.Source
-import scalagrad.api.matrixalgebra.MatrixAlgebra
-import scalagrad.api.ScalaGrad
-import scalagrad.auto.breeze.BreezeDoubleMatrixAlgebraDSL
 
-import scalagrad.api.DeriverFromTo
+import scalagrad.api.matrixalgebra.MatrixAlgebraDSL
+import scalagrad.auto.breeze.BreezeDoubleMatrixAlgebraDSL
+import scalagrad.api.reverse.ReverseMode
 
 import MNISTDataSet.MNISTEntry
-import scalagrad.api.matrixalgebra.MatrixAlgebraDSL
-import scalagrad.api.forward.dual.DualNumberMatrix
-import scalagrad.api.spire.numeric.DualScalarIsNumeric.given
-import scalagrad.api.spire.trig.DualScalarIsTrig.given
-import scalagrad.auto.forward.breeze.BreezeDoubleForwardMode
-import BreezeDoubleForwardMode.given
-import scalagrad.api.dual.DualMatrixAlgebraDSL
-import scalagrad.api.forward.dual.DualNumberScalar
-import scalagrad.api.reverse.dual.DualDeltaScalar
 import Util.*
-
-import scalagrad.auto.reverse.breeze.BreezeDoubleReverseMode
-import BreezeDoubleReverseMode.given
 
 import spire.math.Numeric
 import spire.std.double.*
@@ -68,11 +55,7 @@ object NeuralNetworkMNIST:
         if n == 0 then (firstW0, firstWs, lastW0, lastWs)
         else
             val (xsBatch, ysBatch) = data.head
-            val algebra = BreezeDoubleReverseMode.algebraT
-            val dLoss = ScalaGrad.derive(loss(using algebra)(
-                algebra.lift(xsBatch),
-                algebra.lift(ysBatch)
-            ))
+            val dLoss = ReverseMode.derive(loss(xsBatch, ysBatch))(BreezeDoubleMatrixAlgebraDSL)
             val (dFirstW0, dFirstWs, dLastW0, dLastWs) = dLoss(firstW0, firstWs, lastW0, lastWs)
             
             miniBatchGradientDescent(data.tail)(
@@ -83,15 +66,15 @@ object NeuralNetworkMNIST:
                 lr,
                 n - 1,
             )
-
-    def loss(using alg: MatrixAlgebraDSL)(xs: alg.Matrix, ys: alg.Matrix)(
+    
+    def loss(xs: DenseMatrix[Double], ys: DenseMatrix[Double])(alg: MatrixAlgebraDSL)(
         firstW0: alg.ColumnVector,
         firstWs: alg.Matrix,
         lastW0: alg.ColumnVector,
         lastWs: alg.Matrix,
     ): alg.Scalar =
-        val ysHat = neuralNetwork(xs, firstW0, firstWs, lastW0, lastWs)
-        crossEntropy(ys, ysHat)
+        val ysHat = neuralNetwork(using alg)(alg.liftBreezeMatrix(xs), firstW0, firstWs, lastW0, lastWs)
+        crossEntropy(using alg)(alg.liftBreezeMatrix(ys), ysHat)
 
     def crossEntropy(using alg: MatrixAlgebraDSL)(ys: alg.Matrix, ysHat: alg.Matrix): alg.Scalar =
         def clip(x: alg.Scalar): alg.Scalar =

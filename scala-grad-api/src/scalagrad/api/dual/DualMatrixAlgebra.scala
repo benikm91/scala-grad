@@ -17,6 +17,9 @@ import spire.math.Numeric
 import spire.algebra.Trig
 import spire.algebra.NRoot
 import spire.syntax.nroot
+import breeze.linalg.DenseMatrix
+import breeze.linalg.DenseVector
+import scala.reflect.Typeable
 
 
 trait DualMatrixAlgebraDSL extends MatrixAlgebraDSL:
@@ -42,6 +45,7 @@ trait DualMatrixAlgebraDSL extends MatrixAlgebraDSL:
     ]
 
     export innerAlgebra.lift
+    export innerAlgebra.primaryMatrixAlgebra
 
 
 case class DualMatrixAlgebra[
@@ -89,6 +93,20 @@ with MapDualOps[
     private val dma = derivativeMatrixAlgebra
 
     import dma.*
+
+    def liftBreezeMatrix(m: DenseMatrix[Double]): DualMatrix = 
+        createDualMatrix(
+            pma.liftBreezeMatrix(m),
+            dma.dZeroOps.zeroMatrix(m.rows, m.cols),
+            List()
+        )
+
+    def liftBreezeVector(cv: DenseVector[Double]): DualColumnVector = 
+        createDualColumnVector(
+            pma.liftBreezeVector(cv),
+            dma.dZeroOps.zeroColumnVector(cv.length),
+            List()
+        )
 
     override def one = createDualScalar(pma.one, dma.dZeroOps.zeroScalar, List())
 

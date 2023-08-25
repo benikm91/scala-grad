@@ -8,14 +8,15 @@ import scalagrad.api.matrixalgebra.derivative.DerivativeMatrixAlgebra
 import scalagrad.api.spire.trig.DualScalarIsTrig
 import scalagrad.api.matrixalgebra.MatrixAlgebraDSL
 import scalagrad.api.dual.DualMatrixAlgebraDSL
+import scala.reflect.Typeable
 
 abstract class Mode[
     PScalar, PColumnVector, PRowVector, PMatrix,
     DScalar, DColumnVector, DRowVector, DMatrix,
-    DualScalar <: dual.DualScalar[PScalar, DScalar], 
-    DualColumnVector <: dual.DualColumnVector[PColumnVector, DColumnVector],
-    DualRowVector <: dual.DualRowVector[PRowVector, DRowVector],
-    DualMatrix <: dual.DualMatrix[PMatrix, DMatrix],
+    DualScalar <: dual.DualScalar[PScalar, DScalar] : Typeable, 
+    DualColumnVector <: dual.DualColumnVector[PColumnVector, DColumnVector] : Typeable,
+    DualRowVector <: dual.DualRowVector[PRowVector, DRowVector] : Typeable,
+    DualMatrix <: dual.DualMatrix[PMatrix, DMatrix] : Typeable,
     DerivativeMatrixAlgebraT <: DerivativeMatrixAlgebra[
         PScalar, PColumnVector, PRowVector, PMatrix, 
         DScalar, DColumnVector, DRowVector, DMatrix, 
@@ -37,13 +38,18 @@ abstract class Mode[
         derivativeMatrixAlgebra,
     )
 
-    given dualAlgebraGiven: DualMatrixAlgebra[
-        PScalar, PColumnVector, PRowVector, PMatrix, 
-        DScalar, DColumnVector, DRowVector, DMatrix, 
-        DualScalar, DualColumnVector, DualRowVector, DualMatrix
-    ] = algebra
+    val stE = summon[Typeable[DualScalar]]
+    val cvtE = summon[Typeable[DualColumnVector]]
+    val rvtE = summon[Typeable[DualRowVector]]
+    val mtE = summon[Typeable[DualMatrix]]
 
-    val algebraT = new DualMatrixAlgebraDSL {
+    val algebraDSL = new DualMatrixAlgebraDSL {
+
+        override given st: Typeable[Scalar] = stE
+        override given cvt: Typeable[ColumnVector] = cvtE
+        override given rvt: Typeable[RowVector] = rvtE
+        override given mt: Typeable[Matrix] = mtE
+
         override type PrimaryScalar = PScalar
         override type PrimaryColumnVector = PColumnVector
         override type PrimaryRowVector = PRowVector
@@ -114,16 +120,3 @@ abstract class Mode[
 
     type CartesianProductAndUpP[T1 <: Tuple, T2 <: Tuple] = Tuple.Map[T1, CopyAndUpP[T2]]
 
-    given scalar2Scalar: DeriverFromTo[DualScalar => DualScalar, PScalar => PScalar]
-    given columnVector2Scalar: DeriverFromTo[DualColumnVector => DualScalar, PColumnVector => PColumnVector]
-    given rowVector2Scalar: DeriverFromTo[DualRowVector => DualScalar, PRowVector => PRowVector]
-    given matrix2Scalar: DeriverFromTo[DualMatrix => DualScalar, PMatrix => PMatrix]
-
-    given tuple2Scalar[T <: Tuple : DualTuple]: DeriverFromTo[
-        T => DualScalar,
-        DualTupleToPTuple[T] => DualTupleToPTuple[T]
-    ]
-
-    given tuple2Tuple[T <: Tuple : DualTuple, RT <: Tuple : DualTuple]: DeriverFromTo[T => RT, 
-        DualTupleToPTuple[T] => CartesianProductAndUpP[T, DualTupleToPTuple[RT]]
-    ]
