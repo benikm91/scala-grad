@@ -18,17 +18,12 @@ import scalagrad.api.matrixalgebra.MatrixAlgebra
 import scalagrad.api.matrixalgebra.MatrixAlgebraDSL
 import scalagrad.api.ModeO
 
-trait BasicOpsTestSuit(
-    val deriver: ModeO,
-    val pma: MatrixAlgebraDSL,
-    globalTestSuitParams: GlobalTestSuitParams[pma.Scalar, pma.ColumnVector, pma.RowVector, pma.Matrix],
-) extends AnyWordSpec with BaseTestSuit[pma.Scalar, pma.ColumnVector, pma.RowVector, pma.Matrix]:
+trait BasicOpsTestSuit extends AnyWordSpec:
+    this: BaseTestSuit =>
 
     import scalagrad.numerical.NumericalForwardMode.{derive => dApprox}
 
     import deriver.{derive => d}
-
-    import globalTestSuitParams.*
 
     f"${testName} (Matrix, Matrix) operations" should {
 

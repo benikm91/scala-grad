@@ -13,49 +13,23 @@ import org.scalatest.prop.TableDrivenPropertyChecks.whenever
 import org.scalatest.wordspec.AnyWordSpec
 import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks.forAll
 import org.scalacheck.Gen
-import scalagrad.api.Deriver
-import scalagrad.api.DeriverFromTo
-import scalagrad.numerical.DeriverNumericalPlan
-import scalagrad.api.forward.ForwardMode
-import scalagrad.api.reverse.ReverseMode
 
 import scalagrad.api.matrixalgebra.MatrixAlgebra
 import scala.math.Fractional.Implicits.given
 import spire.algebra.Trig
+import scalagrad.api.matrixalgebra.MatrixAlgebraDSL
+import scalagrad.api.ModeO
 
-trait MapOpsTestSuit[
-    PScalar, PColumnVector, PRowVector, PMatrix,
-    DScalar, DColumnVector, DRowVector, DMatrix,
-    DualScalar <: dual.DualScalar[PScalar, DScalar],
-    DualColumnVector <: dual.DualColumnVector[PColumnVector, DColumnVector],
-    DualRowVector <: dual.DualRowVector[PRowVector, DRowVector],
-    DualMatrix <: dual.DualMatrix[PMatrix, DMatrix],
-](
-    globalTestSuitParams: GlobalTestSuitParams[
-        PScalar, PColumnVector, PRowVector, PMatrix,
-        DScalar, DColumnVector, DRowVector, DMatrix,
-        DualScalar, DualColumnVector, DualRowVector, DualMatrix,
-    ],
-    deriverM: (DualMatrix => DualScalar) => (PMatrix => PMatrix),
-    deriverCV: (DualColumnVector => DualScalar) => (PColumnVector => PColumnVector),
-    deriverS: (DualScalar => DualScalar) => (PScalar => PScalar),
-)(using 
-    Fractional[PScalar],
-    Fractional[DualScalar],
-    Trig[PScalar],
-    Trig[DualScalar]
-) extends AnyWordSpec with BaseTestSuit[PScalar, PColumnVector, PRowVector, PMatrix]:
-    
-    import globalTestSuitParams.*
-    override val primaryAlgebra = globalTestSuitParams.primaryAlgebra
+trait MapOpsTestSuit extends AnyWordSpec:
+    this: BaseTestSuit =>
 
-    import dualAlgebra.*
-    import primaryAlgebra.*
-    import deriverNumericalPlan.given
+    import scalagrad.numerical.NumericalForwardMode.{derive => dApprox}
+
+    import deriver.{derive => d}
 
     f"${testName} Matrix map operations" should {
 
-        def matrixGen(minDim: Int = 1, maxDim: Int = 25, mGen: (Gen[Int], Gen[Int]) => Gen[PMatrix] = mGen): Gen[PMatrix] =
+        def matrixGen(minDim: Int = 1, maxDim: Int = 25, mGen: (Gen[Int], Gen[Int]) => Gen[pma.Matrix] = mGen): Gen[pma.Matrix] =
             for {
                 nRow <- Gen.choose(minDim, maxDim)
                 nCol <- Gen.choose(minDim, maxDim)
@@ -65,11 +39,10 @@ trait MapOpsTestSuit[
         "mapElements" should {
 
             "support identify" in {
-                def f[S: Fractional, CV, RV, M](algebra: MatrixAlgebra[S, CV, RV, M])(m: M): S = 
-                    import algebra.*
+                def f(alg: MatrixAlgebraDSL)(m: alg.Matrix): alg.Scalar = 
                     m.mapElements(x => x).sum
-                val df = deriverM(f[DualScalar, DualColumnVector, DualRowVector, DualMatrix](dualAlgebra))
-                val dfApprox = ScalaGrad.derive(f[PScalar, PColumnVector, PRowVector, PMatrix](primaryAlgebra))
+                val df = d(f)(pma)
+                val dfApprox = dApprox(f)(pma)
                 forAll(matrixGen()) { (m) =>
                     compareElementsMM(
                         df(m),
@@ -79,11 +52,10 @@ trait MapOpsTestSuit[
             }
             "support fractional square" in {
                 def square[S: Fractional](s: S) = s * s
-                def f[S: Fractional, CV, RV, M](algebra: MatrixAlgebra[S, CV, RV, M])(m: M): S = 
-                    import algebra.*
+                def f(alg: MatrixAlgebraDSL)(m: alg.Matrix): alg.Scalar = 
                     m.mapElements(square).sum
-                val df = deriverM(f[DualScalar, DualColumnVector, DualRowVector, DualMatrix](dualAlgebra))
-                val dfApprox = ScalaGrad.derive(f[PScalar, PColumnVector, PRowVector, PMatrix](primaryAlgebra))
+                val df = d(f)(pma)
+                val dfApprox = dApprox(f)(pma)
                 forAll(matrixGen()) { (m) =>
                     compareElementsMM(
                         df(m),
@@ -92,15 +64,15 @@ trait MapOpsTestSuit[
                 }
             }
             "support fractional relu" in {
+                import spire.compat.fractional
                 def relu[S](s: S)(using frac: Fractional[S]) = 
                     import frac.*
                     if (s <= frac.zero) frac.zero
                     else s
-                def f[S: Fractional, CV, RV, M](algebra: MatrixAlgebra[S, CV, RV, M])(m: M): S = 
-                    import algebra.*
+                def f(alg: MatrixAlgebraDSL)(m: alg.Matrix): alg.Scalar = 
                     m.mapElements(relu).sum
-                val df = deriverM(f[DualScalar, DualColumnVector, DualRowVector, DualMatrix](dualAlgebra))
-                val dfApprox = ScalaGrad.derive(f[PScalar, PColumnVector, PRowVector, PMatrix](primaryAlgebra))
+                val df = d(f)(pma)
+                val dfApprox = dApprox(f)(pma)
                 forAll(matrixGen()) { (m) =>
                     compareElementsMM(
                         df(m),
@@ -111,11 +83,10 @@ trait MapOpsTestSuit[
             "support spire.Trig log" in {
                 def log[S](s: S)(using trig: Trig[S]) = 
                     trig.log(s)
-                def f[S: Trig, CV, RV, M](algebra: MatrixAlgebra[S, CV, RV, M])(m: M): S = 
-                    import algebra.*
-                    m.mapElements(log).sum
-                val df = deriverM(f[DualScalar, DualColumnVector, DualRowVector, DualMatrix](dualAlgebra))
-                val dfApprox = ScalaGrad.derive(f[PScalar, PColumnVector, PRowVector, PMatrix](primaryAlgebra))
+                def f(alg: MatrixAlgebraDSL)(m: alg.Matrix): alg.Scalar = 
+                    m.mapElements(alg.trig.log).sum
+                val df = d(f)(pma)
+                val dfApprox = dApprox(f)(pma)
                 forAll(matrixGen(mGen = positiveOnlyMGen)) { (m) =>
                     compareElementsMM(
                         df(m),
@@ -124,8 +95,7 @@ trait MapOpsTestSuit[
                 }
             }
             "support complex operation" in {
-                def f[S: Fractional, CV, RV, M](algebra: MatrixAlgebra[S, CV, RV, M])(m: M): S = 
-                    import algebra.*
+                def f(alg: MatrixAlgebraDSL)(m: alg.Matrix): alg.Scalar = 
                     val m2 = m *:* m // do something before
                     val m2Sum = m2.elements.reduce(_ + _)
                     (
@@ -136,8 +106,8 @@ trait MapOpsTestSuit[
                             ) 
                         // *:* m // do something after
                     ).sum
-                val df = deriverM(f[DualScalar, DualColumnVector, DualRowVector, DualMatrix](dualAlgebra))
-                val dfApprox = ScalaGrad.derive(f[PScalar, PColumnVector, PRowVector, PMatrix](primaryAlgebra))
+                val df = d(f)(pma)
+                val dfApprox = dApprox(f)(pma)
                 forAll(matrixGen()) { (m) =>
                     compareElementsMM(
                         df(m),
@@ -149,11 +119,10 @@ trait MapOpsTestSuit[
     
         "mapRows" should {
             "support identify" in {
-                def f[S: Fractional, CV, RV, M](algebra: MatrixAlgebra[S, CV, RV, M])(m: M): S = 
-                    import algebra.*
+                def f(alg: MatrixAlgebraDSL)(m: alg.Matrix): alg.Scalar = 
                     m.mapRows(x => x).sum
-                val df = deriverM(f[DualScalar, DualColumnVector, DualRowVector, DualMatrix](dualAlgebra))
-                val dfApprox = ScalaGrad.derive(f[PScalar, PColumnVector, PRowVector, PMatrix](primaryAlgebra))
+                val df = d(f)(pma)
+                val dfApprox = dApprox(f)(pma)
                 forAll(matrixGen()) { (m) =>
                     compareElementsMM(
                         df(m),
@@ -162,11 +131,10 @@ trait MapOpsTestSuit[
                 }
             }
             "support basic operation" in {
-                def f[S: Fractional, CV, RV, M](algebra: MatrixAlgebra[S, CV, RV, M])(m: M): S = 
-                    import algebra.*
+                def f(alg: MatrixAlgebraDSL)(m: alg.Matrix): alg.Scalar = 
                     m.mapRows(x => x *:* x).sum
-                val df = deriverM(f[DualScalar, DualColumnVector, DualRowVector, DualMatrix](dualAlgebra))
-                val dfApprox = ScalaGrad.derive(f[PScalar, PColumnVector, PRowVector, PMatrix](primaryAlgebra))
+                val df = d(f)(pma)
+                val dfApprox = dApprox(f)(pma)
                 forAll(matrixGen()) { (m) =>
                     compareElementsMM(
                         df(m),
@@ -175,8 +143,7 @@ trait MapOpsTestSuit[
                 }
             }
             "support complex operation" in {
-                def f[S: Fractional, CV, RV, M](algebra: MatrixAlgebra[S, CV, RV, M])(m: M): S = 
-                    import algebra.*
+                def f(alg: MatrixAlgebraDSL)(m: alg.Matrix): alg.Scalar = 
                     (
                         (m *:* m) // do something before
                             .mapRows(x =>
@@ -186,8 +153,8 @@ trait MapOpsTestSuit[
                             ) 
                         *:* m // do something after
                     ).sum
-                val df = deriverM(f[DualScalar, DualColumnVector, DualRowVector, DualMatrix](dualAlgebra))
-                val dfApprox = ScalaGrad.derive(f[PScalar, PColumnVector, PRowVector, PMatrix](primaryAlgebra))
+                val df = d(f)(pma)
+                val dfApprox = dApprox(f)(pma)
                 forAll(matrixGen()) { (m) =>
                     compareElementsMM(
                         df(m),

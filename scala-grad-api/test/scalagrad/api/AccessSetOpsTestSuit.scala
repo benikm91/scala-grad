@@ -20,17 +20,12 @@ import scalagrad.api.matrixalgebra.MatrixAlgebraDSL
 
 
 
-trait AccessSetOpsTestSuit(
-    val deriver: ModeO,
-    val pma: MatrixAlgebraDSL,
-    globalTestSuitParams: GlobalTestSuitParams[pma.Scalar, pma.ColumnVector, pma.RowVector, pma.Matrix],
-) extends AnyWordSpec with BaseTestSuit[pma.Scalar, pma.ColumnVector, pma.RowVector, pma.Matrix]:
+trait AccessSetOpsTestSuit extends AnyWordSpec:
+    this: BaseTestSuit =>
 
     import scalagrad.numerical.NumericalForwardMode.{derive => dApprox}
 
     import deriver.{derive => d}
-
-    import globalTestSuitParams.*
 
     f"${testName} Matrix access operations" should {
 

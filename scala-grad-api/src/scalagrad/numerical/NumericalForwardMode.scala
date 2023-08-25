@@ -120,8 +120,8 @@ object NumericalForwardMode:
         val halfEpsilon: alg.Scalar = epsilon / alg.lift(2)
         val res = for (i <- 0 until m.nRows * m.nCols)
             yield {
-                val iRow = i / m.nCols
-                val jCol = i % m.nCols
+                val iRow = i % m.nRows
+                val jCol = i / m.nRows
                 val r = m.setElementAt(iRow, jCol, m.elements(i) + halfEpsilon)
                 val l = m.setElementAt(iRow, jCol, m.elements(i) - halfEpsilon)
                 approxGradient(alg)(f(r), f(l), epsilon)

@@ -7,6 +7,7 @@ import breeze.linalg.DenseMatrix
 import breeze.linalg.DenseVector
 import scala.reflect.Typeable
 import breeze.linalg.Transpose
+import scalagrad.api.fractional.MatrixAlgebraScalarIsFractional
 
 trait MatrixAlgebraDSL:
   
@@ -52,7 +53,8 @@ trait MatrixAlgebra[Scalar : Typeable, ColumnVector : Typeable, RowVector : Type
 
     given num: Numeric[Scalar]
     given trig: Trig[Scalar]
-
+    given frac: Fractional[Scalar] = MatrixAlgebraScalarIsFractional.given_Fractional_Scalar(using this)
+    
     override def trace(m: Matrix): Scalar = 
         val n = m.nRows min m.nCols
         var res = liftToScalar(0)

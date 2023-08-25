@@ -13,59 +13,38 @@ import org.scalatest.prop.TableDrivenPropertyChecks.whenever
 import org.scalatest.wordspec.AnyWordSpec
 import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks.forAll
 import org.scalacheck.Gen
-import scalagrad.api.Deriver
-import scalagrad.api.DeriverFromTo
-import scalagrad.numerical.DeriverNumericalPlan
-import scalagrad.api.forward.ForwardMode
-import scalagrad.api.reverse.ReverseMode
 
 import scalagrad.api.matrixalgebra.MatrixAlgebra
 import spire.math.Numeric
+import scalagrad.api.ModeO
+import scalagrad.api.matrixalgebra.MatrixAlgebraDSL
 
-trait NumericTestSuit[
-    PScalar, PColumnVector, PRowVector, PMatrix,
-    DScalar, DColumnVector, DRowVector, DMatrix,
-    DualScalar <: dual.DualScalar[PScalar, DScalar],
-    DualColumnVector <: dual.DualColumnVector[PColumnVector, DColumnVector],
-    DualRowVector <: dual.DualRowVector[PRowVector, DRowVector],
-    DualMatrix <: dual.DualMatrix[PMatrix, DMatrix],
-](
-    globalTestSuitParams: GlobalTestSuitParams[
-        PScalar, PColumnVector, PRowVector, PMatrix,
-        DScalar, DColumnVector, DRowVector, DMatrix,
-        DualScalar, DualColumnVector, DualRowVector, DualMatrix,
-    ],
-    deriverS: (DualScalar => DualScalar) => (PScalar => PScalar),
-)(using 
-    Numeric[PScalar],
-    Numeric[DualScalar]
-) extends AnyWordSpec with BaseTestSuit[PScalar, PColumnVector, PRowVector, PMatrix]:
-    
-    import globalTestSuitParams.*
-    override val primaryAlgebra = globalTestSuitParams.primaryAlgebra
-    import deriverNumericalPlan.given
+trait NumericTestSuit extends AnyWordSpec:
+    this: BaseTestSuit =>
+
+    import scalagrad.numerical.NumericalForwardMode.{derive => dApprox}
+
+    import deriver.{derive => d}
 
     f"${testName} Scalar" should {
 
         "support numeric operations" should {
             
-            def testCase[S](testF: [S] => S => Numeric[S] ?=> S, sGen: Gen[PScalar] = sGen) = 
+            def testCase[S](testF: [S] => S => Numeric[S] ?=> S, sGen: Gen[pma.Scalar] = sGen) = 
                 {
                     // test function testF alone
-                    def plainTestCase[S: Numeric, CV, RV, M](algebra: MatrixAlgebra[S, CV, RV, M])(s: S): S = testF[S](s)
-                    val df = deriverS(plainTestCase[DualScalar, DualColumnVector, DualRowVector, DualMatrix](dualAlgebra))
-                    val dfApprox = ScalaGrad.derive(plainTestCase[PScalar, PColumnVector, PRowVector, PMatrix](primaryAlgebra))
+                    def plainTestCase(alg: MatrixAlgebraDSL)(s: alg.Scalar): alg.Scalar = testF[alg.Scalar](s)
+                    val df = d(plainTestCase)(pma)
+                    val dfApprox = dApprox(plainTestCase)(pma)
                     forAll(sGen) { (s) =>
                         compareElementsSS(df(s), dfApprox(s))
                     }
                 }
                 {
                     // test function testF in a chain of operations
-                    def chainedTestCase[S: Numeric, CV, RV, M](algebra: MatrixAlgebra[S, CV, RV, M])(s: S): S = 
-                        import algebra.*
-                        testF[S](s * s) / s
-                    val df = deriverS(chainedTestCase[DualScalar, DualColumnVector, DualRowVector, DualMatrix](dualAlgebra))
-                    val dfApprox = ScalaGrad.derive(chainedTestCase[PScalar, PColumnVector, PRowVector, PMatrix](primaryAlgebra))
+                    def chainedTestCase(alg: MatrixAlgebraDSL)(s: alg.Scalar): alg.Scalar = testF[alg.Scalar](s * s) / s
+                    val df = d(chainedTestCase)(pma)
+                    val dfApprox = dApprox(chainedTestCase)(pma)
                     forAll(sGen) { (s) =>
                         compareElementsSS(df(s), dfApprox(s))
                     }
