@@ -14,38 +14,29 @@ import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks.forAll
 import org.scalacheck.Gen
 import scalagrad.api.Deriver
 import scalagrad.api.DeriverFromTo
-import scalagrad.numerical.DeriverNumericalPlan
 
 import scalagrad.api.matrixalgebra.MatrixAlgebra
+import scalagrad.api.matrixalgebra.MatrixAlgebraDSL
+import scalagrad.api.forward.ForwardMode
+import scalagrad.api.reverse.ReverseMode
+import breeze.linalg.{DenseMatrix}
+import scalagrad.api.ModeO
 
-trait AccessOpsTestSuit[
-    PScalar, PColumnVector, PRowVector, PMatrix,
-    DScalar, DColumnVector, DRowVector, DMatrix,
-    DualScalar <: dual.DualScalar[PScalar, DScalar],
-    DualColumnVector <: dual.DualColumnVector[PColumnVector, DColumnVector],
-    DualRowVector <: dual.DualRowVector[PRowVector, DRowVector],
-    DualMatrix <: dual.DualMatrix[PMatrix, DMatrix],
-](
-    globalTestSuitParams: GlobalTestSuitParams[
-        PScalar, PColumnVector, PRowVector, PMatrix,
-        DScalar, DColumnVector, DRowVector, DMatrix,
-        DualScalar, DualColumnVector, DualRowVector, DualMatrix,
-    ],
-    deriverM: (DualMatrix => DualScalar) => (PMatrix => PMatrix),
-    deriverCV: (DualColumnVector => DualScalar) => (PColumnVector => PColumnVector),
-    deriverS: (DualScalar => DualScalar) => (PScalar => PScalar),
-) extends AnyWordSpec with BaseTestSuit[PScalar, PColumnVector, PRowVector, PMatrix]:
-    
+trait AccessOpsTestSuit(
+    val deriver: ModeO,
+    val pma: MatrixAlgebraDSL,
+    globalTestSuitParams: GlobalTestSuitParams[pma.Scalar, pma.ColumnVector, pma.RowVector, pma.Matrix],
+) extends AnyWordSpec with BaseTestSuit[pma.Scalar, pma.ColumnVector, pma.RowVector, pma.Matrix]:
+
+    import scalagrad.numerical.NumericalForwardMode.{derive => dApprox}
+
+    import deriver.{derive => d}
+
     import globalTestSuitParams.*
-    override val primaryAlgebra = globalTestSuitParams.primaryAlgebra
-
-    import dualAlgebra.*
-    import primaryAlgebra.*
-    import deriverNumericalPlan.given
 
     f"${testName} Matrix access operations" should {
 
-        def matrixGen(minDim: Int = 1, maxDim: Int = 25): Gen[PMatrix] =
+        def matrixGen(minDim: Int = 1, maxDim: Int = 25): Gen[pma.Matrix] =
             for {
                 nRow <- Gen.choose(minDim, maxDim)
                 nCol <- Gen.choose(minDim, maxDim)
@@ -53,11 +44,10 @@ trait AccessOpsTestSuit[
             } yield m
 
         "support elementAtM" in {
-            def f[S, CV, RV, M](algebra: MatrixAlgebra[S, CV, RV, M])(m: M): S = 
-                import algebra.*
+            def f(alg: MatrixAlgebraDSL)(m: alg.Matrix): alg.Scalar = 
                 m.elementAt(0, 0)
-            val df = deriverM(f[DualScalar, DualColumnVector, DualRowVector, DualMatrix](dualAlgebra))
-            val dfApprox = ScalaGrad.derive(f[PScalar, PColumnVector, PRowVector, PMatrix](primaryAlgebra))
+            val df = d(f)(pma)
+            val dfApprox = dApprox(f)(pma)
             forAll(matrixGen()) { (m) =>
                 compareElementsMM(
                     df(m),
@@ -66,11 +56,10 @@ trait AccessOpsTestSuit[
             }
         }
         "support elementAtM with operation" in {
-            def f[S, CV, RV, M](algebra: MatrixAlgebra[S, CV, RV, M])(m: M): S = 
-                import algebra.*
+            def f(alg: MatrixAlgebraDSL)(m: alg.Matrix): alg.Scalar = 
                 m.elementAt(0, 0) * m.elementAt(1, 0) * m.elementAt(0, 1)
-            val df = deriverM(f[DualScalar, DualColumnVector, DualRowVector, DualMatrix](dualAlgebra))
-            val dfApprox = ScalaGrad.derive(f[PScalar, PColumnVector, PRowVector, PMatrix](primaryAlgebra))
+            val df = d(f)(pma)
+            val dfApprox = dApprox(f)(pma)
             forAll(matrixGen(minDim = 2)) { (m) =>
                 compareElementsMM(
                     df(m),
@@ -79,11 +68,10 @@ trait AccessOpsTestSuit[
             }
         }
         "support columnAtM" in {
-            def f[S, CV, RV, M](algebra: MatrixAlgebra[S, CV, RV, M])(m: M): S = 
-                import algebra.*
+            def f(alg: MatrixAlgebraDSL)(m: alg.Matrix): alg.Scalar = 
                 m.columnAt(0).sum
-            val df = deriverM(f[DualScalar, DualColumnVector, DualRowVector, DualMatrix](dualAlgebra))
-            val dfApprox = ScalaGrad.derive(f[PScalar, PColumnVector, PRowVector, PMatrix](primaryAlgebra))
+            val df = d(f)(pma)
+            val dfApprox = dApprox(f)(pma)
             forAll(matrixGen()) { (m) =>
                 compareElementsMM(
                     df(m),
@@ -92,11 +80,10 @@ trait AccessOpsTestSuit[
             }
         }
         "support columnAtM with operations" in {
-            def f[S, CV, RV, M](algebra: MatrixAlgebra[S, CV, RV, M])(m: M): S = 
-                import algebra.*
+            def f(alg: MatrixAlgebraDSL)(m: alg.Matrix): alg.Scalar = 
                 (m.columnAt(0) *:* m.columnAt(1)).sum
-            val df = deriverM(f[DualScalar, DualColumnVector, DualRowVector, DualMatrix](dualAlgebra))
-            val dfApprox = ScalaGrad.derive(f[PScalar, PColumnVector, PRowVector, PMatrix](primaryAlgebra))
+            val df = d(f)(pma)
+            val dfApprox = dApprox(f)(pma)
             forAll(matrixGen(minDim = 2)) { (m) =>
                 compareElementsMM(
                     df(m),
@@ -105,11 +92,10 @@ trait AccessOpsTestSuit[
             }
         }
         "support rowAtM" in {
-            def f[S, CV, RV, M](algebra: MatrixAlgebra[S, CV, RV, M])(m: M): S = 
-                import algebra.*
+            def f(alg: MatrixAlgebraDSL)(m: alg.Matrix): alg.Scalar = 
                 m.rowAt(0).sum
-            val df = deriverM(f[DualScalar, DualColumnVector, DualRowVector, DualMatrix](dualAlgebra))
-            val dfApprox = ScalaGrad.derive(f[PScalar, PColumnVector, PRowVector, PMatrix](primaryAlgebra))
+            val df = d(f)(pma)
+            val dfApprox = dApprox(f)(pma)
             forAll(matrixGen()) { (m) =>
                 compareElementsMM(
                     df(m),
@@ -118,11 +104,10 @@ trait AccessOpsTestSuit[
             }
         }
         "support rowAtM with operations" in {
-            def f[S, CV, RV, M](algebra: MatrixAlgebra[S, CV, RV, M])(m: M): S = 
-                import algebra.*
+            def f(alg: MatrixAlgebraDSL)(m: alg.Matrix): alg.Scalar = 
                 (m.rowAt(0) *:* m.rowAt(1)).sum
-            val df = deriverM(f[DualScalar, DualColumnVector, DualRowVector, DualMatrix](dualAlgebra))
-            val dfApprox = ScalaGrad.derive(f[PScalar, PColumnVector, PRowVector, PMatrix](primaryAlgebra))
+            val df = d(f)(pma)
+            val dfApprox = dApprox(f)(pma)
             forAll(matrixGen(minDim = 2)) { (m) =>
                 compareElementsMM(
                     df(m),
@@ -134,7 +119,7 @@ trait AccessOpsTestSuit[
 
     f"${testName} Vector access operations" should {
 
-        def columnVectorGen(minLength: Int = 1, maxLength: Int = 25): Gen[PColumnVector] =
+        def columnVectorGen(minLength: Int = 1, maxLength: Int = 25): Gen[pma.ColumnVector] =
             for {
                 length <- Gen.choose(minLength, maxLength)
                 cv <- cvGen(length)
@@ -142,11 +127,11 @@ trait AccessOpsTestSuit[
 
         f"ColumnVector operations" should {
             "support elementAtCV" in {
-                def f[S, CV, RV, M](algebra: MatrixAlgebra[S, CV, RV, M])(cv: CV): S = 
+                def f(alg: MatrixAlgebraDSL)(cv: alg.ColumnVector): alg.Scalar = 
                     import algebra.*
                     cv.elementAt(0)
-                val df = deriverCV(f[DualScalar, DualColumnVector, DualRowVector, DualMatrix](dualAlgebra))
-                val dfApprox = ScalaGrad.derive(f[PScalar, PColumnVector, PRowVector, PMatrix](primaryAlgebra))
+                val df = d(f)(pma)
+                val dfApprox = dApprox(f)(pma)
                 forAll(columnVectorGen()) { (cv) =>
                     compareElementsCVCV(
                         df(cv),
@@ -155,11 +140,11 @@ trait AccessOpsTestSuit[
                 }
             }
             "support elementAtCV with operation" in {
-                def f[S, CV, RV, M](algebra: MatrixAlgebra[S, CV, RV, M])(cv: CV): S = 
+                def f(alg: MatrixAlgebraDSL)(cv: alg.ColumnVector): alg.Scalar = 
                     import algebra.*
                     cv.elementAt(0) * cv.elementAt(1)
-                val df = deriverCV(f[DualScalar, DualColumnVector, DualRowVector, DualMatrix](dualAlgebra))
-                val dfApprox = ScalaGrad.derive(f[PScalar, PColumnVector, PRowVector, PMatrix](primaryAlgebra))
+                val df = d(f)(pma)
+                val dfApprox = dApprox(f)(pma)
                 forAll(columnVectorGen(minLength = 2)) { (m) =>
                     compareElementsCVCV(
                         df(m),
@@ -171,11 +156,11 @@ trait AccessOpsTestSuit[
 
         f"RowVector operations" should {
             "support elementAtRV" in {
-                def f[S, CV, RV, M](algebra: MatrixAlgebra[S, CV, RV, M])(cv: CV): S = 
+                def f(alg: MatrixAlgebraDSL)(cv: alg.ColumnVector): alg.Scalar = 
                     import algebra.*
                     cv.t.elementAt(0)
-                val df = deriverCV(f[DualScalar, DualColumnVector, DualRowVector, DualMatrix](dualAlgebra))
-                val dfApprox = ScalaGrad.derive(f[PScalar, PColumnVector, PRowVector, PMatrix](primaryAlgebra))
+                val df = d(f)(pma)
+                val dfApprox = dApprox(f)(pma)
                 forAll(columnVectorGen()) { (cv) =>
                     compareElementsCVCV(
                         df(cv),
@@ -184,11 +169,11 @@ trait AccessOpsTestSuit[
                 }
             }
             "support elementAtRV with operation" in {
-                def f[S, CV, RV, M](algebra: MatrixAlgebra[S, CV, RV, M])(cv: CV): S = 
+                def f(alg: MatrixAlgebraDSL)(cv: alg.ColumnVector): alg.Scalar = 
                     import algebra.*
                     cv.t.elementAt(0) * cv.t.elementAt(1)
-                val df = deriverCV(f[DualScalar, DualColumnVector, DualRowVector, DualMatrix](dualAlgebra))
-                val dfApprox = ScalaGrad.derive(f[PScalar, PColumnVector, PRowVector, PMatrix](primaryAlgebra))
+                val df = d(f)(pma)
+                val dfApprox = dApprox(f)(pma)
                 forAll(columnVectorGen(minLength = 2)) { (m) =>
                     compareElementsCVCV(
                         df(m),

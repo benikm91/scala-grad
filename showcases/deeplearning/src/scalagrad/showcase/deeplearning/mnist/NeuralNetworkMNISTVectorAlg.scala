@@ -79,8 +79,8 @@ object NeuralNetworkMNIST:
     def crossEntropy(using alg: MatrixAlgebraDSL)(ys: alg.Matrix, ysHat: alg.Matrix): alg.Scalar =
         def clip(x: alg.Scalar): alg.Scalar =
             val epsilon: Double = 1e-07
-            val minS = alg.liftToScalar(epsilon)
-            val maxS = alg.liftToScalar(1.0 - epsilon)
+            val minS = alg.lift(epsilon)
+            val maxS = alg.lift(1.0 - epsilon)
             if x < minS then minS
             else if x > maxS then maxS
             else x

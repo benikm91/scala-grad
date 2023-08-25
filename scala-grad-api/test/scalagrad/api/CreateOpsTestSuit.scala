@@ -13,49 +13,26 @@ import org.scalatest.prop.TableDrivenPropertyChecks.whenever
 import org.scalatest.wordspec.AnyWordSpec
 import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks.forAll
 import org.scalacheck.Gen
-import scalagrad.api.Deriver
-import scalagrad.api.DeriverFromTo
-import scalagrad.numerical.DeriverNumericalPlan
-import scalagrad.api.forward.ForwardMode
-import scalagrad.api.reverse.ReverseMode
 
 import scalagrad.api.matrixalgebra.MatrixAlgebra
-import scala.math.Fractional.Implicits.given
-import spire.algebra.Trig
+import scalagrad.api.ModeO
+import scalagrad.api.matrixalgebra.MatrixAlgebraDSL
 
-trait CreateOpsTestSuit[
-    PScalar, PColumnVector, PRowVector, PMatrix,
-    DScalar, DColumnVector, DRowVector, DMatrix,
-    DualScalar <: dual.DualScalar[PScalar, DScalar],
-    DualColumnVector <: dual.DualColumnVector[PColumnVector, DColumnVector],
-    DualRowVector <: dual.DualRowVector[PRowVector, DRowVector],
-    DualMatrix <: dual.DualMatrix[PMatrix, DMatrix],
-](
-    globalTestSuitParams: GlobalTestSuitParams[
-        PScalar, PColumnVector, PRowVector, PMatrix,
-        DScalar, DColumnVector, DRowVector, DMatrix,
-        DualScalar, DualColumnVector, DualRowVector, DualMatrix,
-    ],
-    deriverM: (DualMatrix => DualScalar) => (PMatrix => PMatrix),
-    deriverCV: (DualColumnVector => DualScalar) => (PColumnVector => PColumnVector),
-    deriverS: (DualScalar => DualScalar) => (PScalar => PScalar),
-)(using 
-    Fractional[PScalar],
-    Fractional[DualScalar],
-    Trig[PScalar],
-    Trig[DualScalar]
-) extends AnyWordSpec with BaseTestSuit[PScalar, PColumnVector, PRowVector, PMatrix]:
-    
+trait CreateOpsTestSuit(
+    val deriver: ModeO,
+    val pma: MatrixAlgebraDSL,
+    globalTestSuitParams: GlobalTestSuitParams[pma.Scalar, pma.ColumnVector, pma.RowVector, pma.Matrix],
+) extends AnyWordSpec with BaseTestSuit[pma.Scalar, pma.ColumnVector, pma.RowVector, pma.Matrix]:
+
+    import scalagrad.numerical.NumericalForwardMode.{derive => dApprox}
+
+    import deriver.{derive => d}
+
     import globalTestSuitParams.*
-    override val primaryAlgebra = globalTestSuitParams.primaryAlgebra
-
-    import dualAlgebra.*
-    import primaryAlgebra.*
-    import deriverNumericalPlan.given
 
     f"${testName} Matrix create operations" should {
 
-        def matrixGen(minDim: Int = 1, maxDim: Int = 25, mGen: (Gen[Int], Gen[Int]) => Gen[PMatrix] = mGen): Gen[PMatrix] =
+        def matrixGen(minDim: Int = 1, maxDim: Int = 25, mGen: (Gen[Int], Gen[Int]) => Gen[pma.Matrix] = mGen): Gen[pma.Matrix] =
             for {
                 nRow <- Gen.choose(minDim, maxDim)
                 nCol <- Gen.choose(minDim, maxDim)
@@ -64,11 +41,10 @@ trait CreateOpsTestSuit[
         
         "stackColumns" should {
             "support identify" in {
-                def f[S: Fractional, CV, RV, M](algebra: MatrixAlgebra[S, CV, RV, M])(m: M): S = 
-                    import algebra.*
-                    algebra.stackColumns(m.columns).sum
-                val df = deriverM(f[DualScalar, DualColumnVector, DualRowVector, DualMatrix](dualAlgebra))
-                val dfApprox = ScalaGrad.derive(f[PScalar, PColumnVector, PRowVector, PMatrix](primaryAlgebra))
+                def f(alg: MatrixAlgebraDSL)(m: alg.Matrix): alg.Scalar = 
+                    alg.stackColumns(m.columns).sum
+                val df = d(f)(pma)
+                val dfApprox = dApprox(f)(pma)
                 forAll(matrixGen()) { (m) =>
                     compareElementsMM(
                         df(m),
@@ -79,11 +55,10 @@ trait CreateOpsTestSuit[
         }
         "stackRows" should {
             "support identify" in {
-                def f[S: Fractional, CV, RV, M](algebra: MatrixAlgebra[S, CV, RV, M])(m: M): S = 
-                    import algebra.*
-                    algebra.stackRows(m.rows).sum
-                val df = deriverM(f[DualScalar, DualColumnVector, DualRowVector, DualMatrix](dualAlgebra))
-                val dfApprox = ScalaGrad.derive(f[PScalar, PColumnVector, PRowVector, PMatrix](primaryAlgebra))
+                def f(alg: MatrixAlgebraDSL)(m: alg.Matrix): alg.Scalar = 
+                    alg.stackRows(m.rows).sum
+                val df = d(f)(pma)
+                val dfApprox = dApprox(f)(pma)
                 forAll(matrixGen()) { (m) =>
                     compareElementsMM(
                         df(m),

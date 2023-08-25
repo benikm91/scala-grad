@@ -14,6 +14,8 @@ def forwardSample =
     ): (alg.Scalar, alg.Scalar) = (x2, x1)
 
     // derive the function
+    val dfF = d(f)
+
     val df = d(f)(BreezeDoubleMatrixAlgebraDSL)
 
     // call the derived function

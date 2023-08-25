@@ -11,29 +11,21 @@ import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks.forAll
 import org.scalacheck.Gen
 import scalagrad.api.Deriver
 import scalagrad.api.DeriverFromTo
-import scalagrad.numerical.DeriverNumericalPlan
 import scalagrad.api.forward.ForwardMode
 import scalagrad.api.reverse.ReverseMode
 import scalagrad.api.matrixalgebra.MatrixAlgebra
 import scala.reflect.Typeable
+import breeze.linalg.*
 
 case class GlobalTestSuitParams[
-    PScalar : Typeable, PColumnVector : Typeable, PRowVector : Typeable, PMatrix : Typeable,
-    DScalar, DColumnVector, DRowVector, DMatrix,
-    DualScalar <: dual.DualScalar[PScalar, DScalar],
-    DualColumnVector <: dual.DualColumnVector[PColumnVector, DColumnVector],
-    DualRowVector <: dual.DualRowVector[PRowVector, DRowVector],
-    DualMatrix <: dual.DualMatrix[PMatrix, DMatrix],
+    Scalar, ColumnVector, RowVector, Matrix
 ](
     testName: String,
-    dualAlgebra: MatrixAlgebra[DualScalar, DualColumnVector, DualRowVector, DualMatrix],
-    primaryAlgebra: MatrixAlgebra[PScalar, PColumnVector, PRowVector, PMatrix],
-    mGen: (Gen[Int], Gen[Int]) => Gen[PMatrix],
-    positiveOnlyMGen: (Gen[Int], Gen[Int]) => Gen[PMatrix],
-    cvGen: (Gen[Int]) => Gen[PColumnVector],
-    rvGen: (Gen[Int]) => Gen[PRowVector],
-    sGen: Gen[PScalar],
-    smallSGen: Gen[PScalar],
-    positiveOnlySGen: Gen[PScalar],
-    deriverNumericalPlan: DeriverNumericalPlan[PScalar, PColumnVector, PRowVector, PMatrix],
+    mGen: (Gen[Int], Gen[Int]) => Gen[Matrix],
+    positiveOnlyMGen: (Gen[Int], Gen[Int]) => Gen[Matrix],
+    cvGen: (Gen[Int]) => Gen[ColumnVector],
+    rvGen: (Gen[Int]) => Gen[RowVector],
+    sGen: Gen[Scalar],
+    smallSGen: Gen[Scalar],
+    positiveOnlySGen: Gen[Scalar]
 )
