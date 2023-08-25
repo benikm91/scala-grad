@@ -7,8 +7,8 @@ import scalagrad.api.dual.DualMatrixAlgebraDSL
 def mixtureSample = 
     // import ScalaGrad stuff and the reverse plan
     import scalagrad.api.matrixalgebra.MatrixAlgebraDSL
-    import scalagrad.api.forward.ForwardMode
-    import scalagrad.api.reverse.ReverseMode
+    import scalagrad.api.forward.ForwardMode.{derive => dF}
+    import scalagrad.api.reverse.ReverseMode.{derive => dR}
     
     import scalagrad.auto.breeze.BreezeDoubleMatrixAlgebraDSL
     
@@ -28,12 +28,12 @@ def mixtureSample =
         x: alg.Matrix,
     ): alg.Scalar = 
         import alg.innerAlgebra.*
-        val dRelu = ForwardMode.derive(relu) // derive relu (using DeriverFromTo)
+        val dRelu = dF(relu) // derive relu (using DeriverFromTo)
         val o = x.mapDual(relu(alg.primaryMatrixAlgebra.asDSL), dRelu(alg.primaryMatrixAlgebra.asDSL))
         o.sum
 
     // derive the function
-    val df = ReverseMode.derive(f)(BreezeDoubleMatrixAlgebraDSL)
+    val df = dR(f)(BreezeDoubleMatrixAlgebraDSL)
    
     // call the derived function
     val res = df(new breeze.linalg.DenseMatrix(2, 2, Array(-1.0, 2.0, 3.0, 4.0)))

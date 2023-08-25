@@ -1,17 +1,11 @@
 package scalagrad.showcase.linearregression
 
-/*
 import scala.io.Source
 import scalagrad.showcase.deeplearning.Util.*
-import scalagrad.api.matrixalgebra.MatrixAlgebraDSL
 import breeze.linalg.{DenseMatrix, DenseVector}
-import scalagrad.api.ScalaGrad
-import scalagrad.api.dual.DualMatrixAlgebraDSL
-import scalagrad.auto.reverse.breeze.BreezeDoubleReverseMode
-import BreezeDoubleReverseMode.given
+import scalagrad.api.matrixalgebra.MatrixAlgebraDSL
 import scalagrad.auto.breeze.BreezeDoubleMatrixAlgebraDSL
 import scala.annotation.tailrec
-import scalagrad.auto.breeze.BreezeDoubleMatrixAlgebra
 
 @main def newtonMethod() = 
 
@@ -36,7 +30,7 @@ import scalagrad.auto.breeze.BreezeDoubleMatrixAlgebra
 
     def loss(xs: DenseMatrix[Double], ys: DenseVector[Double])(alg: MatrixAlgebraDSL)(w0: alg.Scalar, ws: alg.ColumnVector): alg.Scalar =
         val ysHat = linearModel(using alg)(alg.lift(xs), w0, ws)
-        meanSquaredError(using alg)(alg.liftBreezeVector(ys), ysHat)
+        meanSquaredError(using alg)(alg.lift(ys), ysHat)
 
     def newtonMethod(w0: Double, ws: DenseVector[Double])(
         dLoss: (Double, DenseVector[Double]) => (Double, DenseVector[Double]),
@@ -63,18 +57,14 @@ import scalagrad.auto.breeze.BreezeDoubleMatrixAlgebra
     )
     println(f"${rootMeanSquaredError(DenseVector(ysUnscaled.toArray), DenseVector(initYsHat.toArray))}g  -- RMSE with initial weights")
 
-    import scalagrad.api.forward.ForwardMode
-    import scalagrad.auto.forward.breeze.BreezeDoubleForwardMode
-    import BreezeDoubleForwardMode.{algebraT => alg}
-    import BreezeDoubleForwardMode.given
-
     println("Forward-Forward mode")
-    val dLoss = ForwardMode.derive(loss(xs, ys))
-    val ddLoss = ForwardMode.deriveM(dLoss)
+    import scalagrad.api.forward.ForwardMode.{derive => d}
+    val dLoss = d(loss(xs, ys))
+    val ddLoss = d(dLoss)
     val (w0, ws) = newtonMethod(initW0, initWs)(dLoss(BreezeDoubleMatrixAlgebraDSL), ddLoss(BreezeDoubleMatrixAlgebraDSL))
 
     val ysHat = StandardScaler.inverseScaleColumn(
         linearModel(using BreezeDoubleMatrixAlgebraDSL)(xs, w0, ws).toScalaVector, 
         ysMean, ysStd
     )
-    println(f"${rootMeanSquaredError(DenseVector(ysUnscaled.toArray), DenseVector(ysHat.toArray))}g  -- RMSE with learned weights")*/
+    println(f"${rootMeanSquaredError(DenseVector(ysUnscaled.toArray), DenseVector(ysHat.toArray))}g  -- RMSE with learned weights")

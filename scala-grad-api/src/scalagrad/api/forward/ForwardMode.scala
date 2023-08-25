@@ -165,15 +165,19 @@ object ForwardMode:
             ScalaGrad.derive(f(mode.algebraDSL))(s1, s2)
 
     @targetName("deriveSCV2S")
-    def derive[MA >: DualMatrixAlgebraDSL <: MatrixAlgebraDSL](f: (alg: MatrixAlgebraDSL) => (alg.Scalar, alg.ColumnVector) => alg.Scalar):
-        (alg: MA) => (alg.Scalar, alg.ColumnVector) => (alg.Scalar, alg.ColumnVector) = alg => (s, cv) =>
+    def derive[MA >: DualMatrixAlgebraDSL <: MatrixAlgebraDSL](
+        f: (alg: MA) => (alg.Scalar, alg.ColumnVector) => alg.Scalar
+        ): (alg: MatrixAlgebraDSL) => (alg.Scalar, alg.ColumnVector) => (alg.Scalar, alg.ColumnVector) = 
+            alg => (s, cv) =>
             val mode = new ForwardMode(alg.innerAlgebra)
             import mode.given
             ScalaGrad.derive(f(mode.algebraDSL))(s, cv)
 
     @targetName("deriveSCV2SCV")
-    def derive[MA >: DualMatrixAlgebraDSL <: MatrixAlgebraDSL](f: (alg: MatrixAlgebraDSL) => (alg.Scalar, alg.ColumnVector) => (alg.Scalar, alg.ColumnVector)):
-        (alg: MA) => (alg.Scalar, alg.ColumnVector) => ((alg.Scalar, alg.ColumnVector), (alg.ColumnVector, alg.Matrix)) = alg => (s, cv) =>
+    def derive[MA >: DualMatrixAlgebraDSL <: MatrixAlgebraDSL](
+        f: (alg: MA) => (alg.Scalar, alg.ColumnVector) => (alg.Scalar, alg.ColumnVector)
+    ): (alg: MatrixAlgebraDSL) => (alg.Scalar, alg.ColumnVector) => ((alg.Scalar, alg.ColumnVector), (alg.ColumnVector, alg.Matrix)) = 
+        alg => (s, cv) =>
             val mode = new ForwardMode(alg.innerAlgebra)
             import mode.given
             ScalaGrad.derive(f(mode.algebraDSL))(s, cv).asInstanceOf[((alg.Scalar, alg.ColumnVector), (alg.ColumnVector, alg.Matrix))]

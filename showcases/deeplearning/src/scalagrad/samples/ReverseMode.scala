@@ -5,8 +5,7 @@ package scalagrad
 def reverseSample = 
     // import ScalaGrad and the reverse plan
     import scalagrad.api.matrixalgebra.MatrixAlgebraDSL
-    import scalagrad.api.reverse.ReverseMode
-
+    import scalagrad.api.reverse.ReverseMode.{derive => d}
     import scalagrad.auto.breeze.BreezeDoubleMatrixAlgebraDSL
 
     // define a function using the types inside algebraT  (algebraT is from reverse plan)
@@ -16,7 +15,7 @@ def reverseSample =
     ): (alg.Scalar, alg.Scalar) = (x2, x1)
 
     // derive the function
-    val df = ReverseMode.derive(f)(BreezeDoubleMatrixAlgebraDSL)
+    val df = d(f)(BreezeDoubleMatrixAlgebraDSL)
 
     // call the derived function
     val res = df(1.0, 2.0)

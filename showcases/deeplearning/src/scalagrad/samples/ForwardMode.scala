@@ -3,7 +3,7 @@ package scalagrad
 @main
 def forwardSample = 
     // import ScalaGrad and the forward plan
-    import scalagrad.api.forward.ForwardMode
+    import scalagrad.api.forward.ForwardMode.{derive => d}
     import scalagrad.api.matrixalgebra.MatrixAlgebraDSL
     import scalagrad.auto.breeze.BreezeDoubleMatrixAlgebraDSL
 
@@ -14,7 +14,7 @@ def forwardSample =
     ): (alg.Scalar, alg.Scalar) = (x2, x1)
 
     // derive the function
-    val df = ForwardMode.derive(f)(BreezeDoubleMatrixAlgebraDSL)
+    val df = d(f)(BreezeDoubleMatrixAlgebraDSL)
 
     // call the derived function
     val res: ((Double, Double), (Double, Double)) = df(1.0, 2.0)
