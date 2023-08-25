@@ -1,13 +1,10 @@
 package scalagrad.showcase.linearregression
 
-/*
 import scala.io.Source
 import scalagrad.showcase.deeplearning.Util.*
+import scalagrad.api.reverse.ReverseMode
 import scalagrad.api.matrixalgebra.MatrixAlgebraDSL
-import scalagrad.api.ScalaGrad
 import scalagrad.api.dual.DualMatrixAlgebraDSL
-import scalagrad.auto.reverse.breeze.BreezeDoubleReverseMode
-import BreezeDoubleReverseMode.given
 import scalagrad.auto.breeze.BreezeDoubleMatrixAlgebraDSL
 import scala.annotation.tailrec
 
@@ -34,9 +31,10 @@ import breeze.linalg.{Vector => _, *}
     def meanSquaredError(using alg: MatrixAlgebraDSL)(ys: alg.ColumnVector, ysHat: alg.ColumnVector): alg.Scalar =
         (ys - ysHat).map(x => x * x).sum / alg.liftToScalar(ys.length * 2)
 
-    def loss(using alg: MatrixAlgebraDSL)(xs: alg.Matrix, ys: alg.ColumnVector)(w0: alg.Scalar, ws: alg.ColumnVector): alg.Scalar =
-        val ysHat = linearModel(xs, w0, ws)
-        meanSquaredError(ys, ysHat)
+    def loss(xs: DenseMatrix[Double], ys: DenseVector[Double])(alg: MatrixAlgebraDSL)(w0: alg.Scalar, ws: alg.ColumnVector): alg.Scalar =
+        given alg.type = alg
+        val ysHat = linearModel(alg.lift(xs), w0, ws)
+        meanSquaredError(alg.lift(ys), ysHat)
 
     def gradientDescent(
         xs: DenseMatrix[Double],
@@ -46,13 +44,7 @@ import breeze.linalg.{Vector => _, *}
         lr: Double, // learn rate
         n: Int,
     ): (Double, DenseVector[Double]) =
-        // create dLoss with auto differentiation (reverse mode)
-        val alg = BreezeDoubleReverseMode.algebraT
-        val dLoss = ScalaGrad.derive(loss(using alg)(
-                alg.lift(xs),
-                alg.lift(ys)
-            ))
-        // implement gradient descent recursively using dLoss
+        val dLoss = ReverseMode.derive(loss(xs, ys))(BreezeDoubleMatrixAlgebraDSL)
         @tailrec
         def iterate(
             w0: Double,
@@ -86,4 +78,4 @@ import breeze.linalg.{Vector => _, *}
         linearModel(using BreezeDoubleMatrixAlgebraDSL)(xs, w0, ws).toScalaVector, 
         ysMean, ysStd
     )
-    println(f"${rootMeanSquaredError(DenseVector(ysUnscaled.toArray), DenseVector(ysHat.toArray))}g  -- RMSE with learned weights")*/
+    println(f"${rootMeanSquaredError(DenseVector(ysUnscaled.toArray), DenseVector(ysHat.toArray))}g  -- RMSE with learned weights")

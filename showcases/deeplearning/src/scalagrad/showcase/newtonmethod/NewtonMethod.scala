@@ -35,7 +35,7 @@ import scalagrad.auto.breeze.BreezeDoubleMatrixAlgebra
         (ys - ysHat).map(x => x * x).sum / alg.liftToScalar(ys.length * 2)
 
     def loss(xs: DenseMatrix[Double], ys: DenseVector[Double])(alg: MatrixAlgebraDSL)(w0: alg.Scalar, ws: alg.ColumnVector): alg.Scalar =
-        val ysHat = linearModel(using alg)(alg.liftBreezeMatrix(xs), w0, ws)
+        val ysHat = linearModel(using alg)(alg.lift(xs), w0, ws)
         meanSquaredError(using alg)(alg.liftBreezeVector(ys), ysHat)
 
     def newtonMethod(w0: Double, ws: DenseVector[Double])(

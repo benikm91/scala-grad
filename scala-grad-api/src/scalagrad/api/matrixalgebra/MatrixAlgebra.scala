@@ -6,6 +6,7 @@ import spire.algebra.NRoot
 import breeze.linalg.DenseMatrix
 import breeze.linalg.DenseVector
 import scala.reflect.Typeable
+import breeze.linalg.Transpose
 
 trait MatrixAlgebraDSL:
   
@@ -60,8 +61,14 @@ trait MatrixAlgebra[Scalar : Typeable, ColumnVector : Typeable, RowVector : Type
         res
 
     // TODO How to not define them here, but still be easy to use/lift with breeze
-    def liftBreezeMatrix(m: DenseMatrix[Double]): Matrix
-    def liftBreezeVector(cv: DenseVector[Double]): ColumnVector
+    def lift(d: Double): Scalar
+    def lift(cv: DenseVector[Double]): ColumnVector
+    def lift(rv: Transpose[DenseVector[Double]]): RowVector
+    def lift(m: DenseMatrix[Double]): Matrix
+    def unlift(s: Scalar): Double
+    def unlift(m: Matrix): DenseMatrix[Double]
+    def unlift(cv: ColumnVector): DenseVector[Double]
+    def unlift(rv: RowVector): Transpose[DenseVector[Double]]
 
     def asDSL: MatrixAlgebraDSL {
         type Scalar = ScalarT

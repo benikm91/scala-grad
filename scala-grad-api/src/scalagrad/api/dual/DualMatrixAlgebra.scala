@@ -20,6 +20,7 @@ import spire.syntax.nroot
 import breeze.linalg.DenseMatrix
 import breeze.linalg.DenseVector
 import scala.reflect.Typeable
+import breeze.linalg.Transpose
 
 
 trait DualMatrixAlgebraDSL extends MatrixAlgebraDSL:
@@ -44,7 +45,6 @@ trait DualMatrixAlgebraDSL extends MatrixAlgebraDSL:
         Scalar, ColumnVector, RowVector, Matrix,
     ]
 
-    export innerAlgebra.lift
     export innerAlgebra.primaryMatrixAlgebra
 
 
@@ -94,19 +94,38 @@ with MapDualOps[
 
     import dma.*
 
-    def liftBreezeMatrix(m: DenseMatrix[Double]): DualMatrix = 
+    def lift(s: Double): DualScalar = 
+        createDualScalar(
+            pma.lift(s),
+            dma.dZeroOps.zeroScalar,
+            List()
+        )
+
+    def lift(cv: DenseVector[Double]): DualColumnVector = 
+        createDualColumnVector(
+            pma.lift(cv),
+            dma.dZeroOps.zeroColumnVector(cv.length),
+            List()
+        )
+
+    def lift(rv: Transpose[DenseVector[Double]]): DualRowVector = 
+        createDualRowVector(
+            pma.lift(rv),
+            dma.dZeroOps.zeroRowVector(rv.inner.length),
+            List()
+        )
+
+    def lift(m: DenseMatrix[Double]): DualMatrix = 
         createDualMatrix(
-            pma.liftBreezeMatrix(m),
+            pma.lift(m),
             dma.dZeroOps.zeroMatrix(m.rows, m.cols),
             List()
         )
 
-    def liftBreezeVector(cv: DenseVector[Double]): DualColumnVector = 
-        createDualColumnVector(
-            pma.liftBreezeVector(cv),
-            dma.dZeroOps.zeroColumnVector(cv.length),
-            List()
-        )
+    def unlift(s: DualScalar): Double = pma.unliftToDouble(s.v)
+    def unlift(cv: DualColumnVector): DenseVector[Double] = pma.unlift(cv.v)
+    def unlift(rv: DualRowVector): Transpose[DenseVector[Double]] = pma.unlift(rv.v)
+    def unlift(m: DualMatrix): DenseMatrix[Double] = pma.unlift(m.v)
 
     override def one = createDualScalar(pma.one, dma.dZeroOps.zeroScalar, List())
 
@@ -466,8 +485,8 @@ with MapDualOps[
             ),
             List(cv.dv)
         )
-    
-    def lift(xs: PMatrix): DualMatrix = 
+
+    def liftPrimary(xs: PMatrix): DualMatrix = 
         dma.createDualMatrix(
             xs,
             dma.dZeroOps.zeroMatrix(
@@ -476,7 +495,7 @@ with MapDualOps[
             ),
             List(),
         )
-    def lift(xs: PColumnVector): DualColumnVector = 
+    def liftPrimary(xs: PColumnVector): DualColumnVector = 
         dma.createDualColumnVector(
             xs,
             dma.dZeroOps.zeroColumnVector(
@@ -484,7 +503,7 @@ with MapDualOps[
             ),
             List(),
         )
-    def lift(xs: PRowVector): DualRowVector = 
+    def liftPrimary(xs: PRowVector): DualRowVector = 
         dma.createDualRowVector(
             xs,
             dma.dZeroOps.zeroRowVector(
@@ -492,7 +511,7 @@ with MapDualOps[
             ),
             List(),
         )
-    def lift(xs: PScalar): DualScalar = 
+    def liftPrimary(xs: PScalar): DualScalar = 
         dma.createDualScalar(
             xs,
             dma.dZeroOps.zeroScalar,

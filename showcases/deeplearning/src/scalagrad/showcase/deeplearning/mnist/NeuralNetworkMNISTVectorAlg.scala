@@ -73,8 +73,8 @@ object NeuralNetworkMNIST:
         lastW0: alg.ColumnVector,
         lastWs: alg.Matrix,
     ): alg.Scalar =
-        val ysHat = neuralNetwork(using alg)(alg.liftBreezeMatrix(xs), firstW0, firstWs, lastW0, lastWs)
-        crossEntropy(using alg)(alg.liftBreezeMatrix(ys), ysHat)
+        val ysHat = neuralNetwork(using alg)(alg.lift(xs), firstW0, firstWs, lastW0, lastWs)
+        crossEntropy(using alg)(alg.lift(ys), ysHat)
 
     def crossEntropy(using alg: MatrixAlgebraDSL)(ys: alg.Matrix, ysHat: alg.Matrix): alg.Scalar =
         def clip(x: alg.Scalar): alg.Scalar =

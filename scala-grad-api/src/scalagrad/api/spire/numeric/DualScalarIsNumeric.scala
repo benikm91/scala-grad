@@ -34,7 +34,7 @@ object DualScalarIsNumeric:
         import dma.mapDual
         import pma.*
 
-        private def lift(v: PScalar) = dualMa.lift(v)
+        private def lift(v: PScalar) = dualMa.liftPrimary(v)
 
         def negate(x: DualScalar): DualScalar = dualMa.negateS(x)
         def one: DualScalar = dualMa.one

@@ -10,8 +10,14 @@ object BreezeDoubleMatrixAlgebra extends MatrixAlgebra[
     Double, DenseVector[Double], Transpose[DenseVector[Double]], DenseMatrix[Double],
 ]:
 
-  def liftBreezeMatrix(m: DenseMatrix[Double]): MatrixT = m
-  def liftBreezeVector(cv: DenseVector[Double]): ColumnVectorT = cv
+  override def lift(s: Double): ScalarT = s
+  override def lift(cv: DenseVector[Double]): ColumnVectorT = cv
+  override def lift(rv: Transpose[DenseVector[Double]]): RowVectorT = rv 
+  override def lift(m: DenseMatrix[Double]): MatrixT = m
+  override def unlift(s: ScalarT): Double = s
+  override def unlift(cv: ColumnVectorT): DenseVector[Double] = cv
+  override def unlift(rv: RowVectorT): Transpose[DenseVector[Double]] = rv
+  override def unlift(m: MatrixT): DenseMatrix[Double] = m
 
   import spire.implicits._
   override given trig: Trig[Double] = spire.implicits.DoubleAlgebra

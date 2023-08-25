@@ -165,6 +165,15 @@ object ReverseMode:
             import mode.given
             ScalaGrad.derive(f(mode.algebraDSL))(s1, s2)
 
+    @targetName("deriveSCV2S")
+    def derive[MA >: DualMatrixAlgebraDSL <: MatrixAlgebraDSL](
+        f: (alg: MA) => (alg.Scalar, alg.ColumnVector) => alg.Scalar
+    ): (alg: MatrixAlgebraDSL) => (alg.Scalar, alg.ColumnVector) => (alg.Scalar, alg.ColumnVector) = 
+        alg => (s, cv) =>
+            val mode = new ReverseMode(alg.innerAlgebra)
+            import mode.given
+            ScalaGrad.derive(f(mode.algebraDSL))(s, cv)
+            
     @targetName("deriveCVMCVM2S")
     def derive[MA >: DualMatrixAlgebraDSL <: MatrixAlgebraDSL](
         f: (alg: MA) => (alg.ColumnVector, alg.Matrix, alg.ColumnVector, alg.Matrix) => alg.Scalar

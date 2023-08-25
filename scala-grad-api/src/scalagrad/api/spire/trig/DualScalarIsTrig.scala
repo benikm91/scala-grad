@@ -34,7 +34,7 @@ object DualScalarIsTrig:
         import dma.mapDual
         import pma.*
 
-        private def lift(v: PScalar) = dualMa.lift(v)
+        private def lift(v: PScalar) = dualMa.liftPrimary(v)
 
         def acos(a: DualScalar): DualScalar = 
             def dAcos(v: PScalar): PScalar = -(pma.one / nRoot.sqrt(pma.one - v * v))
