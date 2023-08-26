@@ -82,7 +82,7 @@ class ForwardDualMode[
                 case x: PRowVector => createDualRowVector(x, dZeroOps.zeroRowVector(x.length))
                 case x: PMatrix => createDualMatrix(x, dZeroOps.zeroMatrix(x.nRows, x.nCols))
             }).asInstanceOf[T]
-            
+
         def forwardPlan(zeroDuals: T) = 
             def splitTopAndBottomAt(duals: T, pos: Int): (Tuple, Tuple) = 
                 val (topWithX, bottom) = duals.splitAt(pos)
@@ -90,103 +90,113 @@ class ForwardDualMode[
             def appendTopAndBottomWith(top: Tuple, newX: Any, bottom: Tuple) = 
                 top ++ (newX *: bottom)
             // run forward plan for each input by mapping over all inputs (zeroDuals)
-            zeroDuals.zip(indices).map[[X] =>> Any]([U] => (t: U) => t match {
-                case (zeroDual: DualScalar @unchecked, zeroDualIndex: Int) => 
-                    // run forward plan for single scalar
-                    val (top, bottom) = splitTopAndBottomAt(zeroDuals, zeroDualIndex)
-                    val oneHotDual = createDualScalar(zeroDual.v, one)
-                    val scalar2Outputs = f(appendTopAndBottomWith(top, oneHotDual, bottom).asInstanceOf[T])
-                    // map over outputs to extract derivatives
-                    scalar2Outputs.map[[X] =>> Any]([U] => (t2: U) => t2 match {
-                        case x: DualScalar @unchecked => x.dv
-                        case x: DualColumnVector @unchecked => x.dv
-                        case x: DualRowVector @unchecked => x.dv
-                        case x: DualMatrix @unchecked => x.dv
-                    })
-                case (zeroDual: DualColumnVector @unchecked, zeroDualIndex: Int) => 
-                    // run forward plan for elements in column vector
-                    val (top, bottom) = splitTopAndBottomAt(zeroDuals, zeroDualIndex)
-                    val elements2Outputs = (
-                        for (i <- 0 until zeroDual.v.length)
-                            yield {
-                                val oneHotDual = createDualColumnVector(zeroDual.v, oneHotColumnVector(zeroDual.v.length, i))
-                                f(appendTopAndBottomWith(top, oneHotDual, bottom).asInstanceOf[T])
-                            }
-                    ).toVector
-                    // map over output structure to combine elements from each output position into a single structure (e.g. Matrix)
-                    val representation = elements2Outputs.head
-                    representation.zip(zeroIndices).map[[X] =>> Any]([U] => (t2: U) => t2 match {
-                        case (_: DualNumberScalar[PScalar] @unchecked, outputIndex: Int) => 
-                            val elements2dOutput = elements2Outputs.map(t => t.toList(outputIndex).asInstanceOf[DualNumberScalar[PScalar]].dv)
-                            createColumnVectorFromElements(elements2dOutput)
-                        case (_: DualNumberColumnVector[PColumnVector] @unchecked, outputIndex: Int) => 
-                            val elements2dOutput = elements2Outputs.map(t => t.toList(outputIndex).asInstanceOf[DualNumberColumnVector[PColumnVector]].dv)
-                            // tranpose stacked columns as one row represent derivatives for one input element
-                            stackColumns(elements2dOutput).t
-                        case (_: DualNumberRowVector[PRowVector] @unchecked, outputIndex: Int) => 
-                            val elements2dOutput = elements2Outputs.map(t => t.toList(outputIndex).asInstanceOf[DualNumberRowVector[PRowVector]].dv)
-                            stackRows(elements2dOutput)
-                        case (_: DualNumberMatrix[PMatrix] @unchecked, outputIndex: Int) =>
-                            val elements2dOutput = elements2Outputs.map(t => t.toList(outputIndex).asInstanceOf[DualNumberMatrix[PMatrix]].dv)
-                            val nElements = elements2dOutput.map(m => m.nRows * m.nCols).sum
-                            createMatrixFromElements(elements2dOutput.length, nElements / elements2dOutput.length, elements2dOutput.map(_.elements).transpose.flatten)
-                    })
-                case (zeroDual: DualRowVector @unchecked, zeroDualIndex: Int) => 
-                    // run forward plan for elements in row vector
-                    val (top, bottom) = splitTopAndBottomAt(zeroDuals, zeroDualIndex)
-                    val elements2Outputs = (
-                        for (i <- 0 until zeroDual.v.length)
-                            yield {
-                                val oneHotDual = createDualRowVector(zeroDual.v, oneHotRowVector(zeroDual.v.length, i))
-                                f(appendTopAndBottomWith(top, oneHotDual, bottom).asInstanceOf[T])
-                            }
-                    ).toVector
-                    // map over output structure to combine elements from each output position into a single structure (e.g. Matrix)
-                    val representation = elements2Outputs.head 
-                    representation.zip(zeroIndices).map[[X] =>> Any]([U] => (t2: U) => t2 match {
-                        case (_: DualNumberScalar[PScalar] @unchecked, index: Int) => 
-                            val elements2dOutput = elements2Outputs.map(t => t.toList(index).asInstanceOf[DualNumberScalar[PScalar]].dv)
-                            createRowVectorFromElements(elements2dOutput)
-                        case (_: DualNumberColumnVector[PColumnVector] @unchecked, index: Int) => 
-                            val elements2dOutput = elements2Outputs.map(t => t.toList(index).asInstanceOf[DualNumberColumnVector[PColumnVector]].dv)
-                            // tranpose stacked columns as one row represents derivatives for one input element
-                            stackColumns(elements2dOutput).t
-                        case (_: DualNumberRowVector[PRowVector] @unchecked, index: Int) => 
-                            val elements2dOutput = elements2Outputs.map(t => t.toList(index).asInstanceOf[DualNumberRowVector[PRowVector]].dv)
-                            stackRows(elements2dOutput)
-                        case (_: DualNumberMatrix[PMatrix] @unchecked, index: Int) =>
-                            val elements2dOutput = elements2Outputs.map(t => t.toList(index).asInstanceOf[DualNumberMatrix[PMatrix]].dv)
-                            val nElements = elements2dOutput.map(m => m.nRows * m.nCols).sum
-                            createMatrixFromElements(elements2dOutput.length, nElements / elements2dOutput.length, elements2dOutput.map(_.elements).transpose.flatten)
-                    })
-                case (zeroDual: DualMatrix @unchecked, zeroDualIndex: Int) => 
-                    // run forward plan for elements in matrix
-                    val (top, bottom) = splitTopAndBottomAt(zeroDuals, zeroDualIndex)
-                    val elements2Outputs = (
-                        for (i <- 0 until zeroDual.v.nRows * zeroDual.v.nCols)
-                            yield {
-                                val oneHotDual = createDualMatrix(zeroDual.v, oneHotMatrix(zeroDual.v.nRows, zeroDual.v.nCols, i))
-                                f(appendTopAndBottomWith(top, oneHotDual, bottom).asInstanceOf[T])
-                            }
-                    ).toVector
-                    // map over output structure to combine elements from each output position into a single structure (e.g. Matrix)
-                    elements2Outputs.head.zip(zeroIndices).map[[X] =>> Any]([U] => (t2: U) => t2 match {
-                        case (_: DualNumberScalar[PScalar] @unchecked, index: Int) => 
-                            val elements2dOutput = elements2Outputs.map(t => t.toList(index).asInstanceOf[DualNumberScalar[PScalar]].dv)
-                            createMatrixFromElements(zeroDual.v.nRows, zeroDual.v.nCols, elements2dOutput)
-                        case (_: DualNumberColumnVector[PColumnVector] @unchecked, index: Int) => 
-                            val elements2dOutput = elements2Outputs.map(t => t.toList(index).asInstanceOf[DualNumberColumnVector[PColumnVector]].dv)
-                            // tranpose stacked columns as one row represent derivatives for one input element
-                            stackColumns(elements2dOutput).t
-                        case (_: DualNumberRowVector[PRowVector] @unchecked, index: Int) => 
-                            val elements2dOutput = elements2Outputs.map(t => t.toList(index).asInstanceOf[DualNumberRowVector[PRowVector]].dv)
-                            // fix "wrong" order due to oneHotEncoding of matrix being row-major wise.
-                            val elements2dOutputFixed = elements2dOutput.grouped(zeroDual.v.nCols).toVector.transpose.flatten
-                            stackRows(elements2dOutputFixed)
-                        case (_: DualNumberMatrix[PMatrix] @unchecked, index: Int) =>
-                            val elements2dOutput = elements2Outputs.map(t => t.toList(index).asInstanceOf[DualNumberMatrix[PMatrix]].dv)
-                            val nElements = elements2dOutput.map(m => m.nRows * m.nCols).sum
-                            createMatrixFromElements(elements2dOutput.length, nElements / elements2dOutput.length, elements2dOutput.map(_.elements).transpose.flatten)
-                    })
+            zeroDuals.zip(indices).map[[X] =>> Any]([U] => (t: U) => 
+                // map to Any lost type information, recover them with asInstanceOf
+                t.asInstanceOf[(DualScalar, Int) | (DualColumnVector, Int) | (DualRowVector, Int) | (DualMatrix, Int)] match {
+                    case (zeroDual: DualScalar, zeroDualIndex: Int) => 
+                        // run forward plan for single scalar
+                        val (top, bottom) = splitTopAndBottomAt(zeroDuals, zeroDualIndex)
+                        val oneHotDual = createDualScalar(zeroDual.v, one)
+                        val scalar2Outputs = f(appendTopAndBottomWith(top, oneHotDual, bottom).asInstanceOf[T])
+                        // map over outputs to extract derivatives
+                        scalar2Outputs.map[[X] =>> Any]([U] => (t2: U) => 
+                            // map to Any lost type information, recover them with asInstanceOf
+                            t2.asInstanceOf[DualScalar | DualColumnVector | DualRowVector | DualMatrix] match {
+                                case x: DualScalar => x.dv
+                                case x: DualColumnVector => x.dv
+                                case x: DualRowVector => x.dv
+                                case x: DualMatrix => x.dv
+                            })
+                    case (zeroDual: DualColumnVector, zeroDualIndex: Int) => 
+                        // run forward plan for elements in column vector
+                        val (top, bottom) = splitTopAndBottomAt(zeroDuals, zeroDualIndex)
+                        val elements2Outputs = (
+                            for (i <- 0 until zeroDual.v.length)
+                                yield {
+                                    val oneHotDual = createDualColumnVector(zeroDual.v, oneHotColumnVector(zeroDual.v.length, i))
+                                    f(appendTopAndBottomWith(top, oneHotDual, bottom).asInstanceOf[T])
+                                }
+                        ).toVector
+                        // map over output structure to combine elements from each output position into a single structure (e.g. Matrix)
+                        val representation = elements2Outputs.head
+                        representation.zip(zeroIndices).map[[X] =>> Any]([U] => (t2: U) => 
+                            // map to Any lost type information, recover them with asInstanceOf
+                            t2.asInstanceOf[(DualScalar, Int) | (DualColumnVector, Int) | (DualRowVector, Int) | (DualMatrix, Int)] match {
+                                case (_: DualScalar, outputIndex: Int) => 
+                                    val elements2dOutput = elements2Outputs.map(t => t.toList(outputIndex).asInstanceOf[DualScalar].dv)
+                                    createColumnVectorFromElements(elements2dOutput)
+                                case (_: DualColumnVector, outputIndex: Int) => 
+                                    val elements2dOutput = elements2Outputs.map(t => t.toList(outputIndex).asInstanceOf[DualColumnVector].dv)
+                                    // tranpose stacked columns as one row represent derivatives for one input element
+                                    stackColumns(elements2dOutput).t
+                                case (_: DualRowVector, outputIndex: Int) => 
+                                    val elements2dOutput = elements2Outputs.map(t => t.toList(outputIndex).asInstanceOf[DualRowVector].dv)
+                                    stackRows(elements2dOutput)
+                                case (_: DualMatrix, outputIndex: Int) =>
+                                    val elements2dOutput = elements2Outputs.map(t => t.toList(outputIndex).asInstanceOf[DualMatrix].dv)
+                                    val nElements = elements2dOutput.map(m => m.nRows * m.nCols).sum
+                                    createMatrixFromElements(elements2dOutput.length, nElements / elements2dOutput.length, elements2dOutput.map(_.elements).transpose.flatten)
+                        })
+                    case (zeroDual: DualRowVector, zeroDualIndex: Int) => 
+                        // run forward plan for elements in row vector
+                        val (top, bottom) = splitTopAndBottomAt(zeroDuals, zeroDualIndex)
+                        val elements2Outputs = (
+                            for (i <- 0 until zeroDual.v.length)
+                                yield {
+                                    val oneHotDual = createDualRowVector(zeroDual.v, oneHotRowVector(zeroDual.v.length, i))
+                                    f(appendTopAndBottomWith(top, oneHotDual, bottom).asInstanceOf[T])
+                                }
+                        ).toVector
+                        // map over output structure to combine elements from each output position into a single structure (e.g. Matrix)
+                        val representation = elements2Outputs.head 
+                        representation.zip(zeroIndices).map[[X] =>> Any]([U] => (t2: U) => 
+                            // map to Any lost type information, recover them with asInstanceOf
+                            t2.asInstanceOf[(DualScalar, Int) | (DualColumnVector, Int) | (DualRowVector, Int) | (DualMatrix, Int)] match {
+                                case (_: DualNumberScalar[PScalar], index: Int) => 
+                                    val elements2dOutput = elements2Outputs.map(t => t.toList(index).asInstanceOf[DualNumberScalar[PScalar]].dv)
+                                    createRowVectorFromElements(elements2dOutput)
+                                case (_: DualNumberColumnVector[PColumnVector], index: Int) => 
+                                    val elements2dOutput = elements2Outputs.map(t => t.toList(index).asInstanceOf[DualNumberColumnVector[PColumnVector]].dv)
+                                    // tranpose stacked columns as one row represents derivatives for one input element
+                                    stackColumns(elements2dOutput).t
+                                case (_: DualNumberRowVector[PRowVector], index: Int) => 
+                                    val elements2dOutput = elements2Outputs.map(t => t.toList(index).asInstanceOf[DualNumberRowVector[PRowVector]].dv)
+                                    stackRows(elements2dOutput)
+                                case (_: DualNumberMatrix[PMatrix], index: Int) =>
+                                    val elements2dOutput = elements2Outputs.map(t => t.toList(index).asInstanceOf[DualNumberMatrix[PMatrix]].dv)
+                                    val nElements = elements2dOutput.map(m => m.nRows * m.nCols).sum
+                                    createMatrixFromElements(elements2dOutput.length, nElements / elements2dOutput.length, elements2dOutput.map(_.elements).transpose.flatten)
+                            })
+                    case (zeroDual: DualMatrix, zeroDualIndex: Int) => 
+                        // run forward plan for elements in matrix
+                        val (top, bottom) = splitTopAndBottomAt(zeroDuals, zeroDualIndex)
+                        val elements2Outputs = (
+                            for (i <- 0 until zeroDual.v.nRows * zeroDual.v.nCols)
+                                yield {
+                                    val oneHotDual = createDualMatrix(zeroDual.v, oneHotMatrix(zeroDual.v.nRows, zeroDual.v.nCols, i))
+                                    f(appendTopAndBottomWith(top, oneHotDual, bottom).asInstanceOf[T])
+                                }
+                        ).toVector
+                        // map over output structure to combine elements from each output position into a single structure (e.g. Matrix)
+                        elements2Outputs.head.zip(zeroIndices).map[[X] =>> Any]([U] => (t2: U) => 
+                            // map to Any lost type information, recover them with asInstanceOf
+                            t2.asInstanceOf[(DualScalar, Int) | (DualColumnVector, Int) | (DualRowVector, Int) | (DualMatrix, Int)] match {
+                                case (_: DualNumberScalar[PScalar], index: Int) => 
+                                    val elements2dOutput = elements2Outputs.map(t => t.toList(index).asInstanceOf[DualNumberScalar[PScalar]].dv)
+                                    createMatrixFromElements(zeroDual.v.nRows, zeroDual.v.nCols, elements2dOutput)
+                                case (_: DualNumberColumnVector[PColumnVector], index: Int) => 
+                                    val elements2dOutput = elements2Outputs.map(t => t.toList(index).asInstanceOf[DualNumberColumnVector[PColumnVector]].dv)
+                                    // tranpose stacked columns as one row represent derivatives for one input element
+                                    stackColumns(elements2dOutput).t
+                                case (_: DualNumberRowVector[PRowVector], index: Int) => 
+                                    val elements2dOutput = elements2Outputs.map(t => t.toList(index).asInstanceOf[DualNumberRowVector[PRowVector]].dv)
+                                    // fix "wrong" order due to oneHotEncoding of matrix being row-major wise.
+                                    val elements2dOutputFixed = elements2dOutput.grouped(zeroDual.v.nCols).toVector.transpose.flatten
+                                    stackRows(elements2dOutputFixed)
+                                case (_: DualNumberMatrix[PMatrix], index: Int) =>
+                                    val elements2dOutput = elements2Outputs.map(t => t.toList(index).asInstanceOf[DualNumberMatrix[PMatrix]].dv)
+                                    val nElements = elements2dOutput.map(m => m.nRows * m.nCols).sum
+                                    createMatrixFromElements(elements2dOutput.length, nElements / elements2dOutput.length, elements2dOutput.map(_.elements).transpose.flatten)
+                            })
             }).asInstanceOf[CartesianProductAndUpP[T, DualTupleToPTuple[RT]]]
         forwardPlan(toZeroDuals(inputs))

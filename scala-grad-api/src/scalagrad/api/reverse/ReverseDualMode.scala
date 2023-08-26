@@ -38,29 +38,25 @@ class ReverseDualMode[
     override def deriveDualTuple2Scalar[T <: Tuple : DualTuple](f: T => DualScalar): DualTupleToPTuple[T] => DualTupleToPTuple[T] = t =>
         val df = deriveDualTuple2DualTuple[T, Tuple1[DualScalar]](t => Tuple1(f(t)))
         df(t).map[[X] =>> Any](
-            [T] => (e: T) =>
-                e.asInstanceOf[Tuple1[Any]].head
+            [T] => (e: T) => e.asInstanceOf[Tuple1[Any]].head
         ).asInstanceOf[DualTupleToPTuple[T]]
            
     override def deriveDualTuple2ColumnVector[T <: Tuple : DualTuple](f: T => DualColumnVector): DualTupleToPTuple[T] => Tuple.Map[DualTupleToPTuple[T], UpPByColumnVector] = t =>
         val df = deriveDualTuple2DualTuple[T, Tuple1[DualColumnVector]](t => Tuple1(f(t)))
         df(t).map[[X] =>> Any](
-            [T] => (e: T) =>
-                e.asInstanceOf[Tuple1[Any]].head
+            [T] => (e: T) => e.asInstanceOf[Tuple1[Any]].head
         ).asInstanceOf[Tuple.Map[DualTupleToPTuple[T], UpPByColumnVector]]
     
     override def deriveDualTuple2RowVector[T <: Tuple : DualTuple](f: T => DualRowVector): DualTupleToPTuple[T] => Tuple.Map[DualTupleToPTuple[T], UpPByRowVector] = t =>
         val df = deriveDualTuple2DualTuple[T, Tuple1[DualRowVector]](t => Tuple1(f(t)))
         df(t).map[[X] =>> Any](
-            [T] => (e: T) =>
-                e.asInstanceOf[Tuple1[Any]].head
+            [T] => (e: T) => e.asInstanceOf[Tuple1[Any]].head
         ).asInstanceOf[Tuple.Map[DualTupleToPTuple[T], UpPByRowVector]]
     
     override def deriveDualTuple2Matrix[T <: Tuple : DualTuple](f: T => DualMatrix): DualTupleToPTuple[T] => Tuple.Map[DualTupleToPTuple[T], UpPByMatrix] = t =>
         val df = deriveDualTuple2DualTuple[T, Tuple1[DualMatrix]](t => Tuple1(f(t)))
         df(t).map[[X] =>> Any](
-            [T] => (e: T) =>
-                e.asInstanceOf[Tuple1[Any]].head
+            [T] => (e: T) => e.asInstanceOf[Tuple1[Any]].head
         ).asInstanceOf[Tuple.Map[DualTupleToPTuple[T], UpPByMatrix]]
         
     override def deriveScalar2DualTuple[RT <: Tuple : DualTuple](f: DualScalar => RT): PScalar => DualTupleToPTuple[RT] = t =>
@@ -89,94 +85,106 @@ class ReverseDualMode[
         def reversePlan(t: DualTupleToPTuple[T]): CartesianProductAndUpP[T, DualTupleToPTuple[RT]] = 
             val tWithIndex = t.zip(ids)
             val output = f(
-                tWithIndex.map[[X] =>> Any]([U] => (t: U) => t match {
-                    case (x: PScalar, id: Int) => createDualScalar(x, DeltaScalar.Val(0, DeltaScalar.Input(id)))
-                    case (x: PColumnVector, id: Int) => createDualColumnVector(x, DeltaColumnVector.Val(0, DeltaColumnVector.Input(id)))
-                    case (x: PRowVector, id: Int) => createDualRowVector(x, DeltaRowVector.Val(0, DeltaRowVector.Input(id)))
-                    case (x: PMatrix, id: Int) => createDualMatrix(x, DeltaMatrix.Val(0, DeltaMatrix.Input(id)))
-                }).asInstanceOf[T]
+                tWithIndex.map[[X] =>> Any]([U] => (t: U) =>
+                    // map to Any lost type information, recover them with asInstanceOf
+                    t.asInstanceOf[(PScalar, Int) | (PColumnVector, Int) | (PRowVector, Int) | (PMatrix, Int)] match {
+                        case (x: PScalar, id: Int) => createDualScalar(x, DeltaScalar.Val(0, DeltaScalar.Input(id)))
+                        case (x: PColumnVector, id: Int) => createDualColumnVector(x, DeltaColumnVector.Val(0, DeltaColumnVector.Input(id)))
+                        case (x: PRowVector, id: Int) => createDualRowVector(x, DeltaRowVector.Val(0, DeltaRowVector.Input(id)))
+                        case (x: PMatrix, id: Int) => createDualMatrix(x, DeltaMatrix.Val(0, DeltaMatrix.Input(id)))
+                    }).asInstanceOf[T]
             )
             def extractResults(res: eval.Results): DualTupleToPTuple[RT] =
-                tWithIndex.map[[X] =>> Any]([U] => (t: U) => t match {
-                    case (_: PScalar, id: Int) => res.scalars.get(id).getOrElse(zeroScalar)
-                    case (cv: PColumnVector, id: Int) => res.columnVectors.get(id).getOrElse(zeroColumnVector(cv.length))
-                    case (rv: PRowVector, id: Int) => res.rowVectors.get(id).getOrElse(zeroRowVector(rv.length))
-                    case (m: PMatrix, id: Int) => res.matrices.get(id).getOrElse(zeroMatrix(m.nRows, m.nCols))
-                }).asInstanceOf[DualTupleToPTuple[RT]]
+                tWithIndex.map[[X] =>> Any]([U] => (t: U) => 
+                    // map to Any lost type information, recover them with asInstanceOf
+                    t.asInstanceOf[(PScalar, Int) | (PColumnVector, Int) | (PRowVector, Int) | (PMatrix, Int)] match {
+                        case (_: PScalar, id: Int) => res.scalars.get(id).getOrElse(zeroScalar)
+                        case (cv: PColumnVector, id: Int) => res.columnVectors.get(id).getOrElse(zeroColumnVector(cv.length))
+                        case (rv: PRowVector, id: Int) => res.rowVectors.get(id).getOrElse(zeroRowVector(rv.length))
+                        case (m: PMatrix, id: Int) => res.matrices.get(id).getOrElse(zeroMatrix(m.nRows, m.nCols))
+                    }).asInstanceOf[DualTupleToPTuple[RT]]
             // map over outputs
-            val res = output.map[[X] =>> Any]([U] => (t: U) => t match {
-                case x: (DualScalar @unchecked) => 
-                    // run reverse plan for scalar
-                    val res = eval.evalScalar(one, x.delta)
-                    extractResults(res)
-                case x: (DualColumnVector @unchecked) =>
-                    // run reverse plan for column vector
-                    val inputsByOutputElements = for (i <- 0 until x.v.length) yield { 
-                        val res = eval.evalColumnVector(oneHotColumnVector(x.v.length, i), x.delta)
+            val res = output.map[[X] =>> Any]([U] => (t: U) => 
+                // map to Any lost type information, recover them with asInstanceOf
+                t.asInstanceOf[DualScalar | DualColumnVector | DualRowVector | DualMatrix] match {
+                    case x: (DualScalar) => 
+                        // run reverse plan for scalar
+                        val res = eval.evalScalar(one, x.delta)
                         extractResults(res)
-                    }
-                    // map over input
-                    inputsByOutputElements.head.zip(ids).map[[X] =>> Any]([U] => (t2: U) => t2 match {
-                        case (_: PScalar, index: Int) => 
-                            val inputByOutputsElements = inputsByOutputElements.map(t => t.toList(index).asInstanceOf[PScalar])
-                            createColumnVectorFromElements(inputByOutputsElements)
-                        case (_: PColumnVector, index: Int) => 
-                            val inputByOutputsElements = inputsByOutputElements.map(t => t.toList(index).asInstanceOf[PColumnVector])
-                            stackColumns(inputByOutputsElements)
-                        case (_: PRowVector, index: Int) => 
-                            val inputByOutputsElements = inputsByOutputElements.map(t => t.toList(index).asInstanceOf[PRowVector])
-                            stackRows(inputByOutputsElements).t
-                        case (m: PMatrix, index: Int) =>
-                            val inputByOutputsElements = inputsByOutputElements.map(t => t.toList(index).asInstanceOf[PMatrix])
-                            val nInputElements = inputByOutputsElements.head.nRows * inputByOutputsElements.head.nCols
-                            createMatrixFromElements(nInputElements, inputByOutputsElements.length, inputByOutputsElements.flatMap(_.elements))
-                    })
-                case x: (DualRowVector @unchecked) => 
-                    // run reverse plan for row vector
-                    val inputsByOutputElements = for (i <- 0 until x.v.length) yield { 
-                        val res = eval.evalRowVector(oneHotRowVector(x.v.length, i), x.delta)
-                        extractResults(res)
-                    }
-                    // map over inputs
-                    inputsByOutputElements.head.zip(ids).map[[X] =>> Any]([U] => (t2: U) => t2 match {
-                        case (x: PScalar, index: Int) => 
-                            val inputByOutputsElements = inputsByOutputElements.map(t => t.toList(index).asInstanceOf[PScalar])
-                            createRowVectorFromElements(inputByOutputsElements)
-                        case (x: PColumnVector, index: Int) => 
-                            val inputByOutputsElements = inputsByOutputElements.map(t => t.toList(index).asInstanceOf[PColumnVector])
-                            stackColumns(inputByOutputsElements)
-                        case (x: PRowVector, index: Int) => 
-                            val inputByOutputsElements = inputsByOutputElements.map(t => t.toList(index).asInstanceOf[PRowVector])
-                            stackRows(inputByOutputsElements).t
-                        case (x: PMatrix, index: Int) =>
-                            val inputByOutputsElements = inputsByOutputElements.map(t => t.toList(index).asInstanceOf[PMatrix])
-                            val nInputElements = inputByOutputsElements.head.nRows * inputByOutputsElements.head.nCols
-                            val cols = inputByOutputsElements.map(_.t.elements).map(x => createColumnVectorFromElements(x))
-                            stackColumns(cols)
-                    })
-                case x: (DualMatrix @unchecked) => 
-                    // run reverse plan for matrix
-                    val inputsByOutputElements = for (i <- 0 until x.v.nRows * x.v.nCols) yield {
-                        val res = eval.evalMatrix(oneHotMatrix(x.v.nRows, x.v.nCols, i), x.delta)
-                        extractResults(res)
-                    }
-                    // map over inputs
-                    inputsByOutputElements.head.zip(ids).map[[X] =>> Any]([U] => (t2: U) => t2 match {
-                        case (_: PScalar, index: Int) => 
-                            val inputByOutputsElements = inputsByOutputElements.map(t => t.toList(index).asInstanceOf[PScalar])
-                            createMatrixFromElements(x.v.nRows, x.v.nCols, inputByOutputsElements)
-                        case (_: PColumnVector, index: Int) => 
-                            val inputByOutputsElements = inputsByOutputElements.map(t => t.toList(index).asInstanceOf[PColumnVector])
-                            stackColumns(inputByOutputsElements)
-                        case (_: PRowVector, index: Int) => 
-                            val inputByOutputsElements = inputsByOutputElements.map(t => t.toList(index).asInstanceOf[PRowVector])
-                            stackRows(inputByOutputsElements).t
-                        case (_: PMatrix, index: Int) =>
-                            val inputByOutputsElements = inputsByOutputElements.map(t => t.toList(index).asInstanceOf[PMatrix])
-                            val nInputElements = inputByOutputsElements.head.nRows * inputByOutputsElements.head.nCols
-                            createMatrixFromElements(nInputElements, inputByOutputsElements.length, inputByOutputsElements.flatMap(_.elements))
-                    })
-            }).asInstanceOf[CartesianProductAndUpP[RT, DualTupleToPTuple[T]]]
+                    case x: (DualColumnVector) =>
+                        // run reverse plan for column vector
+                        val inputsByOutputElements = for (i <- 0 until x.v.length) yield { 
+                            val res = eval.evalColumnVector(oneHotColumnVector(x.v.length, i), x.delta)
+                            extractResults(res)
+                        }
+                        // map over input
+                        inputsByOutputElements.head.zip(ids).map[[X] =>> Any]([U] => (t2: U) => 
+                            // map to Any lost type information, recover them with asInstanceOf
+                            t2.asInstanceOf[(PScalar, Int) | (PColumnVector, Int) | (PRowVector, Int) | (PMatrix, Int)] match {
+                                case (_: PScalar, index: Int) => 
+                                    val inputByOutputsElements = inputsByOutputElements.map(t => t.toList(index).asInstanceOf[PScalar])
+                                    createColumnVectorFromElements(inputByOutputsElements)
+                                case (_: PColumnVector, index: Int) => 
+                                    val inputByOutputsElements = inputsByOutputElements.map(t => t.toList(index).asInstanceOf[PColumnVector])
+                                    stackColumns(inputByOutputsElements)
+                                case (_: PRowVector, index: Int) => 
+                                    val inputByOutputsElements = inputsByOutputElements.map(t => t.toList(index).asInstanceOf[PRowVector])
+                                    stackRows(inputByOutputsElements).t
+                                case (m: PMatrix, index: Int) =>
+                                    val inputByOutputsElements = inputsByOutputElements.map(t => t.toList(index).asInstanceOf[PMatrix])
+                                    val nInputElements = inputByOutputsElements.head.nRows * inputByOutputsElements.head.nCols
+                                    createMatrixFromElements(nInputElements, inputByOutputsElements.length, inputByOutputsElements.flatMap(_.elements))
+                            })
+                    case x: (DualRowVector) => 
+                        // run reverse plan for row vector
+                        val inputsByOutputElements = for (i <- 0 until x.v.length) yield { 
+                            val res = eval.evalRowVector(oneHotRowVector(x.v.length, i), x.delta)
+                            extractResults(res)
+                        }
+                        // map over inputs
+                        inputsByOutputElements.head.zip(ids).map[[X] =>> Any]([U] => (t2: U) => 
+                            // map to Any lost type information, recover them with asInstanceOf
+                            t2.asInstanceOf[(PScalar, Int) | (PColumnVector, Int) | (PRowVector, Int) | (PMatrix, Int)] match {
+                                case (x: PScalar, index: Int) => 
+                                    val inputByOutputsElements = inputsByOutputElements.map(t => t.toList(index).asInstanceOf[PScalar])
+                                    createRowVectorFromElements(inputByOutputsElements)
+                                case (x: PColumnVector, index: Int) => 
+                                    val inputByOutputsElements = inputsByOutputElements.map(t => t.toList(index).asInstanceOf[PColumnVector])
+                                    stackColumns(inputByOutputsElements)
+                                case (x: PRowVector, index: Int) => 
+                                    val inputByOutputsElements = inputsByOutputElements.map(t => t.toList(index).asInstanceOf[PRowVector])
+                                    stackRows(inputByOutputsElements).t
+                                case (x: PMatrix, index: Int) =>
+                                    val inputByOutputsElements = inputsByOutputElements.map(t => t.toList(index).asInstanceOf[PMatrix])
+                                    val nInputElements = inputByOutputsElements.head.nRows * inputByOutputsElements.head.nCols
+                                    val cols = inputByOutputsElements.map(_.t.elements).map(x => createColumnVectorFromElements(x))
+                                    stackColumns(cols)
+                            })
+                    case x: (DualMatrix) => 
+                        // run reverse plan for matrix
+                        val inputsByOutputElements = for (i <- 0 until x.v.nRows * x.v.nCols) yield {
+                            val res = eval.evalMatrix(oneHotMatrix(x.v.nRows, x.v.nCols, i), x.delta)
+                            extractResults(res)
+                        }
+                        // map over inputs
+                        inputsByOutputElements.head.zip(ids).map[[X] =>> Any]([U] => (t2: U) => 
+                            // map to Any lost type information, recover them with asInstanceOf
+                            t2.asInstanceOf[(PScalar, Int) | (PColumnVector, Int) | (PRowVector, Int) | (PMatrix, Int)] match {
+                                case (_: PScalar, index: Int) => 
+                                    val inputByOutputsElements = inputsByOutputElements.map(t => t.toList(index).asInstanceOf[PScalar])
+                                    createMatrixFromElements(x.v.nRows, x.v.nCols, inputByOutputsElements)
+                                case (_: PColumnVector, index: Int) => 
+                                    val inputByOutputsElements = inputsByOutputElements.map(t => t.toList(index).asInstanceOf[PColumnVector])
+                                    stackColumns(inputByOutputsElements)
+                                case (_: PRowVector, index: Int) => 
+                                    val inputByOutputsElements = inputsByOutputElements.map(t => t.toList(index).asInstanceOf[PRowVector])
+                                    stackRows(inputByOutputsElements).t
+                                case (_: PMatrix, index: Int) =>
+                                    val inputByOutputsElements = inputsByOutputElements.map(t => t.toList(index).asInstanceOf[PMatrix])
+                                    val nInputElements = inputByOutputsElements.head.nRows * inputByOutputsElements.head.nCols
+                                    createMatrixFromElements(nInputElements, inputByOutputsElements.length, inputByOutputsElements.flatMap(_.elements))
+                            })
+                }).asInstanceOf[CartesianProductAndUpP[RT, DualTupleToPTuple[T]]]
             // unzip res, e.g. make ((A1, A2, A3), (B1, B2, B3)) to ((A1, B1), (A2, B2), (A3, B3))
             val finalRes = tWithIndex.map[[X] =>> Any]([U] => (t: U) => t match {
                 case (_: Any, id: Int) => res.map[[X] =>> Any]([U] => (x: U) => x.asInstanceOf[Tuple].toList(id))
