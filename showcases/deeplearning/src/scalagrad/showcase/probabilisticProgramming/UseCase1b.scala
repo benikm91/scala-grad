@@ -15,7 +15,6 @@ import scalagrad.api.spire.trig.DualScalarIsTrig.given
 import scalagrad.auto.forward.breeze.BreezeDoubleForwardMode.given
 import scalagrad.auto.forward.breeze.BreezeDoubleForwardMode.{algebraT => algebra}
 
-import scalagrad.api.ScalaGrad
 import scalagrad.showcase.probabilisticProgramming.distribution.{UnnormalizedDistribution, UnnormalizedLogDistribution}
 import scalagrad.showcase.probabilisticProgramming.metropolisHastings.GaussianMetropolisSampler
 import scalagrad.showcase.probabilisticProgramming.metropolisHastings.MetropolisAdjustedLangevinAlgorithmSampler

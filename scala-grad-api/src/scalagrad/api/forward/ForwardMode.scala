@@ -2,7 +2,6 @@ package scalagrad.api.forward
 
 import scalagrad.api.DualMode
 import scalagrad.api.Mode
-import scalagrad.api.DeriverFromTo
 import scalagrad.api.forward.dual.*
 import scalagrad.api.matrixalgebra.derivative.DerivativeMatrixAlgebra
 import scalagrad.api.matrixalgebra.CreateOps

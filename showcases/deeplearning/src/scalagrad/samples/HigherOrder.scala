@@ -3,7 +3,6 @@ package scalagrad
 
 @main
 def higherOrderSample =
-    import scalagrad.api.ScalaGrad
     import scalagrad.api.matrixalgebra.MatrixAlgebraDSL
     import scalagrad.api.forward.ForwardMode.{derive => d}
     import scalagrad.auto.breeze.BreezeDoubleMatrixAlgebraDSL

@@ -1,6 +1,5 @@
 package scalagrad.api.test
 
-import scalagrad.api.ScalaGrad
 import scalagrad.api.matrixalgebra.derivative.DerivativeMatrixAlgebra
 import scalagrad.api.dual.DualMatrixAlgebra
 import scalagrad.api.dual
@@ -12,8 +11,6 @@ import org.scalatest.prop.TableDrivenPropertyChecks.whenever
 import org.scalatest.wordspec.AnyWordSpec
 import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks.forAll
 import org.scalacheck.Gen
-import scalagrad.api.Deriver
-import scalagrad.api.DeriverFromTo
 
 import scalagrad.api.matrixalgebra.MatrixAlgebra
 import scalagrad.api.matrixalgebra.MatrixAlgebraDSL

@@ -1,7 +1,6 @@
 package scalagrad.api.reverse
 
 import scalagrad.api.DualMode
-import scalagrad.api.DeriverFromTo
 import scalagrad.api.dual.DualMatrixAlgebra
 import scalagrad.api.reverse.dual.*
 import scalagrad.api.reverse.delta.*

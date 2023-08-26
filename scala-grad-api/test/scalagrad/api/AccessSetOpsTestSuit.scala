@@ -1,6 +1,5 @@
 package scalagrad.api.test
 
-import scalagrad.api.ScalaGrad
 import scalagrad.api.Mode
 import scalagrad.api.matrixalgebra.derivative.DerivativeMatrixAlgebra
 import scalagrad.api.dual.DualMatrixAlgebra
