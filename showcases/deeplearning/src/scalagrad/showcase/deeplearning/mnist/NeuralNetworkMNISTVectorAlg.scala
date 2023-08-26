@@ -86,7 +86,7 @@ object NeuralNetworkMNIST:
             else x
         val logYsHat = ysHat.map(clip).map(_.log)
         val logYsHatYs = logYsHat *:* ys
-        -(logYsHatYs.sum / alg.liftToScalar(logYsHat.nRows))
+        -(logYsHatYs.sum / alg.lift(logYsHat.nRows))
 
     def accuracy(yHatProp: DenseMatrix[Double], yM: DenseMatrix[Double]): Double =
         val yHat = yHatProp(*, ::).map(x => argmax(x))

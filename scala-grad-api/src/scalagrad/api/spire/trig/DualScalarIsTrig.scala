@@ -76,8 +76,8 @@ object DualScalarIsTrig:
             def dTanh(v: PScalar): PScalar = pma.one / (trig.cosh(v) * trig.cosh(v))
             a.mapDual(trig.tanh, dTanh)
         def toDegrees(a: DualScalar): DualScalar = 
-            def dToDegrees(v: PScalar): PScalar = pma.liftToScalar(180) / trig.pi
+            def dToDegrees(v: PScalar): PScalar = pma.lift(180) / trig.pi
             a.mapDual(trig.toDegrees, dToDegrees)
         def toRadians(a: DualScalar): DualScalar = 
-            def dToRadians(v: PScalar): PScalar = trig.pi / pma.liftToScalar(180)
+            def dToRadians(v: PScalar): PScalar = trig.pi / pma.lift(180)
             a.mapDual(trig.toRadians, dToRadians)

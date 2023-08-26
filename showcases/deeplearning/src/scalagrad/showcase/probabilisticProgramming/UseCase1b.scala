@@ -58,8 +58,8 @@ object UseCase1b extends App:
         xs.rows.zip(ys.elements).map { case (x, y) =>
             val mu = (x * a) + b
             val diff = y - mu
-            val exponent = alg.liftToScalar(-0.5) * (diff * diff) / (sigma * sigma)
-            val normalization = alg.liftToScalar(1.0) / (alg.liftToScalar(sqrt(2 * scala.math.Pi)) * sigma)
+            val exponent = alg.lift(-0.5) * (diff * diff) / (sigma * sigma)
+            val normalization = alg.lift(1.0) / (alg.lift(sqrt(2 * scala.math.Pi)) * sigma)
             trig.log(normalization) + exponent
         }.sum
 

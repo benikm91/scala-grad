@@ -91,7 +91,7 @@ object DualScalarIsNumeric:
             dma.createDualScalar(num.fpow(a.v, b.v), dfpow, List(a.dv, b.dv))
         def nroot(a: DualScalar, n: Int): DualScalar = 
             def dnroot(x: PScalar) = 
-                val denominator = pma.multiplySS(pma.liftToScalar(n), num.fpow((num.nroot(x, n)), num.fromInt(n - 1)))
+                val denominator = pma.multiplySS(pma.lift(n), num.fpow((num.nroot(x, n)), num.fromInt(n - 1)))
                 num.one / denominator
             a.mapDual(x => num.nroot(x, n), dnroot)
         def compare(x: DualScalar, y: DualScalar): Int = num.compare(x.v, y.v)

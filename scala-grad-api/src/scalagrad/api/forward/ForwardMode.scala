@@ -15,6 +15,7 @@ import scala.annotation.targetName
 import scalagrad.api.ScalaGrad
 
 import scalagrad.api.dual
+import scalagrad.api.dual.DualMatrixAlgebra
 import scalagrad.api.dual.DualMatrixAlgebraDSL
 
 object ForwardMode extends ModeO:

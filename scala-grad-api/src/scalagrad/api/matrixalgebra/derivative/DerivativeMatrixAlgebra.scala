@@ -5,7 +5,6 @@ import scalagrad.api.matrixalgebra.MatrixAlgebra
 import scalagrad.api.matrixalgebra.AccessOps
 import scalagrad.api.matrixalgebra.NegateOps
 import scalagrad.api.matrixalgebra.ScalarInvertOps
-import scalagrad.api.matrixalgebra.LiftOps
 import scalagrad.api.matrixalgebra.TransposeOps
 import scalagrad.api.matrixalgebra.CreateOps
 import scalagrad.api.matrixalgebra.SumOps

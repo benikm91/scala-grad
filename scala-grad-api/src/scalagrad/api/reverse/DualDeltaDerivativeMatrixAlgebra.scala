@@ -2,7 +2,7 @@ package scalagrad.api.reverse
 
 import scalagrad.api.reverse.delta.*
 import scalagrad.api.reverse.dual.*
-import scalagrad.api.matrixalgebra.{AccessOps, AccessSetOps, CreateOps, MapOps, LiftOps, NegateOps, ScalarInvertOps, ZeroOps, SumOps, TransposeOps}
+import scalagrad.api.matrixalgebra.{AccessOps, AccessSetOps, CreateOps, MapOps, NegateOps, ScalarInvertOps, ZeroOps, SumOps, TransposeOps}
 import scalagrad.api.matrixalgebra.derivative.DerivativeMatrixAlgebra
 import scalagrad.api.matrixalgebra.MatrixAlgebra
   

@@ -93,10 +93,6 @@ object BreezeFloatMatrixAlgebra extends MatrixAlgebra[
 
   override def invert(s: ScalarT): ScalarT = one / s
 
-  override def unliftToDouble(s: ScalarT): Double = s
-
-  override def liftToScalar(d: Double): ScalarT = d.toFloat
-
   override def sumCV(cv: ColumnVectorT): ScalarT = breeze.linalg.sum(cv)
 
   override def sumM(m: MatrixT): ScalarT = breeze.linalg.sum(m)

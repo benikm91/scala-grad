@@ -26,7 +26,7 @@ import scala.annotation.tailrec
         (xs * ws) + w0
 
     def meanSquaredError(using alg: MatrixAlgebraDSL)(ys: alg.ColumnVector, ysHat: alg.ColumnVector): alg.Scalar =
-        (ys - ysHat).map(x => x * x).sum / alg.liftToScalar(ys.length * 2)
+        (ys - ysHat).map(x => x * x).sum / alg.lift(ys.length * 2)
 
     def loss(xs: DenseMatrix[Double], ys: DenseVector[Double])(alg: MatrixAlgebraDSL)(w0: alg.Scalar, ws: alg.ColumnVector): alg.Scalar =
         val ysHat = linearModel(using alg)(alg.lift(xs), w0, ws)

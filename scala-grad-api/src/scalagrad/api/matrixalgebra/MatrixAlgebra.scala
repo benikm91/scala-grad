@@ -22,13 +22,13 @@ trait MatrixAlgebraDSL:
     given mt: Typeable[Matrix]
 
     val innerAlgebra: MatrixAlgebra[Scalar, ColumnVector, RowVector, Matrix]
+
     export innerAlgebra.*
     export innerAlgebra.given
 
 
 trait MatrixAlgebra[Scalar : Typeable, ColumnVector : Typeable, RowVector : Typeable, Matrix : Typeable] 
     extends LengthOps[ColumnVector, RowVector, Matrix]
-    with LiftOps[Scalar]
     with MatrixOps[Matrix, Scalar]
     with TransposeOps[ColumnVector, RowVector, Matrix]
     with NegateOps[Scalar, ColumnVector, RowVector, Matrix]
@@ -57,12 +57,13 @@ trait MatrixAlgebra[Scalar : Typeable, ColumnVector : Typeable, RowVector : Type
     
     override def trace(m: Matrix): Scalar = 
         val n = m.nRows min m.nCols
-        var res = liftToScalar(0)
+        var res = lift(0)
         for i <- 0 until n do
             res = res + m.elementAt(i, i)
         res
 
     // TODO How to not define them here, but still be easy to use/lift with breeze
+    def lift(i: Int): Scalar = lift(i.toDouble)
     def lift(d: Double): Scalar
     def lift(cv: DenseVector[Double]): ColumnVector
     def lift(rv: Transpose[DenseVector[Double]]): RowVector
@@ -71,6 +72,9 @@ trait MatrixAlgebra[Scalar : Typeable, ColumnVector : Typeable, RowVector : Type
     def unlift(m: Matrix): DenseMatrix[Double]
     def unlift(cv: ColumnVector): DenseVector[Double]
     def unlift(rv: RowVector): Transpose[DenseVector[Double]]
+
+    extension(s: Scalar)
+        def toDouble = unlift(s)
 
     def asDSL: MatrixAlgebraDSL {
         type Scalar = ScalarT

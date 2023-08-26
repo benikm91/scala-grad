@@ -5,7 +5,6 @@ import scalagrad.api.matrixalgebra.MatrixAlgebra
 import scalagrad.api.matrixalgebra.AccessOps
 import scalagrad.api.matrixalgebra.NegateOps
 import scalagrad.api.matrixalgebra.ScalarInvertOps
-import scalagrad.api.matrixalgebra.LiftOps
 import scalagrad.api.matrixalgebra.TransposeOps
 import scalagrad.api.matrixalgebra.CreateOps
 import scalagrad.api.matrixalgebra.SumOps
@@ -122,7 +121,7 @@ with MapDualOps[
             List()
         )
 
-    def unlift(s: DualScalar): Double = pma.unliftToDouble(s.v)
+    def unlift(s: DualScalar): Double = pma.unlift(s.v)
     def unlift(cv: DualColumnVector): DenseVector[Double] = pma.unlift(cv.v)
     def unlift(rv: DualRowVector): Transpose[DenseVector[Double]] = pma.unlift(rv.v)
     def unlift(m: DualMatrix): DenseMatrix[Double] = pma.unlift(m.v)
@@ -359,16 +358,6 @@ with MapDualOps[
             pma.invert(s.v),
             dInvert(s),
             List(s.dv)
-        )
-
-    override def unliftToDouble(s: ScalarT): Double =
-        pma.unliftToDouble(s.v)
-
-    override def liftToScalar(d: Double): ScalarT = 
-        createDualScalar(
-            pma.liftToScalar(d),
-            dma.dZeroOps.zeroScalar,
-            List()
         )
 
     override def sumCV(cv: ColumnVectorT): ScalarT = 
