@@ -16,7 +16,6 @@ import org.scalacheck.Gen
 
 import scalagrad.api.matrixalgebra.MatrixAlgebra
 import scalagrad.api.matrixalgebra.MatrixAlgebraDSL
-import scalagrad.api.ModeO
 
 /**
  * Functions can have a lot of different structures, like Scalar => Matrix or (Scalar, Scalar) => (Scalar, Scalar).

@@ -39,10 +39,10 @@ trait DerivativeMatrixAlgebra[
     val dTransposeOps: TransposeOps[DColumnVector, DRowVector, DMatrix]
     val dCreateOps: CreateOps[DScalar, DColumnVector, DRowVector, DMatrix]
 
-    def createDualScalar(p: PScalar, d: DScalar, deps: => Seq[D]): DualScalar
-    def createDualColumnVector(p: PColumnVector, d: DColumnVector, deps: => Seq[D]): DualColumnVector
-    def createDualRowVector(p: PRowVector, d: DRowVector, deps: => Seq[D]): DualRowVector
-    def createDualMatrix(p: PMatrix, d: DMatrix, deps: => Seq[D]): DualMatrix
+    def createDualScalar(p: PScalar, d: DScalar, deps: => Seq[D] = Seq.empty): DualScalar
+    def createDualColumnVector(p: PColumnVector, d: DColumnVector, deps: => Seq[D] = Seq.empty): DualColumnVector
+    def createDualRowVector(p: PRowVector, d: DRowVector, deps: => Seq[D] = Seq.empty): DualRowVector
+    def createDualMatrix(p: PMatrix, d: DMatrix, deps: => Seq[D] = Seq.empty): DualMatrix
 
     def plusDMDM(dm1: DMatrix, dm2: DMatrix): DMatrix
     def plusDMDCV(dm: DMatrix, dcv: DColumnVector): DMatrix

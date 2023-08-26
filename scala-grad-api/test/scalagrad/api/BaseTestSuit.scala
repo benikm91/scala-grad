@@ -15,11 +15,11 @@ import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks.forAll
 import org.scalacheck.Gen
 
 import scalagrad.api.matrixalgebra.MatrixAlgebraDSL
-import scalagrad.api.ModeO
+import scalagrad.api.Mode
 
 trait BaseTestSuit extends should.Matchers with BasicGenerators:
     
-    val deriver: ModeO
+    val deriver: Mode
     val pma: MatrixAlgebraDSL
     val testName: String
 

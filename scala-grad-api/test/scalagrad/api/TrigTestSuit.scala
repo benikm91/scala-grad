@@ -16,7 +16,6 @@ import org.scalacheck.Gen
 
 import scalagrad.api.matrixalgebra.MatrixAlgebra
 import spire.algebra.Trig
-import scalagrad.api.ModeO
 import scalagrad.api.matrixalgebra.MatrixAlgebraDSL
 
 trait TrigTestSuit extends AnyWordSpec:

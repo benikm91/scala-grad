@@ -16,7 +16,6 @@ import org.scalacheck.Gen
 
 import scalagrad.api.matrixalgebra.MatrixAlgebra
 import scalagrad.api.matrixalgebra.MatrixAlgebraDSL
-import scalagrad.api.ModeO
 
 trait BasicOpsTestSuit extends AnyWordSpec:
     this: BaseTestSuit =>

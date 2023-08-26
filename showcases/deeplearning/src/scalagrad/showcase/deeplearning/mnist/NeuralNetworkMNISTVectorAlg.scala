@@ -4,6 +4,7 @@ import scalagrad.showcase.deeplearning.Util.{time, timeMeasure}
 import scala.io.Source
 
 import scalagrad.api.matrixalgebra.MatrixAlgebraDSL
+import scalagrad.api.dual.DualMatrixAlgebraDSL
 import scalagrad.auto.breeze.BreezeDoubleMatrixAlgebraDSL
 import scalagrad.api.reverse.ReverseMode
 
@@ -17,6 +18,18 @@ import spire.syntax.numeric.partialOrderOps
 import breeze.linalg.{DenseMatrix, DenseVector}
 import breeze.linalg.*
 import spire.syntax.all.trigOps
+import scala.annotation.targetName
+
+// Extend Reverse mode for missing case
+extension (rad: ReverseMode.type)
+    @targetName("deriveCVMCVM2S")
+    def derive[MA >: DualMatrixAlgebraDSL <: MatrixAlgebraDSL](
+        f: (alg: MA) => (alg.ColumnVector, alg.Matrix, alg.ColumnVector, alg.Matrix) => alg.Scalar
+    ): (alg: MatrixAlgebraDSL) => (alg.ColumnVector, alg.Matrix, alg.ColumnVector, alg.Matrix) => (alg.ColumnVector, alg.Matrix, alg.ColumnVector, alg.Matrix) = 
+        alg => (cv1, m1, cv2, m2) =>
+            val mode = ReverseMode.dualMode(alg)
+            val df = mode.deriveDualTuple2Scalar(f(mode.algebraDSL).tupled)
+            df(cv1, m1, cv2, m2).asInstanceOf[(alg.ColumnVector, alg.Matrix, alg.ColumnVector, alg.Matrix)]
 
 object NeuralNetworkMNIST:
 

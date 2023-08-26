@@ -20,7 +20,6 @@ import scalagrad.api.matrixalgebra.MatrixAlgebraDSL
 import scalagrad.api.forward.ForwardMode
 import scalagrad.api.reverse.ReverseMode
 import breeze.linalg.{DenseMatrix}
-import scalagrad.api.ModeO
 
 trait AccessOpsTestSuit extends AnyWordSpec:
     this: BaseTestSuit =>

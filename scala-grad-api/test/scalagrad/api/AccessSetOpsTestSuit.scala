@@ -15,9 +15,7 @@ import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks.forAll
 import org.scalacheck.Gen
 
 import scalagrad.api.matrixalgebra.MatrixAlgebra
-import scalagrad.api.ModeO
 import scalagrad.api.matrixalgebra.MatrixAlgebraDSL
-
 
 
 trait AccessSetOpsTestSuit extends AnyWordSpec:

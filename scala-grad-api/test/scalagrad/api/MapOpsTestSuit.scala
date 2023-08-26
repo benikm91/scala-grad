@@ -18,7 +18,6 @@ import scalagrad.api.matrixalgebra.MatrixAlgebra
 import scala.math.Fractional.Implicits.given
 import spire.algebra.Trig
 import scalagrad.api.matrixalgebra.MatrixAlgebraDSL
-import scalagrad.api.ModeO
 
 trait MapOpsTestSuit extends AnyWordSpec:
     this: BaseTestSuit =>
