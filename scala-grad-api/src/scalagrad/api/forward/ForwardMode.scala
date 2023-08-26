@@ -355,23 +355,19 @@ class ForwardMode[
 
     def deriveTuple2Scalar[T <: Tuple : DualTuple](f: T => DualScalar): DualTupleToPTuple[T] => DualTupleToPTuple[T] = t =>
         val df = deriveTuple2Tuple[T, Tuple1[DualScalar]](t => Tuple1(f(t)))
-        df(t).map[[X] =>> Any]([T] => (e: T) => e.asInstanceOf[Tuple1[Any]].head
-        ).asInstanceOf[DualTupleToPTuple[T]]
+        df(t).map[[X] =>> Any]([T] => (e: T) => e.asInstanceOf[Tuple1[Any]].head).asInstanceOf[DualTupleToPTuple[T]]
            
     def deriveTuple2ColumnVector[T <: Tuple : DualTuple](f: T => DualColumnVector): DualTupleToPTuple[T] => Tuple.Map[DualTupleToPTuple[T], UpPByColumnVector] = t =>
         val df = deriveTuple2Tuple[T, Tuple1[DualColumnVector]](t => Tuple1(f(t)))
-        df(t).map[[X] =>> Any]([T] => (e: T) => e.asInstanceOf[Tuple1[Any]].head
-        ).asInstanceOf[Tuple.Map[DualTupleToPTuple[T], UpPByColumnVector]]
+        df(t).map[[X] =>> Any]([T] => (e: T) => e.asInstanceOf[Tuple1[Any]].head).asInstanceOf[Tuple.Map[DualTupleToPTuple[T], UpPByColumnVector]]
     
     def deriveTuple2RowVector[T <: Tuple : DualTuple](f: T => DualRowVector): DualTupleToPTuple[T] => Tuple.Map[DualTupleToPTuple[T], UpPByRowVector] = t =>
         val df = deriveTuple2Tuple[T, Tuple1[DualRowVector]](t => Tuple1(f(t)))
-        df(t).map[[X] =>> Any]([T] => (e: T) => e.asInstanceOf[Tuple1[Any]].head
-        ).asInstanceOf[Tuple.Map[DualTupleToPTuple[T], UpPByRowVector]]
+        df(t).map[[X] =>> Any]([T] => (e: T) => e.asInstanceOf[Tuple1[Any]].head).asInstanceOf[Tuple.Map[DualTupleToPTuple[T], UpPByRowVector]]
     
     def deriveTuple2Matrix[T <: Tuple : DualTuple](f: T => DualMatrix): DualTupleToPTuple[T] => Tuple.Map[DualTupleToPTuple[T], UpPByMatrix] = t =>
         val df = deriveTuple2Tuple[T, Tuple1[DualMatrix]](t => Tuple1(f(t)))
-        df(t).map[[X] =>> Any]([T] => (e: T) => e.asInstanceOf[Tuple1[Any]].head
-        ).asInstanceOf[Tuple.Map[DualTupleToPTuple[T], UpPByMatrix]]
+        df(t).map[[X] =>> Any]([T] => (e: T) => e.asInstanceOf[Tuple1[Any]].head).asInstanceOf[Tuple.Map[DualTupleToPTuple[T], UpPByMatrix]]
         
     def deriveScalar2Tuple[RT <: Tuple : DualTuple](f: DualScalar => RT): PScalar => DualTupleToPTuple[RT] = t =>
         val df = deriveTuple2Tuple[Tuple1[DualScalar], RT](t => f(t.head))
