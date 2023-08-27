@@ -1,5 +1,5 @@
 package scalagrad.showcase.probabilisticProgramming
-/*
+
 import breeze.stats.distributions.Gaussian
 import breeze.stats.distributions.Rand.FixedSeed.randBasis
 import spire.math.Numeric
@@ -8,12 +8,6 @@ import spire.algebra.Trig
 import spire.compat.numeric
 
 import scalagrad.api.matrixalgebra.MatrixAlgebraDSL
-
-import scalagrad.api.forward.dual.DualNumberScalar
-import scalagrad.api.spire.numeric.DualScalarIsNumeric.given
-import scalagrad.api.spire.trig.DualScalarIsTrig.given
-import scalagrad.auto.forward.breeze.BreezeDoubleForwardMode.given
-import scalagrad.auto.forward.breeze.BreezeDoubleForwardMode.{algebraT => algebra}
 
 import scalagrad.showcase.probabilisticProgramming.distribution.{UnnormalizedDistribution, UnnormalizedLogDistribution}
 import scalagrad.showcase.probabilisticProgramming.metropolisHastings.GaussianMetropolisSampler
@@ -27,8 +21,18 @@ import scaltair.PlotTargetBrowser.given
 import breeze.stats.meanAndVariance
 import breeze.linalg.{DenseVector, DenseMatrix}
 import scalagrad.auto.breeze.BreezeDoubleMatrixAlgebraDSL
+import scalagrad.api.forward.ForwardDualMode
 
 object UseCase1b extends App:
+    
+    def d(
+        f: (alg: MatrixAlgebraDSL) => (alg.ColumnVector, alg.Scalar, alg.Scalar) => alg.Scalar
+    ): (alg: MatrixAlgebraDSL) => (alg.ColumnVector, alg.Scalar, alg.Scalar) => (alg.ColumnVector, alg.Scalar, alg.Scalar) = 
+        alg => (cv, s1, s2) => 
+            val mode = ForwardDualMode(alg.innerAlgebra)
+            val df = mode.deriveDualTuple2Scalar(f(mode.algebraDSL).tupled)
+            df(cv, s1, s2)
+
     // config
     val numWarmup = 5_000
     val numSamples = 1_000
@@ -52,17 +56,7 @@ object UseCase1b extends App:
         (xs, ys)
     }
 
-    def logLikelihood(using alg: MatrixAlgebraDSL)(xs: alg.Matrix, ys: alg.ColumnVector)(a: alg.ColumnVector, b: alg.Scalar, sigma: alg.Scalar)
-        (using num: Numeric[alg.Scalar], trig: Trig[alg.Scalar]): alg.Scalar =
-        xs.rows.zip(ys.elements).map { case (x, y) =>
-            val mu = (x * a) + b
-            val diff = y - mu
-            val exponent = alg.lift(-0.5) * (diff * diff) / (sigma * sigma)
-            val normalization = alg.lift(1.0) / (alg.lift(sqrt(2 * scala.math.Pi)) * sigma)
-            trig.log(normalization) + exponent
-        }.sum
-
-    def logPrior(using alg: MatrixAlgebraDSL)(a: alg.ColumnVector, b: alg.Scalar, sigma: alg.Scalar)
+    def logPrior(alg: MatrixAlgebraDSL)(a: alg.ColumnVector, b: alg.Scalar, sigma: alg.Scalar)
         (using num: Numeric[alg.Scalar], trig: Trig[alg.Scalar]): alg.Scalar =
         def logPriorDistA[T: Trig](x: T)(using num: Numeric[T]) = 
             gaussianLogPdf[T](num.zero, num.fromInt(1))(x)
@@ -72,21 +66,27 @@ object UseCase1b extends App:
             logNormalLogPdf[T](num.zero, num.fromDouble(0.25))(trig.log(x))
         a.map(logPriorDistA(_)).sum + logPriorDistB(b) + logPriorDistSigma(sigma)
 
-    def logPosterior(using alg: MatrixAlgebraDSL)(xs: alg.Matrix, ys: alg.ColumnVector)(a: alg.ColumnVector, b: alg.Scalar, sigma: alg.Scalar)
-        (using num: Numeric[alg.Scalar], trig: Trig[alg.Scalar]): alg.Scalar =
-        logLikelihood(xs, ys)(a, b, sigma) + logPrior(a, b, sigma)
+    def logLikelihood(xs: DenseMatrix[Double], ys: DenseVector[Double])(alg: MatrixAlgebraDSL)(a: alg.ColumnVector, b: alg.Scalar, sigma: alg.Scalar): alg.Scalar =
+        alg.lift(xs).rows.zip(alg.lift(ys).elements).map { case (x, y) =>
+            val mu = (x * a) + b
+            val diff = y - mu
+            val exponent = alg.lift(-0.5) * (diff * diff) / (sigma * sigma)
+            val normalization = alg.lift(1.0) / (alg.lift(sqrt(2 * scala.math.Pi)) * sigma)
+            alg.trig.log(normalization) + exponent
+        }.sum
+
+    def logPosterior(xs: DenseMatrix[Double], ys: DenseVector[Double])(alg: MatrixAlgebraDSL)(a: alg.ColumnVector, b: alg.Scalar, sigma: alg.Scalar): alg.Scalar =
+        logPrior(alg)(a, b, sigma) + logLikelihood(xs, ys)(alg)(a, b, sigma)
 
     def paramsToVector(a: DenseVector[Double], b: Double, sigma: Double): Vector[Double] = a.toScalaVector ++ Seq(b, sigma)
     def vectorToParams(v: Vector[Double]): (DenseVector[Double], Double, Double) = (DenseVector(v.take(10).toArray), v(10), v(11))
 
     // derive logPosterior for MALA and Hamiltonian Monte Carlo
-    val dLogPosterior = ScalaGrad.derive(logPosterior(using algebra)(algebra.lift(xs), algebra.lift(ys)))
-    val dLogPosteriorVector = vectorToParams andThen dLogPosterior andThen paramsToVector
+    val dLogPosterior = d(logPosterior(xs, ys))(BreezeDoubleMatrixAlgebraDSL)
+    val dLogPosteriorVector = vectorToParams andThen dLogPosterior.tupled andThen paramsToVector
     
     // bring logPosterior into a form that can be used by the samplers
-    def logPosteriorDouble(a: DenseVector[Double], b: Double, sigma: Double) =
-        logPosterior(using BreezeDoubleMatrixAlgebraDSL)(xs, ys)(a, b, sigma)
-    val logPosteriorDoubleVector = vectorToParams andThen logPosteriorDouble
+    val logPosteriorDoubleVector = vectorToParams andThen logPosterior(xs, ys)(BreezeDoubleMatrixAlgebraDSL)
 
     // define initial parameter setting
     val initParams: Vector[Double] = {
@@ -200,7 +200,7 @@ object UseCase1b extends App:
 
     // mathematical functions
 
-    def gaussianLogPdf[T: Numeric: Trig](mean: T, sigma: T)(x: T): T = {
+    def gaussianLogPdf[T: Numeric: Trig](mean: T, sigma: T)(x: T): T =
         val num = summon[Numeric[T]]
         val trig = summon[Trig[T]]
         val pi = num.fromDouble(math.Pi)
@@ -209,19 +209,9 @@ object UseCase1b extends App:
         val diff = x - mean
         val diff2 = diff * diff
         -trig.log(two * pi * sigma2) / 2 - diff2 / (two * sigma2)
-    } ensuring { res =>
-        def ~=(x: Double, y: Double) = {
-            if ((x - y).abs < 0.001) true else false
-        }
-        val num = summon[Numeric[T]]
-        // println(f"${mean.toDouble}, ${sigma.toDouble}")
-        // println(f"${res.toDouble} ~= ${Gaussian(mean.toDouble, sigma.toDouble).logPdf(x.toDouble)}")
-        true || ~=(res.toDouble, Gaussian(mean.toDouble, sigma.toDouble).logPdf(x.toDouble))
-    }
 
     def logNormalLogPdf[T: Numeric: Trig](mean: T, sigma: T)(x: T): T =
         val num = summon[Numeric[T]]
         val trig = summon[Trig[T]]
         val pi = num.fromDouble(math.Pi)
         gaussianLogPdf(mean, sigma)(x)
-*/

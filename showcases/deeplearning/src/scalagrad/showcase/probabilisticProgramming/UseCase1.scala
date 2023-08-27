@@ -1,5 +1,5 @@
 package scalagrad.showcase.probabilisticProgramming
-/*
+
 import breeze.stats.distributions.Gaussian
 import breeze.stats.distributions.Rand.FixedSeed.randBasis
 import spire.math.Numeric
@@ -7,19 +7,32 @@ import spire.implicits._
 import spire.algebra.Trig
 import spire.compat.numeric
 
-import scalagrad.api.forward.dual.DualNumberScalar
-import scalagrad.api.spire.numeric.DualScalarIsNumeric.given
-import scalagrad.api.spire.trig.DualScalarIsTrig.given
-import scalagrad.auto.forward.breeze.BreezeDoubleForwardMode.given
-
 import scalagrad.showcase.probabilisticProgramming.distribution.{UnnormalizedDistribution, UnnormalizedLogDistribution}
 import scalagrad.showcase.probabilisticProgramming.metropolisHastings.GaussianMetropolisSampler
 import scalagrad.showcase.probabilisticProgramming.metropolisHastings.MetropolisAdjustedLangevinAlgorithmSampler
 import scala.util.Random
 
+import scalagrad.api.forward.ForwardMode.derive as d
+
 import breeze.stats.meanAndVariance
+import scalagrad.api.matrixalgebra.MatrixAlgebraDSL
+import scalagrad.api.matrixalgebra.MatrixAlgebra
+import scalagrad.auto.breeze.BreezeDoubleMatrixAlgebra
+import scalagrad.auto.breeze.BreezeDoubleMatrixAlgebraDSL
+import scalagrad.api.forward.ForwardDualMode
+import scala.reflect.api.Mirror
 
 object UseCase1 extends App:
+
+    def d(
+        f: (alg: MatrixAlgebraDSL) => (alg.Scalar, alg.Scalar, alg.Scalar) => alg.Scalar
+    ):(alg: MatrixAlgebraDSL) => (alg.Scalar, alg.Scalar, alg.Scalar) => (alg.Scalar, alg.Scalar, alg.Scalar) = 
+        alg => (s1, s2, s3) =>
+            val mode = ForwardDualMode(alg.innerAlgebra)
+            val df = mode.deriveDualTuple2Scalar(f(mode.algebraDSL).tupled)
+            df((s1, s2, s3))
+
+    // Target configuration and data generation
     val a = 0.2
     val b = 3
     val sigma = 0.5
@@ -29,76 +42,52 @@ object UseCase1 extends App:
     }
 
     case class Parameters[T](a : T, b:  T, sigma : T)
+    
     object Parameters:
         extension [T] (p: Parameters[T])
             def toVector: Vector[T] = Vector(p.a, p.b, p.sigma)
         def fromVector[T](v: Vector[T]): Parameters[T] = Parameters[T](v(0), v(1), v(2))
 
-    def gaussianLogPdf[T: Numeric: Trig](mean: T, sigma: T)(x: T): T = {
-        val num = summon[Numeric[T]]
-        val trig = summon[Trig[T]]
-        val pi = num.fromDouble(math.Pi)
-        val two = num.fromInt(2)
-        val sigma2 = sigma * sigma
-        val diff = x - mean
-        val diff2 = diff * diff
-        -trig.log(two * pi * sigma2) / 2 - diff2 / (two * sigma2)
-    } ensuring { res =>
-        def ~=(x: Double, y: Double) = {
-            if ((x - y).abs < 0.001) true else false
-        }
-        val num = summon[Numeric[T]]
-        true || ~=(res.toDouble, Gaussian(mean.toDouble, sigma.toDouble).logPdf(x.toDouble))
-    }
+    case class GaussianDerivable[S](alg: MatrixAlgebra[S, _, _, _], mean: S, sigma: S):
+        import alg.*
+        def logPdf(x: S): S =
+            val res = (x - mean) / sigma
+            val normalizationTerm = alg.num.sqrt(alg.lift(2 * Math.PI)) * sigma
+            alg.lift(-0.5) * res * res - alg.trig.log(normalizationTerm)
 
-    def logNormalLogPdf[T: Numeric: Trig](mean: T, sigma: T)(x: T): T =
-        val num = summon[Numeric[T]]
-        val trig = summon[Trig[T]]
-        val pi = num.fromDouble(math.Pi)
-        gaussianLogPdf(mean, sigma)(x)
+    def logPrior(alg: MatrixAlgebraDSL)(p: Parameters[alg.Scalar]): alg.Scalar =
+        def logPriorDistA(alg: MatrixAlgebraDSL)(x: alg.Scalar): alg.Scalar = 
+            GaussianDerivable(alg.innerAlgebra, alg.lift(0), alg.lift(1)).logPdf(x)
+        def logPriorDistB(alg: MatrixAlgebraDSL)(x: alg.Scalar): alg.Scalar = 
+            GaussianDerivable(alg.innerAlgebra, alg.lift(0), alg.lift(10)).logPdf(x)
+        def logPriorDistSigma(alg: MatrixAlgebraDSL)(x: alg.Scalar): alg.Scalar = 
+            GaussianDerivable(alg.innerAlgebra, alg.lift(0), alg.lift(0.25)).logPdf(x)
+        logPriorDistA(alg)(p.a) + logPriorDistB(alg)(p.b) + logPriorDistSigma(alg)(p.sigma)
 
-    def logLikelihood[T: Numeric: Trig](p: Parameters[T]): T =
-        val num = summon[Numeric[T]]
-        val likelihoods = 
-            for ((x, y) <- data) yield
-                gaussianLogPdf(p.a * num.fromDouble(x) + p.b, p.sigma)(num.fromDouble(y))
-        likelihoods.sum
+    def logLikelihood(alg: MatrixAlgebraDSL)(p: Parameters[alg.Scalar]): alg.Scalar =
+        data.map((x, y) => 
+            val gaussian = GaussianDerivable(alg.innerAlgebra, p.a * alg.lift(x) + p.b, p.sigma)
+            gaussian.logPdf(alg.lift(y))
+        ).sum
 
-    def logPriorDistA[T: Numeric: Trig](x: T) = 
-        val num = summon[Numeric[T]]
-        gaussianLogPdf[T](num.zero, num.fromInt(1))(x)
-    def logPriorDistB[T: Numeric: Trig](x: T) = 
-        val num = summon[Numeric[T]]
-        gaussianLogPdf[T](num.zero, num.fromInt(10))(x)
-    def logPriorDistSigma[T: Numeric: Trig](x: T) = 
-        val num = summon[Numeric[T]]
-        val trig = summon[Trig[T]]
-        logNormalLogPdf[T](num.zero, num.fromDouble(0.25))(trig.log(x))
-
-    def logPrior[T: Numeric: Trig](p: Parameters[T]): T =
-        logPriorDistA(p.a) + logPriorDistB(p.b) + logPriorDistSigma(p.sigma)
-
-    def logPosterior[T: Numeric: Trig](p: Parameters[T]): T =
-        logLikelihood(p) + logPrior(p)
-
-    import scala.deriving.Mirror
-    def toTupleFunction[P <: Product, R](f: P => R)(using m: Mirror.ProductOf[P]): m.MirroredElemTypes => R = 
-        t => f(m.fromProduct(t))
-
+    def logPosterior(alg: MatrixAlgebraDSL)(a : alg.Scalar, b:  alg.Scalar, sigma : alg.Scalar): alg.Scalar =
+        val p = Parameters(a, b, sigma)
+        logPrior(alg)(p) + logLikelihood(alg)(p)
+     
     val stepSize = 0.1
-    val dLogPosterior = ScalaGrad.derive(toTupleFunction(logPosterior[DualNumberScalar[Double]]))
-    val dParameters = summon[Mirror.Of[Parameters[Double]]].fromProduct(dLogPosterior(0.0, 0.0, 1.0))
-    println(f"Initial Gradient: ${dParameters}")
-
+    val dLogPosterior = d(logPosterior)(BreezeDoubleMatrixAlgebraDSL)
+    
+    // Metropolis samples
     lazy val metroSamples =
         GaussianMetropolisSampler(
             new Random(),
             stepSize, 
         )
-            .apply(UnnormalizedLogDistribution(v => toTupleFunction(logPosterior[Double])(v(0), v(1), v(2))), Vector(0.0, 0.0, 1.0))
+            .apply(UnnormalizedLogDistribution(v => logPosterior(BreezeDoubleMatrixAlgebraDSL)(v(0), v(1), v(2))), Vector(0.0, 0.0, 1.0))
             .drop(5_000)
             .take(10_000).toSeq
 
+    // MALA samples
     lazy val malaSamples = 
         MetropolisAdjustedLangevinAlgorithmSampler(
             new Random(),
@@ -106,10 +95,11 @@ object UseCase1 extends App:
             stepSize = 1e-6,
             sigma = 1.0
         )
-            .apply(UnnormalizedLogDistribution(v => toTupleFunction(logPosterior[Double])(v(0), v(1), v(2))), Vector(0.0, 0.0, 1.0))
+            .apply(UnnormalizedLogDistribution(v => logPosterior(BreezeDoubleMatrixAlgebraDSL)(v(0), v(1), v(2))), Vector(0.0, 0.0, 1.0))
             .drop(50_000)
             .take(50_000).toSeq
 
+    // Output results
     {
         println("Metro")
         val samples = metroSamples.map(Parameters.fromVector(_))
@@ -134,10 +124,5 @@ object UseCase1 extends App:
         println(s"Estimates for parameter sigma: mean = ${meanAndVariancesigma.mean}, var = ${meanAndVariancesigma.variance}")
         println("***")
         
-        println(f"End Gradient: ${ScalaGrad.derive(toTupleFunction(logPosterior[DualNumberScalar[Double]]))(meanAndVarianceA.mean, meanAndVarianceB.mean, meanAndVariancesigma.mean)}")
-
+        println(f"End Gradient: ${d(logPosterior)(BreezeDoubleMatrixAlgebraDSL)(meanAndVarianceA.mean, meanAndVarianceB.mean, meanAndVariancesigma.mean)}")
     }
-
-
-
-    */
