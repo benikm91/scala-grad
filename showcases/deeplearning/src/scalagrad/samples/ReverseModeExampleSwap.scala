@@ -2,21 +2,21 @@ package scalagrad
 
 
 @main
-def reverseSample = 
-    // import ScalaGrad and the reverse plan
+def reverseModeExampleSwap = 
     import scalagrad.api.matrixalgebra.MatrixAlgebraDSL
-    import scalagrad.api.reverse.ReverseMode.derive as d
     import scalagrad.auto.breeze.BreezeDoubleMatrixAlgebraDSL
 
     // define a function using the types inside algebraT  (algebraT is from reverse plan)
-    def f(alg: MatrixAlgebraDSL)(
+    def swap(alg: MatrixAlgebraDSL)(
         x1: alg.Scalar,
         x2: alg.Scalar,
     ): (alg.Scalar, alg.Scalar) = (x2, x1)
 
+    // import the reverse mode
+    import scalagrad.api.reverse.ReverseMode.derive as d
+
     // derive the function
-    val df = d(f)(BreezeDoubleMatrixAlgebraDSL)
+    val dSwap = d(swap)(BreezeDoubleMatrixAlgebraDSL)
 
     // call the derived function
-    val res = df(1.0, 2.0)
-    assert(res == ((0.0, 1.0), (1.0, 0.0)))
+    assert(dSwap(1.0, 2.0) == ((0.0, 1.0), (1.0, 0.0)))

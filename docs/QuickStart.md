@@ -6,13 +6,12 @@ ScalaGrad can do Automatic Differentiation supporting:
 
 - Forward-mode
 - Reverse-mode
-- Mixture-mode
 
 ## Forward-mode
 
 ### Minimal Example
 
-Showcase the forward mode for a function f: (S, S) => (S, S)
+Showcase the forward mode for a function f: S => S
 
 ```scala mdoc
 // import ScalaGrad and the forward plan
@@ -23,9 +22,8 @@ import BreezeDoubleForwardMode.{algebraT as alg}
 
 // define a function using the types inside algebraT (algebraT is from forward plan)
 def f(
-    x1: alg.Scalar,
-    x2: alg.Scalar,
-): (alg.Scalar, alg.Scalar) = (x2, x1)
+    x: alg.Scalar,
+): (alg.Scalar, alg.Scalar) = x * x
 
 // derive the function
 val df = ScalaGrad.derive(f)

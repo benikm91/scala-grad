@@ -1,23 +1,21 @@
 package scalagrad
 
 @main
-def forwardSample = 
-    // import ScalaGrad and the forward plan
-    import scalagrad.api.forward.ForwardMode.derive as d
+def forwardExampleSwap = 
     import scalagrad.api.matrixalgebra.MatrixAlgebraDSL
     import scalagrad.auto.breeze.BreezeDoubleMatrixAlgebraDSL
 
     // define a function using the types inside algebraT (algebraT is from forward plan)
-    def f(alg: MatrixAlgebraDSL)(
+    def swap(alg: MatrixAlgebraDSL)(
         x1: alg.Scalar,
         x2: alg.Scalar,
     ): (alg.Scalar, alg.Scalar) = (x2, x1)
 
-    // derive the function
-    val dfF = d(f)
+    // import the forwarde mode
+    import scalagrad.api.forward.ForwardMode.derive as d
 
-    val df = d(f)(BreezeDoubleMatrixAlgebraDSL)
+    // derive the function
+    val dSwap = d(swap)(BreezeDoubleMatrixAlgebraDSL)
 
     // call the derived function
-    val res: ((Double, Double), (Double, Double)) = df(1.0, 2.0)
-    assert(res == ((0.0, 1.0), (1.0, 0.0)))
+    assert(dSwap(1.0, 2.0) == ((0.0, 1.0), (1.0, 0.0)))
