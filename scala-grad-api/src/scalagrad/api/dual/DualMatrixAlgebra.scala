@@ -9,7 +9,7 @@ import spire.algebra.{NRoot, Trig}
 import spire.math.Numeric
 import spire.syntax.nroot
 
-import scala.reflect.Typeable
+import scala.reflect.TypeTest
 
 
 trait DualMatrixAlgebraDSL extends MatrixAlgebraDSL:
@@ -55,6 +55,10 @@ case class DualMatrixAlgebra[
     Numeric[PScalar],
     Trig[PScalar],
     NRoot[PScalar],
+    TypeTest[DualScalar | DualColumnVector | DualRowVector | DualMatrix, DualScalar],
+    TypeTest[DualScalar | DualColumnVector | DualRowVector | DualMatrix, DualColumnVector],
+    TypeTest[DualScalar | DualColumnVector | DualRowVector | DualMatrix, DualRowVector],
+    TypeTest[DualScalar | DualColumnVector | DualRowVector | DualMatrix, DualMatrix],
 ) extends MatrixAlgebra[
     DualScalar, DualColumnVector, DualRowVector, DualMatrix
 ]

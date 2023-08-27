@@ -31,6 +31,42 @@ trait DualMode[
 
     import primaryMatrixAlgebra.given
 
+    given dualScalarTest: TypeTest[DualScalar | DualColumnVector | DualRowVector | DualMatrix, DualScalar] = 
+        new TypeTest {
+            def unapply(x: DualScalar | DualColumnVector | DualRowVector | DualMatrix): Option[x.type & DualScalar] = 
+                x match {
+                    case _: DualScalar => Some(x.asInstanceOf[x.type & DualScalar])
+                    case _ => None
+                }
+        }
+
+    given dualColumnVectorTest: TypeTest[DualScalar | DualColumnVector | DualRowVector | DualMatrix, DualColumnVector] = 
+        new TypeTest {
+            def unapply(x: DualScalar | DualColumnVector | DualRowVector | DualMatrix): Option[x.type & DualColumnVector] = 
+                x match {
+                    case _: DualColumnVector => Some(x.asInstanceOf[x.type & DualColumnVector])
+                    case _ => None
+                }
+        }
+
+    given dualRowVectorTest: TypeTest[DualScalar | DualColumnVector | DualRowVector | DualMatrix, DualRowVector] = 
+        new TypeTest {
+            def unapply(x: DualScalar | DualColumnVector | DualRowVector | DualMatrix): Option[x.type & DualRowVector] = 
+                x match {
+                    case _: DualRowVector => Some(x.asInstanceOf[x.type & DualRowVector])
+                    case _ => None
+                }
+        }
+    
+    given dualMatrixTest: TypeTest[DualScalar | DualColumnVector | DualRowVector | DualMatrix, DualMatrix] = 
+        new TypeTest {
+            def unapply(x: DualScalar | DualColumnVector | DualRowVector | DualMatrix): Option[x.type & DualMatrix] = 
+                x match {
+                    case _: DualMatrix => Some(x.asInstanceOf[x.type & DualMatrix])
+                    case _ => None
+                }
+        }
+
     lazy val algebra = DualMatrixAlgebra[
         PScalar, PColumnVector, PRowVector, PMatrix, 
         DScalar, DColumnVector, DRowVector, DMatrix, 
@@ -40,17 +76,12 @@ trait DualMode[
         derivativeMatrixAlgebra,
     )
 
-    val stE = summon[TypeTest[DualScalar | DualColumnVector | DualRowVector | DualMatrix, DualScalar]]
-    val cvtE = summon[TypeTest[DualScalar | DualColumnVector | DualRowVector | DualMatrix, DualColumnVector]]
-    val rvtE = summon[TypeTest[DualScalar | DualColumnVector | DualRowVector | DualMatrix, DualRowVector]]
-    val mtE = summon[TypeTest[DualScalar | DualColumnVector | DualRowVector | DualMatrix, DualMatrix]]
-
     lazy val algebraDSL = new DualMatrixAlgebraDSL {
 
-        given scalarTest: TypeTest[Scalar | ColumnVector | RowVector | Matrix, Scalar] = stE
-        given columnVectorTest: TypeTest[Scalar | ColumnVector | RowVector | Matrix, ColumnVector] = cvtE
-        given rowVectorTest: TypeTest[Scalar | ColumnVector | RowVector | Matrix, RowVector] = rvtE
-        given matrixTest: TypeTest[Scalar | ColumnVector | RowVector | Matrix, Matrix] = mtE
+        given scalarTest: TypeTest[Scalar | ColumnVector | RowVector | Matrix, Scalar] = dualScalarTest
+        given columnVectorTest: TypeTest[Scalar | ColumnVector | RowVector | Matrix, ColumnVector] = dualColumnVectorTest
+        given rowVectorTest: TypeTest[Scalar | ColumnVector | RowVector | Matrix, RowVector] = dualRowVectorTest
+        given matrixTest: TypeTest[Scalar | ColumnVector | RowVector | Matrix, Matrix] = dualMatrixTest
 
         override type PrimaryScalar = PScalar
         override type PrimaryColumnVector = PColumnVector
