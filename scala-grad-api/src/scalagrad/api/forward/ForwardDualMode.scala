@@ -7,12 +7,19 @@ import scalagrad.api.matrixalgebra.{CreateOps, MatrixAlgebra, MatrixAlgebraDSL}
 import scalagrad.api.{DualMode, dual}
 
 import scala.annotation.{nowarn, targetName}
-import scala.reflect.Typeable
+import scala.reflect.TypeTest
 
 class ForwardDualMode[
-    PScalar : Typeable, PColumnVector : Typeable, PRowVector : Typeable, PMatrix : Typeable,
+    PScalar, PColumnVector, PRowVector, PMatrix,
 ](
     override val primaryMatrixAlgebra: MatrixAlgebra[PScalar, PColumnVector, PRowVector, PMatrix],
+)(
+    // We have runtime type test to check if the type is PScalar | PColumnVector | PRowVector | PMatrix
+    using 
+    TypeTest[PScalar | PColumnVector | PRowVector | PMatrix, PScalar],
+    TypeTest[PScalar | PColumnVector | PRowVector | PMatrix, PColumnVector],
+    TypeTest[PScalar | PColumnVector | PRowVector | PMatrix, PRowVector],
+    TypeTest[PScalar | PColumnVector | PRowVector | PMatrix, PMatrix],
 ) extends DualMode[PScalar, PColumnVector, PRowVector, PMatrix]:
     
     override type  DScalar = PScalar

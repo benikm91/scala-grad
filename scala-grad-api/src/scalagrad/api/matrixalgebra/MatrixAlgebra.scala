@@ -5,7 +5,7 @@ import scalagrad.api.fractional.MatrixAlgebraScalarIsFractional
 import spire.algebra.{NRoot, Trig}
 import spire.math.Numeric
 
-import scala.reflect.Typeable
+import scala.reflect.TypeTest
 
 trait MatrixAlgebraDSL:
   
@@ -14,10 +14,10 @@ trait MatrixAlgebraDSL:
     type RowVector
     type Matrix
 
-    given st: Typeable[Scalar]
-    given cvt: Typeable[ColumnVector]
-    given rvt: Typeable[RowVector]
-    given mt: Typeable[Matrix]
+    given scalarTest: TypeTest[Scalar | ColumnVector | RowVector | Matrix, Scalar]
+    given columnVectorTest: TypeTest[Scalar | ColumnVector | RowVector | Matrix, ColumnVector]
+    given rowVectorTest: TypeTest[Scalar | ColumnVector | RowVector | Matrix, RowVector]
+    given matrixTest: TypeTest[Scalar | ColumnVector | RowVector | Matrix, Matrix]
 
     val innerAlgebra: MatrixAlgebra[Scalar, ColumnVector, RowVector, Matrix]
 
@@ -25,7 +25,13 @@ trait MatrixAlgebraDSL:
     export innerAlgebra.given
 
 
-trait MatrixAlgebra[Scalar : Typeable, ColumnVector : Typeable, RowVector : Typeable, Matrix : Typeable] 
+trait MatrixAlgebra[Scalar, ColumnVector, RowVector, Matrix](
+        using 
+        scalarTest: TypeTest[Scalar | ColumnVector | RowVector | Matrix, Scalar],
+        columnVectorTest: TypeTest[Scalar | ColumnVector | RowVector | Matrix, ColumnVector],
+        rowVectorTest: TypeTest[Scalar | ColumnVector | RowVector | Matrix, RowVector],
+        matrixTest: TypeTest[Scalar | ColumnVector | RowVector | Matrix, Matrix],
+    ) 
     extends LengthOps[ColumnVector, RowVector, Matrix]
     with MatrixOps[Matrix, Scalar]
     with TransposeOps[ColumnVector, RowVector, Matrix]
@@ -80,19 +86,14 @@ trait MatrixAlgebra[Scalar : Typeable, ColumnVector : Typeable, RowVector : Type
         type RowVector = RowVectorT
         type Matrix = MatrixT
     } = 
-        val self = this
-        val stE = summon[Typeable[Scalar]]
-        val cvtE = summon[Typeable[ColumnVector]]
-        val rvtE = summon[Typeable[RowVector]]
-        val mtE = summon[Typeable[Matrix]]
         new MatrixAlgebraDSL {
-            override given st: Typeable[Scalar] = stE
-            override given cvt: Typeable[ColumnVector] = cvtE
-            override given rvt: Typeable[RowVector] = rvtE
-            override given mt: Typeable[Matrix] = mtE
-            override type Scalar = self.ScalarT
-            override type ColumnVector = self.ColumnVectorT
-            override type RowVector = self.RowVectorT
-            override type Matrix = self.MatrixT
-            override val innerAlgebra = self
+            override given scalarTest: TypeTest[Scalar | ColumnVector | RowVector | Matrix, Scalar] = MatrixAlgebra.this.scalarTest
+            override given columnVectorTest: TypeTest[Scalar | ColumnVector | RowVector | Matrix, ColumnVector] = MatrixAlgebra.this.columnVectorTest
+            override given rowVectorTest: TypeTest[Scalar | ColumnVector | RowVector | Matrix, RowVector] = MatrixAlgebra.this.rowVectorTest
+            override given matrixTest: TypeTest[Scalar | ColumnVector | RowVector | Matrix, Matrix] = MatrixAlgebra.this.matrixTest
+            override type Scalar = MatrixAlgebra.this.ScalarT
+            override type ColumnVector = MatrixAlgebra.this.ColumnVectorT
+            override type RowVector = MatrixAlgebra.this.RowVectorT
+            override type Matrix = MatrixAlgebra.this.MatrixT
+            override val innerAlgebra = MatrixAlgebra.this
         }

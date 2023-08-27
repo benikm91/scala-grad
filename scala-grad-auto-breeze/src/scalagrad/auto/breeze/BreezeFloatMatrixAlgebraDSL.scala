@@ -5,19 +5,14 @@ import scalagrad.api.forward.dual.*
 import scalagrad.api.matrixalgebra.{MatrixAlgebra, MatrixAlgebraDSL}
 import scalagrad.auto.breeze.BreezeDoubleMatrixAlgebra
 
-import scala.reflect.Typeable
-
-val stEF = summon[Typeable[Float]]
-val cvtEF = summon[Typeable[DenseVector[Float]]]
-val rvtEF = summon[Typeable[Transpose[DenseVector[Float]]]]
-val mtEF = summon[Typeable[DenseMatrix[Float]]]
+import scala.reflect.{TypeTest, Typeable}
 
 object BreezeFloatMatrixAlgebraDSL extends MatrixAlgebraDSL:
-    
-    override given st: Typeable[Float] = stEF
-    override given cvt: Typeable[DenseVector[Float]] = cvtEF
-    override given rvt: Typeable[Transpose[DenseVector[Float]]] = rvtEF
-    override given mt: Typeable[DenseMatrix[Float]] = mtEF
+ 
+    given scalarTest: TypeTest[Scalar | ColumnVector | RowVector | Matrix, Scalar] = summon[Typeable[Float]]
+    given columnVectorTest: TypeTest[Scalar | ColumnVector | RowVector | Matrix, ColumnVector] = summon[Typeable[DenseVector[Float]]]
+    given rowVectorTest: TypeTest[Scalar | ColumnVector | RowVector | Matrix, RowVector] = summon[Typeable[Transpose[DenseVector[Float]]]]
+    given matrixTest: TypeTest[Scalar | ColumnVector | RowVector | Matrix, Matrix] = summon[Typeable[DenseMatrix[Float]]]
 
     override type Scalar = Float
     override type ColumnVector = DenseVector[Float]

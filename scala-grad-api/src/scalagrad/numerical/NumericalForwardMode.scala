@@ -145,18 +145,20 @@ object NumericalForwardMode:
             val inputsWithIndex = inputs.zip(indices)
             def appendTopAndBottomTo(top: Tuple, x: Any, bottom: Tuple) = 
                 top ++ (x *: bottom)
-            inputsWithIndex.map[[X] =>> Any]([U] => (t: U) => t match {
-                case (s: alg.Scalar, y: Int) => 
-                    val (top, bottom) = inputs.splitAt(y)
-                    approxScalar(alg)(s, epsilonScalar, s => f(appendTopAndBottomTo(top.asInstanceOf[NonEmptyTuple].init, s, bottom).asInstanceOf[T]))
-                case (cv: alg.ColumnVector, y: Int) => 
-                    val (top, bottom) = inputs.splitAt(y)
-                    approxColumnVector(alg)(cv, epsilonScalar, cv => f(appendTopAndBottomTo(top.asInstanceOf[NonEmptyTuple].init, cv, bottom).asInstanceOf[T]))
-                case (rv: alg.RowVector, y: Int) => 
-                    val (top, bottom) = inputs.splitAt(y)
-                    approxRowVector(alg)(rv, epsilonScalar, rv => f(appendTopAndBottomTo(top.asInstanceOf[NonEmptyTuple].init, rv, bottom).asInstanceOf[T]))
-                case (m: alg.Matrix, y: Int) =>
-                    val (top, bottom) = inputs.splitAt(y)
-                    approxMatrix(alg)(m, epsilonScalar, m => f(appendTopAndBottomTo(top.asInstanceOf[NonEmptyTuple].init, m, bottom).asInstanceOf[T]))
-            }).asInstanceOf[T]
+            inputsWithIndex.map[[X] =>> Any]([U] => (t: U) => 
+                // map to Any lost type information, recover them with asInstanceOf
+                t.asInstanceOf[(alg.Scalar, Int) | (alg.ColumnVector, Int) | (alg.RowVector, Int) | (alg.Matrix, Int)] match {
+                    case (s: alg.Scalar, y: Int) => 
+                        val (top, bottom) = inputs.splitAt(y)
+                        approxScalar(alg)(s, epsilonScalar, s => f(appendTopAndBottomTo(top.asInstanceOf[NonEmptyTuple].init, s, bottom).asInstanceOf[T]))
+                    case (cv: alg.ColumnVector, y: Int) => 
+                        val (top, bottom) = inputs.splitAt(y)
+                        approxColumnVector(alg)(cv, epsilonScalar, cv => f(appendTopAndBottomTo(top.asInstanceOf[NonEmptyTuple].init, cv, bottom).asInstanceOf[T]))
+                    case (rv: alg.RowVector, y: Int) => 
+                        val (top, bottom) = inputs.splitAt(y)
+                        approxRowVector(alg)(rv, epsilonScalar, rv => f(appendTopAndBottomTo(top.asInstanceOf[NonEmptyTuple].init, rv, bottom).asInstanceOf[T]))
+                    case (m: alg.Matrix, y: Int) =>
+                        val (top, bottom) = inputs.splitAt(y)
+                        approxMatrix(alg)(m, epsilonScalar, m => f(appendTopAndBottomTo(top.asInstanceOf[NonEmptyTuple].init, m, bottom).asInstanceOf[T]))
+                }).asInstanceOf[T]
         numericalPlan(t)

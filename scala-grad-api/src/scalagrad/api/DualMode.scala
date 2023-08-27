@@ -4,7 +4,7 @@ import scalagrad.api.dual.{DualMatrixAlgebra, DualMatrixAlgebraDSL}
 import scalagrad.api.matrixalgebra.MatrixAlgebra
 import scalagrad.api.matrixalgebra.derivative.DerivativeMatrixAlgebra
 
-import scala.reflect.Typeable
+import scala.reflect.TypeTest
 
 
 trait DualMode[
@@ -40,17 +40,17 @@ trait DualMode[
         derivativeMatrixAlgebra,
     )
 
-    val stE = summon[Typeable[DualScalar]]
-    val cvtE = summon[Typeable[DualColumnVector]]
-    val rvtE = summon[Typeable[DualRowVector]]
-    val mtE = summon[Typeable[DualMatrix]]
+    val stE = summon[TypeTest[DualScalar | DualColumnVector | DualRowVector | DualMatrix, DualScalar]]
+    val cvtE = summon[TypeTest[DualScalar | DualColumnVector | DualRowVector | DualMatrix, DualColumnVector]]
+    val rvtE = summon[TypeTest[DualScalar | DualColumnVector | DualRowVector | DualMatrix, DualRowVector]]
+    val mtE = summon[TypeTest[DualScalar | DualColumnVector | DualRowVector | DualMatrix, DualMatrix]]
 
     lazy val algebraDSL = new DualMatrixAlgebraDSL {
 
-        override given st: Typeable[Scalar] = stE
-        override given cvt: Typeable[ColumnVector] = cvtE
-        override given rvt: Typeable[RowVector] = rvtE
-        override given mt: Typeable[Matrix] = mtE
+        given scalarTest: TypeTest[Scalar | ColumnVector | RowVector | Matrix, Scalar] = stE
+        given columnVectorTest: TypeTest[Scalar | ColumnVector | RowVector | Matrix, ColumnVector] = cvtE
+        given rowVectorTest: TypeTest[Scalar | ColumnVector | RowVector | Matrix, RowVector] = rvtE
+        given matrixTest: TypeTest[Scalar | ColumnVector | RowVector | Matrix, Matrix] = mtE
 
         override type PrimaryScalar = PScalar
         override type PrimaryColumnVector = PColumnVector
@@ -92,9 +92,7 @@ trait DualMode[
         case DualMatrix *: t => DualTuple[t]
         case EmptyTuple => DummyImplicit
 
-    type DualTupleToPTuple[T <: Tuple] <: Tuple = T match
-        case (head *: tail) => DualToP[head] *: DualTupleToPTuple[tail]
-        case EmptyTuple     => EmptyTuple
+    type DualTupleToPTuple[T <: Tuple] = Tuple.Map[T, DualToP]
 
     type DualToP[T] = T match
         case DualScalar       => PScalar
@@ -102,19 +100,15 @@ trait DualMode[
         case DualRowVector    => PRowVector
         case DualMatrix       => PMatrix
 
-    type UpPByColumnVectorTuple[T <: Tuple] <: Tuple = T match
-        case (head *: tail) => UpPByColumnVector[head] *: UpPByColumnVectorTuple[tail]
-        case EmptyTuple     => EmptyTuple
-
+    type UpPByColumnVectorTuple[T <: Tuple] = Tuple.Map[T, UpPByColumnVector]
+    
     type UpPByColumnVector[T] = T match
         case PScalar       => PColumnVector
         case PColumnVector => PMatrix
         case PRowVector    => PMatrix
         case PMatrix       => PMatrix
 
-    type UpPByRowVectorTuple[T <: Tuple] <: Tuple = T match
-        case (head *: tail) => UpPByRowVector[head] *: UpPByRowVectorTuple[tail]
-        case EmptyTuple     => EmptyTuple
+    type UpPByRowVectorTuple[T <: Tuple] = Tuple.Map[T, UpPByRowVector]
 
     type UpPByRowVector[T] = T match
         case PScalar       => PRowVector
@@ -122,9 +116,7 @@ trait DualMode[
         case PRowVector    => PMatrix
         case PMatrix       => PMatrix
 
-    type UpPByMatrixTuple[T <: Tuple] <: Tuple = T match
-        case (head *: tail) => UpPByMatrix[head] *: UpPByMatrixTuple[tail]
-        case EmptyTuple     => EmptyTuple
+    type UpPByMatrixTuple[T <: Tuple] = Tuple.Map[T, UpPByMatrix]
 
     type UpPByMatrix[T] = T match
         case PScalar       => PMatrix
