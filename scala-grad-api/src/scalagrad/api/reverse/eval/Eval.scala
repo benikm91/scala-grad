@@ -80,26 +80,26 @@ case class Eval[PScalar, PColumnVector, PRowVector, PMatrix](
 
         while(nextDeltas.nonEmpty) {
             nextDeltas.dequeue() match {
-                case dsVal @ DeltaScalar.Val[PScalar, PColumnVector, PRowVector, PMatrix](nextIndex, ds) =>
+                case dsVal @ DeltaScalar.Val(nextIndex, ds) =>
                     assert(currentIndex >= nextIndex, f"$currentIndex >= $nextIndex")
                     currentIndex = nextIndex
                     val dOutput = dOutputs.scalar.remove(toHashCode(dsVal)).get
-                    evalScalarStep(dOutput, ds, results, dOutputs, nextDeltas)
-                case dcvVal @ DeltaColumnVector.Val[PScalar, PColumnVector, PRowVector, PMatrix](nextIndex, dcv) =>
+                    evalScalarStep(dOutput, ds.asInstanceOf[DeltaScalarT], results, dOutputs, nextDeltas)
+                case dcvVal @ DeltaColumnVector.Val(nextIndex, dcv) =>
                     assert(currentIndex >= nextIndex, f"$currentIndex >= $nextIndex")
                     currentIndex = nextIndex
                     val dOutput = dOutputs.columnVector.remove(toHashCode(dcvVal)).get
-                    evalColumnVectorStep(dOutput, dcv, results, dOutputs, nextDeltas)
-                case drvVal @ DeltaRowVector.Val[PScalar, PColumnVector, PRowVector, PMatrix](nextIndex, drv) =>
+                    evalColumnVectorStep(dOutput, dcv.asInstanceOf[DeltaColumnVectorT], results, dOutputs, nextDeltas)
+                case drvVal @ DeltaRowVector.Val(nextIndex, drv) =>
                     assert(currentIndex >= nextIndex, f"$currentIndex >= $nextIndex")
                     currentIndex = nextIndex
                     val dOutput = dOutputs.rowVector.remove(toHashCode(drvVal)).get
-                    evalRowVectorStep(dOutput, drv, results, dOutputs, nextDeltas)
-                case dmVal @ DeltaMatrix.Val[PScalar, PColumnVector, PRowVector, PMatrix](nextIndex, dm) =>
+                    evalRowVectorStep(dOutput, drv.asInstanceOf[DeltaRowVectorT], results, dOutputs, nextDeltas)
+                case dmVal @ DeltaMatrix.Val(nextIndex, dm) =>
                     assert(currentIndex >= nextIndex, f"$currentIndex >= $nextIndex")
                     currentIndex = nextIndex
                     val dOutput = dOutputs.matrix.remove(toHashCode(dmVal)).get
-                    evalMatrixStep(dOutput, dm, results, dOutputs, nextDeltas)
+                    evalMatrixStep(dOutput, dm.asInstanceOf[DeltaMatrixT], results, dOutputs, nextDeltas)
             }
         }
 

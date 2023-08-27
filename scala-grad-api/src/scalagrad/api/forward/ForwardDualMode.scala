@@ -72,12 +72,14 @@ class ForwardDualMode[
         import primaryMatrixAlgebra.*
 
         def toZeroDuals[T <: Tuple : DualTuple](t: DualTupleToPTuple[T]): T = 
-            t.map[[X] =>> Any]([T] => (t: T) => t match {
-                case x: PScalar => createDualScalar(x, dZeroOps.zeroScalar)
-                case x: PColumnVector => createDualColumnVector(x, dZeroOps.zeroColumnVector(x.length))
-                case x: PRowVector => createDualRowVector(x, dZeroOps.zeroRowVector(x.length))
-                case x: PMatrix => createDualMatrix(x, dZeroOps.zeroMatrix(x.nRows, x.nCols))
-            }).asInstanceOf[T]
+            t.map[[X] =>> Any]([T] => (t: T) => 
+                // map to Any lost type information, recover them with asInstanceOf
+                t.asInstanceOf[PScalar | PColumnVector | PRowVector | PMatrix] match {
+                    case s: PScalar => createDualScalar(s, dZeroOps.zeroScalar)
+                    case cv: PColumnVector => createDualColumnVector(cv, dZeroOps.zeroColumnVector(cv.length))
+                    case rv: PRowVector => createDualRowVector(rv, dZeroOps.zeroRowVector(rv.length))
+                    case m: PMatrix => createDualMatrix(m, dZeroOps.zeroMatrix(m.nRows, m.nCols))
+                }).asInstanceOf[T]
 
         def forwardPlan(zeroDuals: T) = 
             def splitTopAndBottomAt(duals: T, pos: Int): (Tuple, Tuple) = 

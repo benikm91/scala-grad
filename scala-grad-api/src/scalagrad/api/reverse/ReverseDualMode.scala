@@ -85,10 +85,10 @@ class ReverseDualMode[
                 tWithIndex.map[[X] =>> Any]([U] => (t: U) =>
                     // map to Any lost type information, recover them with asInstanceOf
                     t.asInstanceOf[(PScalar, Int) | (PColumnVector, Int) | (PRowVector, Int) | (PMatrix, Int)] match {
-                        case (x: PScalar, id: Int) => createDualScalar(x, DeltaScalar.Val(0, DeltaScalar.Input(id)))
-                        case (x: PColumnVector, id: Int) => createDualColumnVector(x, DeltaColumnVector.Val(0, DeltaColumnVector.Input(id)))
-                        case (x: PRowVector, id: Int) => createDualRowVector(x, DeltaRowVector.Val(0, DeltaRowVector.Input(id)))
-                        case (x: PMatrix, id: Int) => createDualMatrix(x, DeltaMatrix.Val(0, DeltaMatrix.Input(id)))
+                        case (s: PScalar, id: Int) => createDualScalar(s, DeltaScalar.Val(0, DeltaScalar.Input(id)))
+                        case (cv: PColumnVector, id: Int) => createDualColumnVector(cv, DeltaColumnVector.Val(0, DeltaColumnVector.Input(id)))
+                        case (rv: PRowVector, id: Int) => createDualRowVector(rv, DeltaRowVector.Val(0, DeltaRowVector.Input(id)))
+                        case (m: PMatrix, id: Int) => createDualMatrix(m, DeltaMatrix.Val(0, DeltaMatrix.Input(id)))
                     }).asInstanceOf[T]
             )
             def extractResults(res: eval.Results): DualTupleToPTuple[RT] =
