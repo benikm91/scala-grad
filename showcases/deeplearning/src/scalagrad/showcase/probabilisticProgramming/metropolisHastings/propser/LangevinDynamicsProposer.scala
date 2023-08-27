@@ -1,8 +1,9 @@
 package scalagrad.showcase.probabilisticProgramming.metropolisHastings.proposer
 
+import breeze.linalg.{DenseMatrix, DenseVector}
 import breeze.stats.distributions.MultivariateGaussian
-import breeze.linalg.{DenseVector, DenseMatrix}
 import breeze.stats.distributions.Rand.FixedSeed.randBasis
+
 import scala.math.sqrt
 
 

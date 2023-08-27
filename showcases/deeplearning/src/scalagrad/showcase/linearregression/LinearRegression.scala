@@ -1,14 +1,14 @@
 package scalagrad.showcase.linearregression
 
-import scala.io.Source
-import scalagrad.showcase.deeplearning.Util.*
-import scalagrad.api.reverse.ReverseMode
-import scalagrad.api.matrixalgebra.MatrixAlgebraDSL
+import breeze.linalg.{Vector as _, *}
 import scalagrad.api.dual.DualMatrixAlgebraDSL
+import scalagrad.api.matrixalgebra.MatrixAlgebraDSL
+import scalagrad.api.reverse.ReverseMode
 import scalagrad.auto.breeze.BreezeDoubleMatrixAlgebraDSL
-import scala.annotation.tailrec
+import scalagrad.showcase.deeplearning.Util.*
 
-import breeze.linalg.{Vector => _, *}
+import scala.annotation.tailrec
+import scala.io.Source
 
 @main def linearRegression() = 
 

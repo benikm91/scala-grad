@@ -1,10 +1,9 @@
 package scalagrad.api.reverse
 
+import scalagrad.api.matrixalgebra.*
+import scalagrad.api.matrixalgebra.derivative.DerivativeMatrixAlgebra
 import scalagrad.api.reverse.delta.*
 import scalagrad.api.reverse.dual.*
-import scalagrad.api.matrixalgebra.{AccessOps, AccessSetOps, CreateOps, MapOps, NegateOps, ScalarInvertOps, ZeroOps, SumOps, TransposeOps}
-import scalagrad.api.matrixalgebra.derivative.DerivativeMatrixAlgebra
-import scalagrad.api.matrixalgebra.MatrixAlgebra
   
 trait DeltaNegateOps[PScalar, PColumnVector, PRowVector, PMatrix]()
 extends NegateOps[

@@ -1,24 +1,20 @@
 package scalagrad.showcase.deeplearning.mnist
 
-import scalagrad.showcase.deeplearning.Util.{time, timeMeasure}
-import scala.io.Source
-
-import scalagrad.api.matrixalgebra.MatrixAlgebraDSL
+import breeze.linalg.*
 import scalagrad.api.dual.DualMatrixAlgebraDSL
-import scalagrad.auto.breeze.BreezeDoubleMatrixAlgebraDSL
+import scalagrad.api.matrixalgebra.MatrixAlgebraDSL
 import scalagrad.api.reverse.ReverseMode
-
-import MNISTDataSet.MNISTEntry
-import Util.*
-
+import scalagrad.auto.breeze.BreezeDoubleMatrixAlgebraDSL
+import scalagrad.showcase.deeplearning.Util.{time, timeMeasure}
+import scalagrad.showcase.deeplearning.mnist.MNISTDataSet.MNISTEntry
+import scalagrad.showcase.deeplearning.mnist.Util.*
 import spire.math.Numeric
 import spire.std.double.*
+import spire.syntax.all.trigOps
 import spire.syntax.numeric.partialOrderOps
 
-import breeze.linalg.{DenseMatrix, DenseVector}
-import breeze.linalg.*
-import spire.syntax.all.trigOps
 import scala.annotation.targetName
+import scala.io.Source
 
 // Extend Reverse mode for missing case
 extension (rad: ReverseMode.type)

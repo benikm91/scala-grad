@@ -1,9 +1,9 @@
 package scalagrad.auto.breeze.reverse
 
-import scalagrad.api.test.BaseTestSuit
 import scalagrad.api.Mode
-import scalagrad.api.reverse.ReverseMode
 import scalagrad.api.matrixalgebra.MatrixAlgebraDSL
+import scalagrad.api.reverse.ReverseMode
+import scalagrad.api.test.BaseTestSuit
 import scalagrad.auto.breeze.BreezeDoubleMatrixAlgebraDSL
 
 trait BreezeReverseBaseTestSuit extends BaseTestSuit:

@@ -1,29 +1,25 @@
 package scalagrad.api.test
 
-import scalagrad.api.matrixalgebra.derivative.DerivativeMatrixAlgebra
-import scalagrad.api.dual.DualMatrixAlgebra
-import scalagrad.api.dual
-
+import breeze.linalg.DenseMatrix
+import org.scalacheck.Gen
 import org.scalatest.*
-import flatspec.*
-import matchers.*
+import org.scalatest.flatspec.*
+import org.scalatest.matchers.*
 import org.scalatest.prop.TableDrivenPropertyChecks.whenever
 import org.scalatest.wordspec.AnyWordSpec
 import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks.forAll
-import org.scalacheck.Gen
-
-import scalagrad.api.matrixalgebra.MatrixAlgebra
-import scalagrad.api.matrixalgebra.MatrixAlgebraDSL
+import scalagrad.api.dual
+import scalagrad.api.dual.DualMatrixAlgebra
 import scalagrad.api.forward.ForwardMode
+import scalagrad.api.matrixalgebra.derivative.DerivativeMatrixAlgebra
+import scalagrad.api.matrixalgebra.{MatrixAlgebra, MatrixAlgebraDSL}
 import scalagrad.api.reverse.ReverseMode
-import breeze.linalg.{DenseMatrix}
 
 trait AccessOpsTestSuit extends AnyWordSpec:
     this: BaseTestSuit =>
 
-    import scalagrad.numerical.NumericalForwardMode.{derive => dApprox}
-
-    import deriver.{derive => d}
+    import deriver.derive as d
+    import scalagrad.numerical.NumericalForwardMode.derive as dApprox
 
     f"${testName} Matrix access operations" should {
 

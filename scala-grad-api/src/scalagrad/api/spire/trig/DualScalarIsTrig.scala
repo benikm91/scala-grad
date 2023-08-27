@@ -1,13 +1,10 @@
 package scalagrad.api.spire.trig
 
-import spire.algebra.Trig
-import scalagrad.api.matrixalgebra.MatrixAlgebra
-import scalagrad.api.matrixalgebra.derivative.CreateDualScalarOps
 import scalagrad.api.dual
-import scalagrad.api.matrixalgebra.derivative.DerivativeMatrixAlgebra
-import scalagrad.api.matrixalgebra.One
-import spire.algebra.NRoot
 import scalagrad.api.dual.DualMatrixAlgebra
+import scalagrad.api.matrixalgebra.derivative.{CreateDualScalarOps, DerivativeMatrixAlgebra}
+import scalagrad.api.matrixalgebra.{MatrixAlgebra, One}
+import spire.algebra.{NRoot, Trig}
 
 object DualScalarIsTrig:
 

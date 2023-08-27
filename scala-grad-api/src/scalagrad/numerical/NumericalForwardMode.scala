@@ -1,9 +1,9 @@
 package scalagrad.numerical
 
-import scalagrad.api.matrixalgebra.MatrixAlgebra
-import scala.reflect.Typeable
-import scalagrad.api.matrixalgebra.MatrixAlgebraDSL
+import scalagrad.api.matrixalgebra.{MatrixAlgebra, MatrixAlgebraDSL}
+
 import scala.annotation.targetName
+import scala.reflect.Typeable
 
 object NumericalForwardMode:
 

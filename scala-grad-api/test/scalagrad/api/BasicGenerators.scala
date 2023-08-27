@@ -1,19 +1,16 @@
 package scalagrad.api.test
 
-import scalagrad.api.Mode
-import scalagrad.api.matrixalgebra.derivative.DerivativeMatrixAlgebra
-import scalagrad.api.dual.DualMatrixAlgebra
-import scalagrad.api.dual
-
+import org.scalacheck.Gen
 import org.scalatest.*
-import flatspec.*
-import matchers.*
+import org.scalatest.flatspec.*
+import org.scalatest.matchers.*
 import org.scalatest.prop.TableDrivenPropertyChecks.whenever
 import org.scalatest.wordspec.AnyWordSpec
 import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks.forAll
-import org.scalacheck.Gen
-
+import scalagrad.api.dual.DualMatrixAlgebra
 import scalagrad.api.matrixalgebra.MatrixAlgebraDSL
+import scalagrad.api.matrixalgebra.derivative.DerivativeMatrixAlgebra
+import scalagrad.api.{Mode, dual}
 
 trait BasicGenerators:
     this: BaseTestSuit =>
@@ -29,8 +26,8 @@ trait BasicGenerators:
     def positiveOnlySGen: Gen[pma.Scalar] = reasonablePositiveDoubleGenerator.map(pma.lift)
 
 
+import breeze.linalg.{DenseMatrix, DenseVector, Transpose}
 import org.scalacheck.Gen
-import breeze.linalg.{DenseVector, Transpose, DenseMatrix}
 import scalagrad.api.dual
 import scalagrad.api.matrixalgebra.MatrixAlgebra
 

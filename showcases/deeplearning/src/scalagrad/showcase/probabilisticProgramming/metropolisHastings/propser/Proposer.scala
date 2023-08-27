@@ -5,8 +5,8 @@ trait Proposer[Sample]:
 
 object Proposer:
 
+    import breeze.linalg.{DenseMatrix, DenseVector}
     import breeze.stats.distributions.MultivariateGaussian
-    import breeze.linalg.{DenseVector, DenseMatrix}
     import breeze.stats.distributions.Rand.FixedSeed.randBasis
 
     def gaussianDiagSample(x : Vector[Double], sigma: Double): Vector[Double] = {

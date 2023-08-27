@@ -1,18 +1,13 @@
 package scalagrad.api.forward
 
-import scalagrad.api.DualMode
-import scalagrad.api.Mode
+import scalagrad.api.dual.DualMatrixAlgebraDSL
 import scalagrad.api.forward.dual.*
 import scalagrad.api.matrixalgebra.derivative.DerivativeMatrixAlgebra
-import scalagrad.api.matrixalgebra.CreateOps
-import scalagrad.api.matrixalgebra.MatrixAlgebra
-import scalagrad.api.matrixalgebra.MatrixAlgebraDSL
-import scala.reflect.Typeable
-import scala.annotation.nowarn
-import scala.annotation.targetName
+import scalagrad.api.matrixalgebra.{CreateOps, MatrixAlgebra, MatrixAlgebraDSL}
+import scalagrad.api.{DualMode, Mode, dual}
 
-import scalagrad.api.dual
-import scalagrad.api.dual.DualMatrixAlgebraDSL
+import scala.annotation.{nowarn, targetName}
+import scala.reflect.Typeable
 
 object ForwardMode extends Mode:
     

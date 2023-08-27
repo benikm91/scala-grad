@@ -3,9 +3,9 @@ package scalagrad
 @main
 def minimalExample = 
     // imports
+    import scalagrad.api.forward.ForwardMode.derive as d
     import scalagrad.api.matrixalgebra.MatrixAlgebraDSL
     import scalagrad.auto.breeze.BreezeDoubleMatrixAlgebraDSL
-    import scalagrad.api.forward.ForwardMode.{derive => d}
 
     // define a function
     def f(alg: MatrixAlgebraDSL)(x: alg.Scalar): (alg.Scalar) = x * x

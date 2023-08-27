@@ -1,13 +1,13 @@
 package scalagrad.showcase.probabilisticProgramming.metropolisHastings
 
+import breeze.linalg.{DenseMatrix, DenseVector}
 import breeze.stats.distributions.MultivariateGaussian
-import scala.math.{sqrt, exp, min}
-import breeze.linalg.{DenseVector, DenseMatrix}
-import scala.util.Random
 import breeze.stats.distributions.Rand.FixedSeed.randBasis
 import scalagrad.showcase.probabilisticProgramming.distribution.{UnnormalizedDistribution, UnnormalizedLogDistribution}
-import scalagrad.showcase.probabilisticProgramming.metropolisHastings.proposer.HamiltonianDynamicsLeapFrogProposer
-import scalagrad.showcase.probabilisticProgramming.metropolisHastings.proposer.Proposer
+import scalagrad.showcase.probabilisticProgramming.metropolisHastings.proposer.{HamiltonianDynamicsLeapFrogProposer, Proposer}
+
+import scala.math.{exp, min, sqrt}
+import scala.util.Random
 
 case class HamiltonianMonteCarloSampler(
     rng: Random,

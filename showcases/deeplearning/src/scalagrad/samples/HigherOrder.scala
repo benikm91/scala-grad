@@ -3,8 +3,8 @@ package scalagrad
 
 @main
 def higherOrderSample =
+    import scalagrad.api.forward.ForwardMode.derive as d
     import scalagrad.api.matrixalgebra.MatrixAlgebraDSL
-    import scalagrad.api.forward.ForwardMode.{derive => d}
     import scalagrad.auto.breeze.BreezeDoubleMatrixAlgebraDSL
 
     def f(alg: MatrixAlgebraDSL)(x: alg.Scalar): alg.Scalar = x * x

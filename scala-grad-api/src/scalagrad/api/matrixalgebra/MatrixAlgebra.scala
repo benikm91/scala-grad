@@ -1,13 +1,11 @@
 package scalagrad.api.matrixalgebra
 
-import spire.math.Numeric
-import spire.algebra.Trig
-import spire.algebra.NRoot
-import breeze.linalg.DenseMatrix
-import breeze.linalg.DenseVector
-import scala.reflect.Typeable
-import breeze.linalg.Transpose
+import breeze.linalg.{DenseMatrix, DenseVector, Transpose}
 import scalagrad.api.fractional.MatrixAlgebraScalarIsFractional
+import spire.algebra.{NRoot, Trig}
+import spire.math.Numeric
+
+import scala.reflect.Typeable
 
 trait MatrixAlgebraDSL:
   

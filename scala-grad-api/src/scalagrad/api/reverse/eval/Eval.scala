@@ -1,9 +1,10 @@
 package scalagrad.api.reverse.eval
 
-import scalagrad.api.reverse.delta.*
 import scalagrad.api.matrixalgebra.MatrixAlgebra
-import scala.collection.mutable.PriorityQueue
+import scalagrad.api.reverse.delta.*
+
 import scala.collection.mutable
+import scala.collection.mutable.PriorityQueue
 
 case class Eval[PScalar, PColumnVector, PRowVector, PMatrix](
     pma: MatrixAlgebra[PScalar, PColumnVector, PRowVector, PMatrix]

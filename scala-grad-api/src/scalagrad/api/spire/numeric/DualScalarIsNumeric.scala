@@ -1,12 +1,12 @@
 package scalagrad.api.spire.numeric
 
-import spire.math.Numeric
-import spire.algebra.Trig
-import scalagrad.api.matrixalgebra.MatrixAlgebra
-import scalagrad.api.dual
-import scalagrad.api.matrixalgebra.derivative.DerivativeMatrixAlgebra
 import cats.kernel.Order
+import scalagrad.api.dual
 import scalagrad.api.dual.DualMatrixAlgebra
+import scalagrad.api.matrixalgebra.MatrixAlgebra
+import scalagrad.api.matrixalgebra.derivative.DerivativeMatrixAlgebra
+import spire.algebra.Trig
+import spire.math.Numeric
 
 object DualScalarIsNumeric:
 

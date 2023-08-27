@@ -1,17 +1,10 @@
 package scalagrad.api
 
-import scala.runtime.Tuples
-import scalagrad.api.dual
-import scalagrad.api.dual.DualMatrixAlgebra
+import scalagrad.api.dual.{DualMatrixAlgebra, DualMatrixAlgebraDSL}
 import scalagrad.api.matrixalgebra.MatrixAlgebra
 import scalagrad.api.matrixalgebra.derivative.DerivativeMatrixAlgebra
-import scalagrad.api.spire.trig.DualScalarIsTrig
-import scalagrad.api.matrixalgebra.MatrixAlgebraDSL
-import scalagrad.api.dual.DualMatrixAlgebraDSL
+
 import scala.reflect.Typeable
-import scala.annotation.targetName
-import scalagrad.api.forward.ForwardDualMode
-import scalagrad.api.reverse.ReverseDualMode
 
 
 trait DualMode[

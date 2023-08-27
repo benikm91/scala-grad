@@ -2,6 +2,7 @@ package scalagrad.showcase.probabilisticProgramming.metropolisHastings
 
 import scalagrad.showcase.probabilisticProgramming.distribution.{UnnormalizedDistribution, UnnormalizedLogDistribution}
 import scalagrad.showcase.probabilisticProgramming.metropolisHastings.proposer.Proposer
+
 import scala.math.{exp, min}
 
 trait MetropolisSampler:

@@ -1,17 +1,13 @@
 package scalagrad.api.forward
 
-import scalagrad.api.DualMode
+import scalagrad.api.dual.DualMatrixAlgebraDSL
 import scalagrad.api.forward.dual.*
 import scalagrad.api.matrixalgebra.derivative.DerivativeMatrixAlgebra
-import scalagrad.api.matrixalgebra.CreateOps
-import scalagrad.api.matrixalgebra.MatrixAlgebra
-import scalagrad.api.matrixalgebra.MatrixAlgebraDSL
-import scala.reflect.Typeable
-import scala.annotation.nowarn
-import scala.annotation.targetName
+import scalagrad.api.matrixalgebra.{CreateOps, MatrixAlgebra, MatrixAlgebraDSL}
+import scalagrad.api.{DualMode, dual}
 
-import scalagrad.api.dual
-import scalagrad.api.dual.DualMatrixAlgebraDSL
+import scala.annotation.{nowarn, targetName}
+import scala.reflect.Typeable
 
 class ForwardDualMode[
     PScalar : Typeable, PColumnVector : Typeable, PRowVector : Typeable, PMatrix : Typeable,
@@ -72,8 +68,8 @@ class ForwardDualMode[
     
     def deriveDualTuple2DualTuple[T <: Tuple : DualTuple, RT <: Tuple : DualTuple](f: T => RT): DualTupleToPTuple[T] => CartesianProductAndUpP[T, DualTupleToPTuple[RT]] = inputs =>
 
-        import primaryMatrixAlgebra.*
         import derivativeMatrixAlgebra.*
+        import primaryMatrixAlgebra.*
 
         def toZeroDuals[T <: Tuple : DualTuple](t: DualTupleToPTuple[T]): T = 
             t.map[[X] =>> Any]([T] => (t: T) => t match {

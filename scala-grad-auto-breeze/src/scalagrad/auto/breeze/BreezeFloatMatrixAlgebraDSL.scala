@@ -1,10 +1,10 @@
 package scalagrad.auto.breeze
 
-import scalagrad.api.matrixalgebra.MatrixAlgebra
 import breeze.linalg.*
 import scalagrad.api.forward.dual.*
-import scalagrad.api.matrixalgebra.MatrixAlgebraDSL
+import scalagrad.api.matrixalgebra.{MatrixAlgebra, MatrixAlgebraDSL}
 import scalagrad.auto.breeze.BreezeDoubleMatrixAlgebra
+
 import scala.reflect.Typeable
 
 val stEF = summon[Typeable[Float]]

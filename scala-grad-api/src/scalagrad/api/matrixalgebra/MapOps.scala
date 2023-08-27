@@ -1,7 +1,7 @@
 package scalagrad.api.matrixalgebra
 
 import scala.annotation.targetName
-import scala.math.Fractional.Implicits._
+import scala.math.Fractional.Implicits.*
 
 trait MapOps[Scalar, ColumnVector, RowVector, Matrix]:
 

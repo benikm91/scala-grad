@@ -3,7 +3,7 @@ package scalagrad
 @main
 def forwardSample = 
     // import ScalaGrad and the forward plan
-    import scalagrad.api.forward.ForwardMode.{derive => d}
+    import scalagrad.api.forward.ForwardMode.derive as d
     import scalagrad.api.matrixalgebra.MatrixAlgebraDSL
     import scalagrad.auto.breeze.BreezeDoubleMatrixAlgebraDSL
 

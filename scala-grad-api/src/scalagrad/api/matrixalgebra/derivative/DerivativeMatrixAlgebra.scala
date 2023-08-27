@@ -1,15 +1,7 @@
 package scalagrad.api.matrixalgebra.derivative
 
 import scalagrad.api.dual
-import scalagrad.api.matrixalgebra.MatrixAlgebra
-import scalagrad.api.matrixalgebra.AccessOps
-import scalagrad.api.matrixalgebra.NegateOps
-import scalagrad.api.matrixalgebra.ScalarInvertOps
-import scalagrad.api.matrixalgebra.TransposeOps
-import scalagrad.api.matrixalgebra.CreateOps
-import scalagrad.api.matrixalgebra.SumOps
-import scalagrad.api.matrixalgebra.ZeroOps
-import scalagrad.api.matrixalgebra.MapOps
+import scalagrad.api.matrixalgebra.*
 
 trait DerivativeMatrixAlgebra[
     PScalar, PColumnVector, PRowVector, PMatrix,

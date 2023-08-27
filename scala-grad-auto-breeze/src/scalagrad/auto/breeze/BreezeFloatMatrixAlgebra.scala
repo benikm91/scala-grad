@@ -1,10 +1,10 @@
 package scalagrad.auto.breeze
 
-import scalagrad.api.matrixalgebra.MatrixAlgebra
 import breeze.linalg.*
 import scalagrad.api.forward.dual.*
-import spire.math.Numeric
+import scalagrad.api.matrixalgebra.MatrixAlgebra
 import spire.algebra.Trig
+import spire.math.Numeric
 
 object BreezeFloatMatrixAlgebra extends MatrixAlgebra[
     Float, DenseVector[Float], Transpose[DenseVector[Float]], DenseMatrix[Float],

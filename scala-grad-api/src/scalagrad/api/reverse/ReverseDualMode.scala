@@ -1,19 +1,16 @@
 package scalagrad.api.reverse
 
 import scalagrad.api.DualMode
-import scalagrad.api.dual.DualMatrixAlgebra
-import scalagrad.api.reverse.dual.*
-import scalagrad.api.reverse.delta.*
+import scalagrad.api.dual.{DualMatrixAlgebra, DualMatrixAlgebraDSL}
 import scalagrad.api.matrixalgebra.derivative.DerivativeMatrixAlgebra
-import scalagrad.api.matrixalgebra.CreateOps
-import scalagrad.api.matrixalgebra.OneOps
-import scalagrad.api.matrixalgebra.MatrixAlgebra
-import scalagrad.api.matrixalgebra.MatrixAlgebraDSL
-import scalagrad.api.reverse.eval.Eval
+import scalagrad.api.matrixalgebra.{CreateOps, MatrixAlgebra, MatrixAlgebraDSL, OneOps}
 import scalagrad.api.reverse.DualDeltaDerivativeMatrixAlgebra
-import scala.reflect.Typeable
+import scalagrad.api.reverse.delta.*
+import scalagrad.api.reverse.dual.*
+import scalagrad.api.reverse.eval.Eval
+
 import scala.annotation.targetName
-import scalagrad.api.dual.DualMatrixAlgebraDSL
+import scala.reflect.Typeable
 
 class ReverseDualMode[
     PScalar : Typeable, PColumnVector : Typeable, PRowVector : Typeable, PMatrix : Typeable,
@@ -79,8 +76,8 @@ class ReverseDualMode[
 
         val ids = (0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22)
 
-        import primaryMatrixAlgebra.*
         import derivativeMatrixAlgebra.*
+        import primaryMatrixAlgebra.*
         
         def reversePlan(t: DualTupleToPTuple[T]): CartesianProductAndUpP[T, DualTupleToPTuple[RT]] = 
             val tWithIndex = t.zip(ids)

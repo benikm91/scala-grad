@@ -6,16 +6,15 @@ import scalagrad.api.dual.DualMatrixAlgebraDSL
 @main
 def mixtureSample = 
     // import ScalaGrad stuff and the reverse plan
+    import scalagrad.api.forward.ForwardMode.derive as dF
     import scalagrad.api.matrixalgebra.MatrixAlgebraDSL
-    import scalagrad.api.forward.ForwardMode.{derive => dF}
-    import scalagrad.api.reverse.ReverseMode.{derive => dR}
-    
+    import scalagrad.api.reverse.ReverseMode.derive as dR
     import scalagrad.auto.breeze.BreezeDoubleMatrixAlgebraDSL
     
     // import Numeric stuff needed in relu function
-    import spire.math.Numeric
-    import spire.implicits.*
     import scalagrad.api.spire.numeric.DualScalarIsNumeric.given
+    import spire.implicits.*
+    import spire.math.Numeric
     import spire.syntax.numeric.partialOrderOps
 
     // define relu (relu will be derived by forward plan)

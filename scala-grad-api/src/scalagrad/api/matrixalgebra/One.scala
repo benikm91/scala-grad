@@ -1,6 +1,6 @@
 package scalagrad.api.matrixalgebra
 
-import scalagrad.api.matrixalgebra.{ZeroOps, AccessSetOps}
+import scalagrad.api.matrixalgebra.{AccessSetOps, ZeroOps}
 
 trait One[Scalar]:
     

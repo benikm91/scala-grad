@@ -1,9 +1,9 @@
 package scalagrad.api.fractional
 
-import scalagrad.api.matrixalgebra.MatrixAlgebra
-import spire.math.Numeric
 import scalagrad.api.dual.*
+import scalagrad.api.matrixalgebra.MatrixAlgebra
 import scalagrad.api.matrixalgebra.derivative.DerivativeMatrixAlgebra
+import spire.math.Numeric
 
 object MatrixAlgebraScalarIsFractional:
 

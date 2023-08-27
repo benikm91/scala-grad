@@ -1,9 +1,10 @@
 package scalagrad.api.dual
 
-import scalagrad.api.matrixalgebra.TransposeOps
-import scala.annotation.targetName
-import scala.math.Fractional.Implicits._
 import scalagrad.api.dual
+import scalagrad.api.matrixalgebra.TransposeOps
+
+import scala.annotation.targetName
+import scala.math.Fractional.Implicits.*
 
 trait MapDualOps[
     PScalar, PColumnVector, PRowVector, PMatrix,

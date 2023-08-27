@@ -1,10 +1,10 @@
 package scalagrad.auto.breeze
 
-import scalagrad.api.matrixalgebra.MatrixAlgebra
 import breeze.linalg.*
 import scalagrad.api.forward.dual.*
-import spire.math.Numeric
+import scalagrad.api.matrixalgebra.MatrixAlgebra
 import spire.algebra.Trig
+import spire.math.Numeric
 
 object BreezeDoubleMatrixAlgebra extends MatrixAlgebra[
     Double, DenseVector[Double], Transpose[DenseVector[Double]], DenseMatrix[Double],
@@ -19,7 +19,7 @@ object BreezeDoubleMatrixAlgebra extends MatrixAlgebra[
   override def unlift(rv: RowVectorT): Transpose[DenseVector[Double]] = rv
   override def unlift(m: MatrixT): DenseMatrix[Double] = m
 
-  import spire.implicits._
+  import spire.implicits.*
   override given trig: Trig[Double] = spire.implicits.DoubleAlgebra
 
   override given num: Numeric[Double] = Numeric.DoubleIsNumeric

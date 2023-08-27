@@ -1,7 +1,8 @@
 package scalagrad.showcase.probabilisticProgramming.metropolisHastings
 
-import scala.util.Random
 import scalagrad.showcase.probabilisticProgramming.metropolisHastings.proposer.GaussianProposer
+
+import scala.util.Random
 
 
 

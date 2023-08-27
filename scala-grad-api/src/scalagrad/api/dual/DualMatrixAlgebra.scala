@@ -1,25 +1,15 @@
 package scalagrad.api.dual
 
-import scalagrad.api.dual.*
-import scalagrad.api.matrixalgebra.MatrixAlgebra
-import scalagrad.api.matrixalgebra.AccessOps
-import scalagrad.api.matrixalgebra.NegateOps
-import scalagrad.api.matrixalgebra.ScalarInvertOps
-import scalagrad.api.matrixalgebra.TransposeOps
-import scalagrad.api.matrixalgebra.CreateOps
-import scalagrad.api.matrixalgebra.SumOps
+import breeze.linalg.{DenseMatrix, DenseVector, Transpose}
 import scalagrad.api.dual
+import scalagrad.api.dual.*
+import scalagrad.api.matrixalgebra.*
 import scalagrad.api.matrixalgebra.derivative.DerivativeMatrixAlgebra
-import scalagrad.api.matrixalgebra.MatrixAlgebraDSL
-import scalagrad.api.dual.DualMatrixAlgebra
+import spire.algebra.{NRoot, Trig}
 import spire.math.Numeric
-import spire.algebra.Trig
-import spire.algebra.NRoot
 import spire.syntax.nroot
-import breeze.linalg.DenseMatrix
-import breeze.linalg.DenseVector
+
 import scala.reflect.Typeable
-import breeze.linalg.Transpose
 
 
 trait DualMatrixAlgebraDSL extends MatrixAlgebraDSL:

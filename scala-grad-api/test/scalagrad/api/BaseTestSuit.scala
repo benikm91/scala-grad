@@ -1,20 +1,16 @@
 package scalagrad.api.test
 
-import scalagrad.api.Mode
-import scalagrad.api.matrixalgebra.derivative.DerivativeMatrixAlgebra
-import scalagrad.api.dual.DualMatrixAlgebra
-import scalagrad.api.dual
-
+import org.scalacheck.Gen
 import org.scalatest.*
-import flatspec.*
-import matchers.*
+import org.scalatest.flatspec.*
+import org.scalatest.matchers.*
 import org.scalatest.prop.TableDrivenPropertyChecks.whenever
 import org.scalatest.wordspec.AnyWordSpec
 import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks.forAll
-import org.scalacheck.Gen
-
+import scalagrad.api.dual.DualMatrixAlgebra
 import scalagrad.api.matrixalgebra.MatrixAlgebraDSL
-import scalagrad.api.Mode
+import scalagrad.api.matrixalgebra.derivative.DerivativeMatrixAlgebra
+import scalagrad.api.{Mode, dual}
 
 trait BaseTestSuit extends should.Matchers with BasicGenerators:
     
