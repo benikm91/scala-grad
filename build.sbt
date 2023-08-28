@@ -53,10 +53,29 @@ lazy val scalaGradAutoBreezeApi = (project in file("./scala-grad-auto-breeze"))
     scalaGradApi % "test->test",
   )
 
-// ScalaGrad Breeze
-lazy val deepLearningShowcase = (project in file("./showcases/deeplearning"))
+lazy val showcaseMachineLearning = (project in file("./showcases/machinelearning"))
   .settings(
-    name := "scala-grad-showcase-deeplearning",
+    name := "scala-grad-showcase-machine-learning",
+    basicSettings,
+    breezeDependency,
+    scaltirDependency,
+  ).dependsOn(
+    scalaGradAutoBreezeApi
+  )
+
+lazy val showcaseSamples = (project in file("./showcases/samples"))
+  .settings(
+    name := "scala-grad-showcase-samples",
+    basicSettings,
+    breezeDependency,
+    scaltirDependency,
+  ).dependsOn(
+    scalaGradAutoBreezeApi
+  )
+
+lazy val showcaseProbabilisticProgramming = (project in file("./showcases/probabilisticprogramming"))
+  .settings(
+    name := "scala-grad-showcase-probabilistic-programming",
     basicSettings,
     breezeDependency,
     scaltirDependency,
@@ -74,6 +93,8 @@ lazy val root = (project in file("."))
     // Breeze
     scalaGradAutoBreezeApi,
     // Showcase
-    deepLearningShowcase,
+    showcaseMachineLearning,
+    showcaseSamples,
+    showcaseProbabilisticProgramming,
   )
   .enablePlugins(MdocPlugin)
