@@ -10,6 +10,7 @@ import spire.math.Numeric
 import spire.syntax.nroot
 
 import scala.reflect.TypeTest
+import scala.annotation.targetName
 
 
 trait DualMatrixAlgebraDSL extends MatrixAlgebraDSL:
@@ -94,7 +95,22 @@ with MapDualOps[
             List()
         )
 
+    def lift(s: Float): DualScalar = 
+        createDualScalar(
+            pma.lift(s),
+            dma.dZeroOps.zeroScalar,
+            List()
+        )
+        
     def lift(cv: DenseVector[Double]): DualColumnVector = 
+        createDualColumnVector(
+            pma.lift(cv),
+            dma.dZeroOps.zeroColumnVector(cv.length),
+            List()
+        )
+
+    @targetName("liftCVFloat")
+    def lift(cv: DenseVector[Float]): DualColumnVector = 
         createDualColumnVector(
             pma.lift(cv),
             dma.dZeroOps.zeroColumnVector(cv.length),
@@ -107,8 +123,24 @@ with MapDualOps[
             dma.dZeroOps.zeroRowVector(rv.inner.length),
             List()
         )
+    
+    @targetName("liftRVFloat")
+    def lift(rv: Transpose[DenseVector[Float]]): DualRowVector = 
+        createDualRowVector(
+            pma.lift(rv),
+            dma.dZeroOps.zeroRowVector(rv.inner.length),
+            List()
+        )
 
     def lift(m: DenseMatrix[Double]): DualMatrix = 
+        createDualMatrix(
+            pma.lift(m),
+            dma.dZeroOps.zeroMatrix(m.rows, m.cols),
+            List()
+        )
+
+    @targetName("liftMFloat")
+    def lift(m: DenseMatrix[Float]): DualMatrix = 
         createDualMatrix(
             pma.lift(m),
             dma.dZeroOps.zeroMatrix(m.rows, m.cols),

@@ -5,15 +5,23 @@ import scalagrad.api.forward.dual.*
 import scalagrad.api.matrixalgebra.MatrixAlgebra
 import spire.algebra.Trig
 import spire.math.Numeric
+import scala.annotation.targetName
 
 object BreezeFloatMatrixAlgebra extends MatrixAlgebra[
     Float, DenseVector[Float], Transpose[DenseVector[Float]], DenseMatrix[Float],
 ]:
 
   override def lift(s: Double): ScalarT = s.toFloat
+  override def lift(s: Float): ScalarT = s
   override def lift(cv: DenseVector[Double]): ColumnVectorT = cv.mapValues(_.toFloat)
+  @targetName("liftCVFloat")
+  override def lift(cv: DenseVector[Float]): ColumnVectorT = cv
+  @targetName("liftRVFloat")
+  override def lift(rv: Transpose[DenseVector[Float]]): RowVectorT = rv
   override def lift(rv: Transpose[DenseVector[Double]]): RowVectorT = rv.inner.mapValues(_.toFloat).t
   override def lift(m: DenseMatrix[Double]): MatrixT = m.mapValues(_.toFloat)
+  @targetName("liftMFloat")
+  override def lift(m: DenseMatrix[Float]): MatrixT = m
   override def unlift(s: ScalarT): Double = s.toDouble
   override def unlift(cv: ColumnVectorT): DenseVector[Double] = cv.mapValues(_.toDouble)
   override def unlift(rv: RowVectorT): Transpose[DenseVector[Double]] = rv.inner.mapValues(_.toDouble).t

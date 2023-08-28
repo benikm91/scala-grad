@@ -6,6 +6,7 @@ import spire.algebra.{NRoot, Trig}
 import spire.math.Numeric
 
 import scala.reflect.TypeTest
+import scala.annotation.targetName
 
 trait MatrixAlgebraDSL:
   
@@ -69,9 +70,16 @@ trait MatrixAlgebra[Scalar, ColumnVector, RowVector, Matrix](
     // TODO How to not define them here, but still be easy to use/lift with breeze
     def lift(i: Int): Scalar = lift(i.toDouble)
     def lift(d: Double): Scalar
+    def lift(d: Float): Scalar
     def lift(cv: DenseVector[Double]): ColumnVector
+    @targetName("liftCVFloat")
+    def lift(cv: DenseVector[Float]): ColumnVector
     def lift(rv: Transpose[DenseVector[Double]]): RowVector
+    @targetName("liftRVFloat")
+    def lift(rv: Transpose[DenseVector[Float]]): RowVector
     def lift(m: DenseMatrix[Double]): Matrix
+    @targetName("liftMFloat")
+    def lift(m: DenseMatrix[Float]): Matrix
     def unlift(s: Scalar): Double
     def unlift(m: Matrix): DenseMatrix[Double]
     def unlift(cv: ColumnVector): DenseVector[Double]
