@@ -14,6 +14,7 @@ import spire.syntax.numeric.partialOrderOps
 
 import scala.annotation.targetName
 import scala.io.Source
+import scalagrad.showcase.deeplearning.mnist.TimeUtil
 
 object NeuralNetworkMNISTPerformance:
 
@@ -43,12 +44,8 @@ object NeuralNetworkMNISTPerformance:
         val ysTrain = ysTrainDouble.map(_.map(_.toFloat))
         val eagerData = cycle(xsTrain.zip(ysTrain).toList)
                 
-        def getRandomWeights(nFeatures: Int, nHiddenUnits: Int, nOutputUnits: Int): (
-            DenseVector[Float],
-            DenseMatrix[Float],
-            DenseVector[Float],
-            DenseMatrix[Float],
-        ) = 
+        def getRandomWeights(nFeatures: Int, nHiddenUnits: Int, nOutputUnits: Int): 
+            (DenseVector[Float], DenseMatrix[Float], DenseVector[Float], DenseMatrix[Float]) = 
             val rand = scala.util.Random(42)
             (
                 DenseVector.fill(nHiddenUnits)(rand.nextFloat() - 0.5f),
@@ -79,7 +76,7 @@ object NeuralNetworkMNISTPerformance:
             if n == 0 then (firstW0, firstWs, lastW0, lastWs)
             else
                 val (xsBatch, ysBatch) = data.head
-                val dLoss = ReverseMode.derive(loss(xsBatch, ysBatch))(BreezeFloatMatrixAlgebraDSL)
+                val dLoss = d(loss(xsBatch, ysBatch))(BreezeFloatMatrixAlgebraDSL)
                 val (dFirstW0, dFirstWs, dLastW0, dLastWs) = dLoss(firstW0, firstWs, lastW0, lastWs)
                 
                 miniBatchGradientDescent(data.tail)(

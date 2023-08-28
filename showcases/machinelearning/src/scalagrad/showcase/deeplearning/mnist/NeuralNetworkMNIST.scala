@@ -15,18 +15,16 @@ import spire.syntax.numeric.partialOrderOps
 import scala.annotation.targetName
 import scala.io.Source
 
-// Extend Reverse mode for missing case
-extension (rad: ReverseMode.type)
-    @targetName("deriveCVMCVM2S")
-    def derive[MA >: DualMatrixAlgebraDSL <: MatrixAlgebraDSL](
+
+object NeuralNetworkMNIST:
+
+    def d[MA >: DualMatrixAlgebraDSL <: MatrixAlgebraDSL](
         f: (alg: MA) => (alg.ColumnVector, alg.Matrix, alg.ColumnVector, alg.Matrix) => alg.Scalar
     ): (alg: MatrixAlgebraDSL) => (alg.ColumnVector, alg.Matrix, alg.ColumnVector, alg.Matrix) => (alg.ColumnVector, alg.Matrix, alg.ColumnVector, alg.Matrix) = 
         alg => (cv1, m1, cv2, m2) =>
             val mode = ReverseMode.dualMode(alg)
             val df = mode.derive(f(mode.algebraDSL).tupled)
             df(cv1, m1, cv2, m2).asInstanceOf[(alg.ColumnVector, alg.Matrix, alg.ColumnVector, alg.Matrix)]
-
-object NeuralNetworkMNIST:
 
     def neuralNetwork(using alg: MatrixAlgebraDSL)(
         xs: alg.Matrix,
@@ -63,7 +61,7 @@ object NeuralNetworkMNIST:
         if n == 0 then (firstW0, firstWs, lastW0, lastWs)
         else
             val (xsBatch, ysBatch) = data.head
-            val dLoss = ReverseMode.derive(loss(xsBatch, ysBatch))(BreezeDoubleMatrixAlgebraDSL)
+            val dLoss = d(loss(xsBatch, ysBatch))(BreezeDoubleMatrixAlgebraDSL)
             val (dFirstW0, dFirstWs, dLastW0, dLastWs) = dLoss(firstW0, firstWs, lastW0, lastWs)
             
             miniBatchGradientDescent(data.tail)(
