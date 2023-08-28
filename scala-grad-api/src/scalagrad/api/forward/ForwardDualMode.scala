@@ -41,39 +41,48 @@ class ForwardDualMode[
     val indices = (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22)
     val zeroIndices = (0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22)
 
-    def deriveDualTuple2Scalar[T <: Tuple : DualTuple](f: T => DualScalar): DualTupleToPTuple[T] => DualTupleToPTuple[T] = t =>
-        val df = deriveDualTuple2DualTuple[T, Tuple1[DualScalar]](t => Tuple1(f(t)))
+    @targetName("deriveDualTuple2Scalar")
+    override def derive[T <: Tuple : DualTuple](f: T => DualScalar): DualTupleToPTuple[T] => DualTupleToPTuple[T] = t =>
+        val df = derive[T, Tuple1[DualScalar]](t => Tuple1(f(t)))
         df(t).map[[X] =>> Any]([T] => (e: T) => e.asInstanceOf[Tuple1[Any]].head).asInstanceOf[DualTupleToPTuple[T]]
            
-    def deriveDualTuple2ColumnVector[T <: Tuple : DualTuple](f: T => DualColumnVector): DualTupleToPTuple[T] => Tuple.Map[DualTupleToPTuple[T], UpPByColumnVector] = t =>
-        val df = deriveDualTuple2DualTuple[T, Tuple1[DualColumnVector]](t => Tuple1(f(t)))
+    @targetName("deriveDualTuple2ColumnVector")
+    override def derive[T <: Tuple : DualTuple](f: T => DualColumnVector): DualTupleToPTuple[T] => Tuple.Map[DualTupleToPTuple[T], UpPByColumnVector] = t =>
+        val df = derive[T, Tuple1[DualColumnVector]](t => Tuple1(f(t)))
         df(t).map[[X] =>> Any]([T] => (e: T) => e.asInstanceOf[Tuple1[Any]].head).asInstanceOf[Tuple.Map[DualTupleToPTuple[T], UpPByColumnVector]]
     
-    def deriveDualTuple2RowVector[T <: Tuple : DualTuple](f: T => DualRowVector): DualTupleToPTuple[T] => Tuple.Map[DualTupleToPTuple[T], UpPByRowVector] = t =>
-        val df = deriveDualTuple2DualTuple[T, Tuple1[DualRowVector]](t => Tuple1(f(t)))
+    @targetName("deriveDualTuple2RowVector")
+    override def derive[T <: Tuple : DualTuple](f: T => DualRowVector): DualTupleToPTuple[T] => Tuple.Map[DualTupleToPTuple[T], UpPByRowVector] = t =>
+        val df = derive[T, Tuple1[DualRowVector]](t => Tuple1(f(t)))
         df(t).map[[X] =>> Any]([T] => (e: T) => e.asInstanceOf[Tuple1[Any]].head).asInstanceOf[Tuple.Map[DualTupleToPTuple[T], UpPByRowVector]]
     
-    def deriveDualTuple2Matrix[T <: Tuple : DualTuple](f: T => DualMatrix): DualTupleToPTuple[T] => Tuple.Map[DualTupleToPTuple[T], UpPByMatrix] = t =>
-        val df = deriveDualTuple2DualTuple[T, Tuple1[DualMatrix]](t => Tuple1(f(t)))
+    @targetName("deriveDualTuple2Matrix")
+    override def derive[T <: Tuple : DualTuple](f: T => DualMatrix): DualTupleToPTuple[T] => Tuple.Map[DualTupleToPTuple[T], UpPByMatrix] = t =>
+        val df = derive[T, Tuple1[DualMatrix]](t => Tuple1(f(t)))
         df(t).map[[X] =>> Any]([T] => (e: T) => e.asInstanceOf[Tuple1[Any]].head).asInstanceOf[Tuple.Map[DualTupleToPTuple[T], UpPByMatrix]]
         
-    def deriveScalar2DualTuple[RT <: Tuple : DualTuple](f: DualScalar => RT): PScalar => DualTupleToPTuple[RT] = t =>
-        val df = deriveDualTuple2DualTuple[Tuple1[DualScalar], RT](t => f(t.head))
+    @targetName("deriveScalar2DualTuple")
+    override def derive[RT <: Tuple : DualTuple](f: DualScalar => RT): PScalar => DualTupleToPTuple[RT] = t =>
+        val df = derive[Tuple1[DualScalar], RT](t => f(t.head))
         df(Tuple1(t)).asInstanceOf[Tuple1[DualTupleToPTuple[RT]]].head
     
-    def deriveColumnVector2DualTuple[RT <: Tuple : DualTuple](f: DualColumnVector => RT): PColumnVector => DualTupleToPTuple[RT] = t =>
-        val df = deriveDualTuple2DualTuple[Tuple1[DualColumnVector], RT](t => f(t.head))
+    @targetName("deriveColumnVector2DualTuple")
+    override def derive[RT <: Tuple : DualTuple](f: DualColumnVector => RT): PColumnVector => DualTupleToPTuple[RT] = t =>
+        val df = derive[Tuple1[DualColumnVector], RT](t => f(t.head))
         df(Tuple1(t)).asInstanceOf[Tuple1[DualTupleToPTuple[RT]]].head
     
-    def deriveRowVector2DualTuple[RT <: Tuple : DualTuple](f: DualRowVector => RT): PRowVector => DualTupleToPTuple[RT] = t =>
-        val df = deriveDualTuple2DualTuple[Tuple1[DualRowVector], RT](t => f(t.head))
+    @targetName("deriveRowVector2DualTuple")
+    override def derive[RT <: Tuple : DualTuple](f: DualRowVector => RT): PRowVector => DualTupleToPTuple[RT] = t =>
+        val df = derive[Tuple1[DualRowVector], RT](t => f(t.head))
         df(Tuple1(t)).asInstanceOf[Tuple1[DualTupleToPTuple[RT]]].head
     
-    def deriveMatrix2DualTuple[RT <: Tuple : DualTuple](f: DualMatrix => RT): PMatrix => DualTupleToPTuple[RT] = t =>
-        val df = deriveDualTuple2DualTuple[Tuple1[DualMatrix], RT](t => f(t.head))
+    @targetName("deriveMatrix2DualTuple")
+    override def derive[RT <: Tuple : DualTuple](f: DualMatrix => RT): PMatrix => DualTupleToPTuple[RT] = t =>
+        val df = derive[Tuple1[DualMatrix], RT](t => f(t.head))
         df(Tuple1(t)).asInstanceOf[Tuple1[DualTupleToPTuple[RT]]].head
     
-    def deriveDualTuple2DualTuple[T <: Tuple : DualTuple, RT <: Tuple : DualTuple](f: T => RT): DualTupleToPTuple[T] => CartesianProductAndUpP[T, DualTupleToPTuple[RT]] = inputs =>
+    @targetName("deriveDualTuple2DualTuple")
+    override def derive[T <: Tuple : DualTuple, RT <: Tuple : DualTuple](f: T => RT): DualTupleToPTuple[T] => CartesianProductAndUpP[T, DualTupleToPTuple[RT]] = inputs =>
 
         import derivativeMatrixAlgebra.*
         import primaryMatrixAlgebra.*

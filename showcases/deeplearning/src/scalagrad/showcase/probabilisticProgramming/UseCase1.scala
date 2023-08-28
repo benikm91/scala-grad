@@ -29,7 +29,7 @@ object UseCase1 extends App:
     ):(alg: MatrixAlgebraDSL) => (alg.Scalar, alg.Scalar, alg.Scalar) => (alg.Scalar, alg.Scalar, alg.Scalar) = 
         alg => (s1, s2, s3) =>
             val mode = ForwardDualMode(alg.innerAlgebra)
-            val df = mode.deriveDualTuple2Scalar(f(mode.algebraDSL).tupled)
+            val df = mode.derive(f(mode.algebraDSL).tupled)
             df((s1, s2, s3))
 
     // Target configuration and data generation

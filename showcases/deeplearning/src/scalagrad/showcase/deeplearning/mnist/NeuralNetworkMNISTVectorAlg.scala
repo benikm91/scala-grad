@@ -24,7 +24,7 @@ extension (rad: ReverseMode.type)
     ): (alg: MatrixAlgebraDSL) => (alg.ColumnVector, alg.Matrix, alg.ColumnVector, alg.Matrix) => (alg.ColumnVector, alg.Matrix, alg.ColumnVector, alg.Matrix) = 
         alg => (cv1, m1, cv2, m2) =>
             val mode = ReverseMode.dualMode(alg)
-            val df = mode.deriveDualTuple2Scalar(f(mode.algebraDSL).tupled)
+            val df = mode.derive(f(mode.algebraDSL).tupled)
             df(cv1, m1, cv2, m2).asInstanceOf[(alg.ColumnVector, alg.Matrix, alg.ColumnVector, alg.Matrix)]
 
 object NeuralNetworkMNIST:

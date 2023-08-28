@@ -27,7 +27,7 @@ object ReverseMode extends Mode:
     ):(alg: MatrixAlgebraDSL) => alg.Scalar => alg.Scalar = 
         alg => x =>
             val mode = dualMode(alg)
-            val df = mode.deriveDualTuple2Scalar((t: Tuple1[mode.DualScalar]) => f(mode.algebraDSL)(t.head))
+            val df = mode.derive((t: Tuple1[mode.DualScalar]) => f(mode.algebraDSL)(t.head))
             df(Tuple1(x)).head
 
     @targetName("deriveCV2S")
@@ -36,7 +36,7 @@ object ReverseMode extends Mode:
     ): (alg: MatrixAlgebraDSL) => alg.ColumnVector => alg.ColumnVector = 
         alg => x => 
             val mode = dualMode(alg)
-            val df = mode.deriveDualTuple2Scalar((t: Tuple1[mode.DualColumnVector]) => f(mode.algebraDSL)(t.head))
+            val df = mode.derive((t: Tuple1[mode.DualColumnVector]) => f(mode.algebraDSL)(t.head))
             df(Tuple1(x)).head
 
     @targetName("deriveRV2S")
@@ -45,7 +45,7 @@ object ReverseMode extends Mode:
     ): (alg: MatrixAlgebraDSL) => alg.RowVector => alg.RowVector = 
         alg => x => 
             val mode = dualMode(alg)
-            val df = mode.deriveDualTuple2Scalar((t: Tuple1[mode.DualRowVector]) => f(mode.algebraDSL)(t.head))
+            val df = mode.derive((t: Tuple1[mode.DualRowVector]) => f(mode.algebraDSL)(t.head))
             df(Tuple1(x)).head
 
     @targetName("deriveM2S")
@@ -54,7 +54,7 @@ object ReverseMode extends Mode:
     ): (alg: MatrixAlgebraDSL) => alg.Matrix => alg.Matrix = 
         alg => x => 
             val mode = dualMode(alg)
-            val df = mode.deriveDualTuple2Scalar((t: Tuple1[mode.DualMatrix]) => f(mode.algebraDSL)(t.head))
+            val df = mode.derive((t: Tuple1[mode.DualMatrix]) => f(mode.algebraDSL)(t.head))
             df(Tuple1(x)).head
         
     @targetName("deriveS2CV")
@@ -63,7 +63,7 @@ object ReverseMode extends Mode:
     ): (alg: MatrixAlgebraDSL) => alg.Scalar => alg.ColumnVector = 
         alg => x => 
             val mode = dualMode(alg)
-            val df = mode.deriveDualTuple2ColumnVector((t: Tuple1[mode.DualScalar]) => f(mode.algebraDSL)(t.head))
+            val df = mode.derive((t: Tuple1[mode.DualScalar]) => f(mode.algebraDSL)(t.head))
             df(Tuple1(x)).head
 
     @targetName("deriveCV2CV")
@@ -72,7 +72,7 @@ object ReverseMode extends Mode:
     ): (alg: MatrixAlgebraDSL) => alg.ColumnVector => alg.Matrix = 
         alg => x => 
             val mode = dualMode(alg)
-            val df = mode.deriveDualTuple2ColumnVector((t: Tuple1[mode.DualColumnVector]) => f(mode.algebraDSL)(t.head))
+            val df = mode.derive((t: Tuple1[mode.DualColumnVector]) => f(mode.algebraDSL)(t.head))
             df(Tuple1(x)).head.asInstanceOf[alg.Matrix]
 
     @targetName("deriveRV2CV")
@@ -81,7 +81,7 @@ object ReverseMode extends Mode:
     ): (alg: MatrixAlgebraDSL) => alg.RowVector => alg.Matrix = 
         alg => x => 
             val mode = dualMode(alg)
-            val df = mode.deriveDualTuple2ColumnVector((t: Tuple1[mode.DualRowVector]) => f(mode.algebraDSL)(t.head))
+            val df = mode.derive((t: Tuple1[mode.DualRowVector]) => f(mode.algebraDSL)(t.head))
             df(Tuple1(x)).head.asInstanceOf[alg.Matrix]
 
     @targetName("deriveM2CV")
@@ -90,7 +90,7 @@ object ReverseMode extends Mode:
     ): (alg: MatrixAlgebraDSL) => alg.Matrix => alg.Matrix = 
         alg => x => 
             val mode = dualMode(alg)
-            val df = mode.deriveDualTuple2ColumnVector((t: Tuple1[mode.DualMatrix]) => f(mode.algebraDSL)(t.head))
+            val df = mode.derive((t: Tuple1[mode.DualMatrix]) => f(mode.algebraDSL)(t.head))
             df(Tuple1(x)).head.asInstanceOf[alg.Matrix]
 
     @targetName("deriveS2RV")
@@ -99,7 +99,7 @@ object ReverseMode extends Mode:
     ): (alg: MatrixAlgebraDSL) => alg.Scalar => alg.RowVector = 
         alg => x => 
             val mode = dualMode(alg)
-            val df = mode.deriveDualTuple2RowVector((t: Tuple1[mode.DualScalar]) => f(mode.algebraDSL)(t.head))
+            val df = mode.derive((t: Tuple1[mode.DualScalar]) => f(mode.algebraDSL)(t.head))
             df(Tuple1(x)).head
 
     @targetName("deriveCV2RV")
@@ -108,7 +108,7 @@ object ReverseMode extends Mode:
     ): (alg: MatrixAlgebraDSL) => alg.ColumnVector => alg.Matrix = 
         alg => x => 
             val mode = dualMode(alg)
-            val df = mode.deriveDualTuple2RowVector((t: Tuple1[mode.DualColumnVector]) => f(mode.algebraDSL)(t.head))
+            val df = mode.derive((t: Tuple1[mode.DualColumnVector]) => f(mode.algebraDSL)(t.head))
             df(Tuple1(x)).head.asInstanceOf[alg.Matrix]
 
     @targetName("deriveRV2RV")
@@ -117,7 +117,7 @@ object ReverseMode extends Mode:
     ): (alg: MatrixAlgebraDSL) => alg.RowVector => alg.Matrix = 
         alg => x => 
             val mode = dualMode(alg)
-            val df = mode.deriveDualTuple2RowVector((t: Tuple1[mode.DualRowVector]) => f(mode.algebraDSL)(t.head))
+            val df = mode.derive((t: Tuple1[mode.DualRowVector]) => f(mode.algebraDSL)(t.head))
             df(Tuple1(x)).head.asInstanceOf[alg.Matrix]
 
     @targetName("deriveM2RV")
@@ -126,7 +126,7 @@ object ReverseMode extends Mode:
     ): (alg: MatrixAlgebraDSL) => alg.Matrix => alg.Matrix = 
         alg => x => 
             val mode = dualMode(alg)
-            val df = mode.deriveDualTuple2RowVector((t: Tuple1[mode.DualMatrix]) => f(mode.algebraDSL)(t.head))
+            val df = mode.derive((t: Tuple1[mode.DualMatrix]) => f(mode.algebraDSL)(t.head))
             df(Tuple1(x)).head.asInstanceOf[alg.Matrix]
 
     @targetName("deriveS2M")
@@ -135,7 +135,7 @@ object ReverseMode extends Mode:
     ): (alg: MatrixAlgebraDSL) => alg.Scalar => alg.Matrix = 
         alg => x => 
             val mode = dualMode(alg)
-            val df = mode.deriveDualTuple2Matrix((t: Tuple1[mode.DualScalar]) => f(mode.algebraDSL)(t.head))
+            val df = mode.derive((t: Tuple1[mode.DualScalar]) => f(mode.algebraDSL)(t.head))
             df(Tuple1(x)).head
 
     @targetName("deriveCV2M")
@@ -144,7 +144,7 @@ object ReverseMode extends Mode:
     ): (alg: MatrixAlgebraDSL) => alg.ColumnVector => alg.Matrix = 
         alg => x => 
             val mode = dualMode(alg)
-            val df = mode.deriveDualTuple2Matrix((t: Tuple1[mode.DualColumnVector]) => f(mode.algebraDSL)(t.head))
+            val df = mode.derive((t: Tuple1[mode.DualColumnVector]) => f(mode.algebraDSL)(t.head))
             df(Tuple1(x)).head.asInstanceOf[alg.Matrix]
 
     @targetName("deriveRV2M")
@@ -153,7 +153,7 @@ object ReverseMode extends Mode:
     ): (alg: MatrixAlgebraDSL) => alg.RowVector => alg.Matrix = 
         alg => x => 
             val mode = dualMode(alg)
-            val df = mode.deriveDualTuple2Matrix((t: Tuple1[mode.DualRowVector]) => f(mode.algebraDSL)(t.head))
+            val df = mode.derive((t: Tuple1[mode.DualRowVector]) => f(mode.algebraDSL)(t.head))
             df(Tuple1(x)).head.asInstanceOf[alg.Matrix]
 
     @targetName("deriveM2M")
@@ -162,7 +162,7 @@ object ReverseMode extends Mode:
     ): (alg: MatrixAlgebraDSL) => alg.Matrix => alg.Matrix = 
         alg => x => 
             val mode = dualMode(alg)
-            val df = mode.deriveDualTuple2Matrix((t: Tuple1[mode.DualMatrix]) => f(mode.algebraDSL)(t.head))
+            val df = mode.derive((t: Tuple1[mode.DualMatrix]) => f(mode.algebraDSL)(t.head))
             df(Tuple1(x)).head.asInstanceOf[alg.Matrix]
 
     @targetName("deriveSS2S")
@@ -171,7 +171,7 @@ object ReverseMode extends Mode:
     ): (alg: MatrixAlgebraDSL) => (alg.Scalar, alg.Scalar) => (alg.Scalar, alg.Scalar) = 
         alg => (s1, s2) => 
             val mode = dualMode(alg)
-            val df = mode.deriveDualTuple2Scalar(f(mode.algebraDSL).tupled)
+            val df = mode.derive(f(mode.algebraDSL).tupled)
             df(s1, s2)
 
     @targetName("deriveSCV2S")
@@ -180,7 +180,7 @@ object ReverseMode extends Mode:
         ): (alg: MatrixAlgebraDSL) => (alg.Scalar, alg.ColumnVector) => (alg.Scalar, alg.ColumnVector) = 
             alg => (s, cv) =>
             val mode = dualMode(alg)
-            val df = mode.deriveDualTuple2Scalar(f(mode.algebraDSL).tupled)
+            val df = mode.derive(f(mode.algebraDSL).tupled)
             df(s, cv)
 
     @targetName("deriveCVS2S")
@@ -189,7 +189,7 @@ object ReverseMode extends Mode:
     ): (alg: MatrixAlgebraDSL) => (alg.ColumnVector, alg.Scalar) => (alg.ColumnVector, alg.Scalar) = 
         alg => (cv, s) => 
             val mode = dualMode(alg)
-            val df = mode.deriveDualTuple2Scalar(f(mode.algebraDSL).tupled)
+            val df = mode.derive(f(mode.algebraDSL).tupled)
             df(cv, s)
 
     @targetName("deriveCVCV2S")
@@ -198,7 +198,7 @@ object ReverseMode extends Mode:
     ): (alg: MatrixAlgebraDSL) => (alg.ColumnVector, alg.ColumnVector) => (alg.ColumnVector, alg.ColumnVector) = 
         alg => (cv1, cv2) => 
             val mode = dualMode(alg)
-            val df = mode.deriveDualTuple2Scalar(f(mode.algebraDSL).tupled)
+            val df = mode.derive(f(mode.algebraDSL).tupled)
             df(cv1, cv2)
 
     @targetName("deriveMM2S")
@@ -207,7 +207,7 @@ object ReverseMode extends Mode:
     ): (alg: MatrixAlgebraDSL) => (alg.Matrix, alg.Matrix) => (alg.Matrix, alg.Matrix) = 
         alg => (m1, m2) => 
             val mode = dualMode(alg)
-            val df = mode.deriveDualTuple2Scalar(f(mode.algebraDSL).tupled)
+            val df = mode.derive(f(mode.algebraDSL).tupled)
             df(m1, m2)
 
     @targetName("deriveMCV2S")
@@ -216,7 +216,7 @@ object ReverseMode extends Mode:
     ): (alg: MatrixAlgebraDSL) => (alg.Matrix, alg.ColumnVector) => (alg.Matrix, alg.ColumnVector) = 
         alg => (m, cv) => 
             val mode = dualMode(alg)
-            val df = mode.deriveDualTuple2Scalar(f(mode.algebraDSL).tupled)
+            val df = mode.derive(f(mode.algebraDSL).tupled)
             df(m, cv)
 
     @targetName("deriveMRV2S")
@@ -225,7 +225,7 @@ object ReverseMode extends Mode:
     ): (alg: MatrixAlgebraDSL) => (alg.Matrix, alg.RowVector) => (alg.Matrix, alg.RowVector) = 
         alg => (m, rv) => 
             val mode = dualMode(alg)
-            val df = mode.deriveDualTuple2Scalar(f(mode.algebraDSL).tupled)
+            val df = mode.derive(f(mode.algebraDSL).tupled)
             df(m, rv)
 
     @targetName("deriveMS2S")
@@ -234,7 +234,7 @@ object ReverseMode extends Mode:
     ): (alg: MatrixAlgebraDSL) => (alg.Matrix, alg.Scalar) => (alg.Matrix, alg.Scalar) = 
         alg => (m, s) => 
             val mode = dualMode(alg)
-            val df = mode.deriveDualTuple2Scalar(f(mode.algebraDSL).tupled)
+            val df = mode.derive(f(mode.algebraDSL).tupled)
             df(m, s)
 
     @targetName("deriveSS2SS")
@@ -243,7 +243,7 @@ object ReverseMode extends Mode:
     ): (alg: MatrixAlgebraDSL) => (alg.Scalar, alg.Scalar) => ((alg.Scalar, alg.Scalar), (alg.Scalar, alg.Scalar)) = 
         alg => (s1, s2) => 
             val mode = dualMode(alg)
-            val df = mode.deriveDualTuple2DualTuple(f(mode.algebraDSL).tupled)
+            val df = mode.derive(f(mode.algebraDSL).tupled)
             df(s1, s2)
 
     @targetName("deriveSM2SM")
@@ -252,7 +252,7 @@ object ReverseMode extends Mode:
     ): (alg: MatrixAlgebraDSL) => (alg.Scalar, alg.Matrix) => ((alg.Scalar, alg.Matrix), (alg.Matrix, alg.Matrix)) =
         alg => (x1, x2) => 
             val mode = dualMode(alg)
-            val df = mode.deriveDualTuple2DualTuple(f(mode.algebraDSL).tupled)
+            val df = mode.derive(f(mode.algebraDSL).tupled)
             df(x1, x2).asInstanceOf[((alg.Scalar, alg.Matrix), (alg.Matrix, alg.Matrix))]
 
     @targetName("deriveSM2MM")
@@ -261,7 +261,7 @@ object ReverseMode extends Mode:
     ): (alg: MatrixAlgebraDSL) => (alg.Scalar, alg.Matrix) => ((alg.Matrix, alg.Matrix), (alg.Matrix, alg.Matrix)) =
         alg => (x1, x2) => 
             val mode = dualMode(alg)
-            val df = mode.deriveDualTuple2DualTuple(f(mode.algebraDSL).tupled)
+            val df = mode.derive(f(mode.algebraDSL).tupled)
             df(x1, x2).asInstanceOf[((alg.Matrix, alg.Matrix), (alg.Matrix, alg.Matrix))]
 
     @targetName("deriveCVCV2CVCV")
@@ -270,7 +270,7 @@ object ReverseMode extends Mode:
     ): (alg: MatrixAlgebraDSL) => (alg.ColumnVector, alg.ColumnVector) => ((alg.Matrix, alg.Matrix), (alg.Matrix, alg.Matrix)) =
         alg => (x1, x2) => 
             val mode = dualMode(alg)
-            val df = mode.deriveDualTuple2DualTuple(f(mode.algebraDSL).tupled)
+            val df = mode.derive(f(mode.algebraDSL).tupled)
             df(x1, x2).asInstanceOf[((alg.Matrix, alg.Matrix), (alg.Matrix, alg.Matrix))]
 
 
@@ -280,7 +280,7 @@ object ReverseMode extends Mode:
     ): (alg: MatrixAlgebraDSL) => (alg.ColumnVector, alg.Matrix) => ((alg.Matrix, alg.Matrix), (alg.Matrix, alg.Matrix)) =
         alg => (x1, x2) => 
             val mode = dualMode(alg)
-            val df = mode.deriveDualTuple2DualTuple(f(mode.algebraDSL).tupled)
+            val df = mode.derive(f(mode.algebraDSL).tupled)
             df(x1, x2).asInstanceOf[((alg.Matrix, alg.Matrix), (alg.Matrix, alg.Matrix))]
 
 
@@ -290,7 +290,7 @@ object ReverseMode extends Mode:
     ): (alg: MatrixAlgebraDSL) => (alg.RowVector, alg.RowVector) => ((alg.Matrix, alg.Matrix), (alg.Matrix, alg.Matrix)) =
         alg => (x1, x2) => 
             val mode = dualMode(alg)
-            val df = mode.deriveDualTuple2DualTuple(f(mode.algebraDSL).tupled)
+            val df = mode.derive(f(mode.algebraDSL).tupled)
             df(x1, x2).asInstanceOf[((alg.Matrix, alg.Matrix), (alg.Matrix, alg.Matrix))]
 
 
@@ -300,7 +300,7 @@ object ReverseMode extends Mode:
     ): (alg: MatrixAlgebraDSL) => (alg.RowVector, alg.Matrix) => ((alg.Matrix, alg.Matrix), (alg.Matrix, alg.Matrix)) =
         alg => (x1, x2) => 
             val mode = dualMode(alg)
-            val df = mode.deriveDualTuple2DualTuple(f(mode.algebraDSL).tupled)
+            val df = mode.derive(f(mode.algebraDSL).tupled)
             df(x1, x2).asInstanceOf[((alg.Matrix, alg.Matrix), (alg.Matrix, alg.Matrix))]
 
     @targetName("deriveRVM2RVM")
@@ -309,7 +309,7 @@ object ReverseMode extends Mode:
     ): (alg: MatrixAlgebraDSL) => (alg.RowVector, alg.Matrix) => ((alg.Matrix, alg.Matrix), (alg.Matrix, alg.Matrix)) =
         alg => (x1, x2) => 
             val mode = dualMode(alg)
-            val df = mode.deriveDualTuple2DualTuple(f(mode.algebraDSL).tupled)
+            val df = mode.derive(f(mode.algebraDSL).tupled)
             df(x1, x2).asInstanceOf[((alg.Matrix, alg.Matrix), (alg.Matrix, alg.Matrix))]
 
     @targetName("deriveMM2MM")
@@ -318,7 +318,7 @@ object ReverseMode extends Mode:
     ): (alg: MatrixAlgebraDSL) => (alg.Matrix, alg.Matrix) => ((alg.Matrix, alg.Matrix), (alg.Matrix, alg.Matrix)) =
         alg => (x1, x2) => 
             val mode = dualMode(alg)
-            val df = mode.deriveDualTuple2DualTuple(f(mode.algebraDSL).tupled)
+            val df = mode.derive(f(mode.algebraDSL).tupled)
             df(x1, x2).asInstanceOf[((alg.Matrix, alg.Matrix), (alg.Matrix, alg.Matrix))]
 
     @targetName("deriveSCV2SCV")
@@ -327,5 +327,5 @@ object ReverseMode extends Mode:
     ): (alg: MatrixAlgebraDSL) => (alg.Scalar, alg.ColumnVector) => ((alg.Scalar, alg.ColumnVector), (alg.ColumnVector, alg.Matrix)) = 
         alg => (s, cv) =>
             val mode = dualMode(alg)
-            val df = mode.deriveDualTuple2DualTuple(f(mode.algebraDSL).tupled)
+            val df = mode.derive(f(mode.algebraDSL).tupled)
             df(s, cv).asInstanceOf[((alg.Scalar, alg.ColumnVector), (alg.ColumnVector, alg.Matrix))]

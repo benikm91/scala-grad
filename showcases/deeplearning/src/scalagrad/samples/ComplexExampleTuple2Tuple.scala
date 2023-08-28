@@ -19,7 +19,7 @@ def complexExampleTuple2Tuple =
 
     // derive the function
     val dualMode = ReverseDualMode(BreezeDoubleMatrixAlgebra)
-    val dTest = dualMode.deriveDualTuple2DualTuple(test(dualMode.algebraDSL).tupled)
+    val dTest = dualMode.derive(test(dualMode.algebraDSL).tupled)
 
     // call the derived function 
     val (dx1, dx2, dx3) = dTest(1.0, 1.0, 1.0)
