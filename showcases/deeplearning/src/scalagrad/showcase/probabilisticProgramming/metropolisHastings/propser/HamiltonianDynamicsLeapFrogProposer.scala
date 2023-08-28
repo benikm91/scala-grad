@@ -15,11 +15,9 @@ case class HamiltonianDynamicsLeapFrogProposer(
 
     override def nextProposal(z: (Vector[Double], Vector[Double])) =
         def calcNextQ(q: Vector[Double], p: Vector[Double], stepSize: Double) = 
-            q.zip(p).map((q, p) => q + stepSize * p) // TODO check if stepSize should be here
-            // q.zip(p).map((q, p) => q + stepSize * p)
+            q.zip(p).map((q, p) => q + stepSize * p)
         def calcNextP(q: Vector[Double], p: Vector[Double], stepSize: Double, factor: Double = 1.0) = 
             dTarget(q).map(_ * -1).zip(p).map((dq, p) => p - stepSize * dq * factor)
-            // dTarget(q).zip(p).map((dq, p) => p - stepSize * dq)
         
         val (q, currentP) = z
         val p = calcNextP(q, currentP, stepSize, factor = 0.5)
