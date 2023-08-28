@@ -32,6 +32,42 @@ class ForwardDualMode[
     override type DualRowVector = DualNumberRowVector[PRowVector]
     override type DualMatrix = DualNumberMatrix[PMatrix]
 
+    override given dualScalarTest: TypeTest[DualScalar | DualColumnVector | DualRowVector | DualMatrix, DualScalar] = 
+        new TypeTest {
+            def unapply(x: DualScalar | DualColumnVector | DualRowVector | DualMatrix): Option[x.type & DualScalar] = 
+                x match {
+                    case _: DualScalar => Some(x.asInstanceOf[x.type & DualScalar])
+                    case _ => None
+                }
+        }
+
+    override given dualColumnVectorTest: TypeTest[DualScalar | DualColumnVector | DualRowVector | DualMatrix, DualColumnVector] = 
+        new TypeTest {
+            def unapply(x: DualScalar | DualColumnVector | DualRowVector | DualMatrix): Option[x.type & DualColumnVector] = 
+                x match {
+                    case _: DualColumnVector => Some(x.asInstanceOf[x.type & DualColumnVector])
+                    case _ => None
+                }
+        }
+
+    override given dualRowVectorTest: TypeTest[DualScalar | DualColumnVector | DualRowVector | DualMatrix, DualRowVector] = 
+        new TypeTest {
+            def unapply(x: DualScalar | DualColumnVector | DualRowVector | DualMatrix): Option[x.type & DualRowVector] = 
+                x match {
+                    case _: DualRowVector => Some(x.asInstanceOf[x.type & DualRowVector])
+                    case _ => None
+                }
+        }
+    
+    override given dualMatrixTest: TypeTest[DualScalar | DualColumnVector | DualRowVector | DualMatrix, DualMatrix] = 
+        new TypeTest {
+            def unapply(x: DualScalar | DualColumnVector | DualRowVector | DualMatrix): Option[x.type & DualMatrix] = 
+                x match {
+                    case _: DualMatrix => Some(x.asInstanceOf[x.type & DualMatrix])
+                    case _ => None
+                }
+        }
+
     override val derivativeMatrixAlgebra: DerivativeMatrixAlgebra[
         PScalar, PColumnVector, PRowVector, PMatrix, 
         DScalar, DColumnVector, DRowVector, DMatrix, 

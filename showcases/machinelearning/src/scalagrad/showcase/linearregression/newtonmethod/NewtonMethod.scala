@@ -1,4 +1,6 @@
-package scalagrad.showcase.linearregression
+package scalagrad.showcase.linearregression.newtonmethod
+
+import scalagrad.showcase.linearregression.*
 
 import breeze.linalg.{DenseMatrix, DenseVector}
 import scalagrad.api.matrixalgebra.MatrixAlgebraDSL

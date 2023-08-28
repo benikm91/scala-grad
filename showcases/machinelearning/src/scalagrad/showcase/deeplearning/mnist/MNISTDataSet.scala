@@ -15,7 +15,7 @@ object MNISTDataSet:
     )
  
     def loadTest: Iterator[MNISTEntry] = 
-        val content = Source.fromFile("showcases/deeplearning/res/mnist/mnist_test.csv")
+        val content = Source.fromFile("showcases/machinelearning/res/mnist/mnist_test.csv")
             .getLines.map(_.split(","))
         content.drop(1).map(row =>
             MNISTEntry(
@@ -25,7 +25,7 @@ object MNISTDataSet:
         )
 
     def loadTrain: Iterator[MNISTEntry] = 
-        val content = Source.fromFile("showcases/deeplearning/res/mnist/mnist_train.csv")
+        val content = Source.fromFile("showcases/machinelearning/res/mnist/mnist_train.csv")
             .getLines.map(_.split(","))
         content.drop(1).map(row =>
             MNISTEntry(

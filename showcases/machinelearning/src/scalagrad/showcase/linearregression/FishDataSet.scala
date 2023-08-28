@@ -15,7 +15,7 @@ object FishDataSet:
     )
 
     def load: Seq[Fish] = 
-        val content = Source.fromFile("showcases/deeplearning/res/fish/fish.csv")
+        val content = Source.fromFile("showcases/machinelearning/res/fish/fish.csv")
             .getLines.map(_.split(","))
         val header = content.next
         val body = content.map(header.zip(_).toMap)
