@@ -1,7 +1,7 @@
 package scalagrad
 
 @main
-def forwardExampleSwap = 
+def forwardModeExampleSwap = 
     import scalagrad.api.matrixalgebra.MatrixAlgebraDSL
     import scalagrad.auto.breeze.BreezeDoubleMatrixAlgebraDSL
 
