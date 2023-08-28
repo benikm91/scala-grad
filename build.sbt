@@ -13,8 +13,8 @@ lazy val breezeDependency = Seq(
 )
 
 lazy val scaltirDependency = Seq(
-      resolvers +=  Resolver.sonatypeRepo("snapshots"), 
-      libraryDependencies += "ch.unibas.cs.gravis" %% "scaltair" % "0.1-SNAPSHOT" changing()
+    resolvers +=  Resolver.sonatypeRepo("snapshots"), 
+    libraryDependencies += "ch.unibas.cs.gravis" %% "scaltair" % "0.1-SNAPSHOT" changing()
 )
 
 lazy val basicSettings = Seq(
@@ -69,8 +69,9 @@ lazy val showcaseSamples = (project in file("./showcases/samples"))
     basicSettings,
     breezeDependency,
     scaltirDependency,
+    scalaTestSettings,
   ).dependsOn(
-    scalaGradAutoBreezeApi
+    scalaGradAutoBreezeApi,
   )
 
 lazy val showcaseProbabilisticProgramming = (project in file("./showcases/probabilisticprogramming"))
