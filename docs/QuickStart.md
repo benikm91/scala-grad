@@ -1,103 +1,135 @@
 # ScalaGrad
 
-[![codecov](https://codecov.io/gh/benikm91/scala-grad/branch/main/graph/badge.svg?token=X7LE1VFFTC)](https://codecov.io/gh/benikm91/scala-grad)
+ScalaGrad is an automatic differentiation library for Scala which is fast, type-safe, higher-order and can be combined with normal Scala statements.
 
-ScalaGrad can do Automatic Differentiation supporting:
+## Minimal Example
 
-- Forward-mode
-- Reverse-mode
-
-## Forward-mode
-
-### Minimal Example
-
-Showcase the forward mode for a function f: S => S
+Let us look at a minimal example $x^2$ to get a feel for ScalaGrad.
+First all numerical operations have to be implemented by a ```MatrixAlgebraDSL```,
+as we do with the example function ```square```.
+Then we can call ```ForwardMode.derive(square)``` to derive the function ```square``` by using forward-mode:
 
 ```scala mdoc
-// import ScalaGrad and the forward plan
-import scalagrad.api.ScalaGrad
-import scalagrad.auto.forward.breeze.BreezeDoubleForwardMode
-import scalagrad.auto.forward.breeze.BreezeDoubleForwardMode.given
-import BreezeDoubleForwardMode.{algebraT as alg}
+@main
+def forwardModeExampleSquare = 
+    import scalagrad.api.matrixalgebra.MatrixAlgebraDSL
+    import scalagrad.auto.breeze.BreezeDoubleMatrixAlgebraDSL
 
-// define a function using the types inside algebraT (algebraT is from forward plan)
-def f(
-    x: alg.Scalar,
-): (alg.Scalar, alg.Scalar) = x * x
+    def square(alg: MatrixAlgebraDSL)(x: alg.Scalar): (alg.Scalar) = 
+        x * x
 
-// derive the function
-val df = ScalaGrad.derive(f)
+    // import the forwarde mode
+    import scalagrad.api.forward.ForwardMode.derive as d
 
-// call the derived function
-val res: ((Double, Double), (Double, Double)) = df(1.0, 2.0)
-assert(res == ((0.0, 1.0), (1.0, 0.0)))
+    // derive the function
+    val dSquare = d(square)(BreezeDoubleMatrixAlgebraDSL)
+
+    // call the derived function (Note that dSquare(x) = 2 * x)
+    assert(dSquare(3.0) == (2 * 3.0)) 
 ```
 
-## Reverse-mode
-
-### Minimal Example
+If we want to use the reverse-mode, we simply use the function ```ReverseMode.derive``` instead of ```ForwardMode.derive```, the rest stays the same.
 
 ```scala mdoc
-// import ScalaGrad and the reverse plan
-import scalagrad.api.ScalaGrad
-import scalagrad.auto.reverse.breeze.BreezeDoubleReverseMode
-import scalagrad.auto.reverse.breeze.BreezeDoubleReverseMode.given
-import BreezeDoubleReverseMode.{algebraT as alg}
+@main
+def reverseModeExampleSquare = 
+    import scalagrad.api.matrixalgebra.MatrixAlgebraDSL
+    import scalagrad.auto.breeze.BreezeDoubleMatrixAlgebraDSL
+    
+    def square(alg: MatrixAlgebraDSL)(x: alg.Scalar): alg.Scalar = 
+        x * x
 
-// define a function using the types inside algebraT  (algebraT is from reverse plan)
-def f(
-    x1: alg.Scalar,
-    x2: alg.Scalar,
-): (alg.Scalar, alg.Scalar) = (x2, x1)
+    // import the reverse mode
+    import scalagrad.api.reverse.ReverseMode.derive as d // <--
 
-// derive the function
-val df = ScalaGrad.derive(f)
+    // derive the function
+    val dSquare = d(square)(BreezeDoubleMatrixAlgebraDSL)
 
-// call the derived function
-val res = df(1.0, 2.0)
-assert(res == ((0.0, 1.0), (1.0, 0.0)))
+    // call the derived function (Note that dSquare(x) = 2 * x)
+    assert(dSquare(3.0) == (2 * 3.0)) 
+
 ```
 
-## Mixture-mode
+## Higher-order
 
-### Specific Mode
+ScalaGrad support higher-order derivatives, by simply deriving the derivative of a function:
 
 ```scala mdoc
-// import ScalaGrad stuff and the reverse plan
-import scalagrad.api.{ScalaGrad, DeriverFromTo}
-import scalagrad.auto.reverse.breeze.BreezeDoubleReverseMode
-import scalagrad.auto.reverse.breeze.BreezeDoubleReverseMode.given
-import BreezeDoubleReverseMode.{algebraT as alg}
-// import Numeric stuff needed in relu function
-import spire.math.Numeric
-import spire.implicits.*
-import scalagrad.api.spire.numeric.DualScalarIsNumeric.given
+@main
+def higherOrderExampleSquare =
+    import scalagrad.api.matrixalgebra.MatrixAlgebraDSL
+    import scalagrad.auto.breeze.BreezeDoubleMatrixAlgebraDSL
 
-// define relu (relu will be derived by forward plan)
-def relu[P: Numeric](x: P): P = 
-    val num = summon[Numeric[P]]
-    if num.lt(x, num.zero) then num.zero else x
+    def square(alg: MatrixAlgebraDSL)(x: alg.Scalar): alg.Scalar = 
+        x * x
 
-// define a function using relu (f (except relu) will be derived by reverse plan)
-def f(using DeriverFromTo[alg.Scalar => alg.Scalar, alg.PrimaryScalar => alg.PrimaryScalar])(
-    x: alg.Matrix,
-): alg.Scalar = 
-    import alg.innerAlgebra.*
-    val dRelu = ScalaGrad.derive(relu[alg.Scalar]) // derive relu (using DeriverFromTo)
-    val o = x.mapDual(relu[alg.PrimaryScalar], dRelu)
-    o.sum
+    // import the forwarde mode
+    import scalagrad.api.forward.ForwardMode.derive as d
 
-// import the forward plan which will be given to f.
-import scalagrad.auto.forward.breeze.BreezeDoubleForwardMode.given
+    // derive the function twice
+    val ddSquare = d(d(square))(BreezeDoubleMatrixAlgebraDSL)
 
-// derive the function
-val df = ScalaGrad.derive(f)
-
-// call the derived function
-val res = df(new breeze.linalg.DenseMatrix(2, 2, Array(-1.0, 2.0, 3.0, 4.0)))
-println(res.toArray == Array(0.0, 1.0, 1.0, 1.0))
+    // call the derived function (Note that ddSquare(x) = 2.0)
+    assert(ddSquare(5.0) == 2.0)
 ```
 
-### Higher Order
+## Fast
 
-TODO
+ScalaGrads implementation uses memorization for shared parts as well as uses native tensor operations (using Breeze).
+ScalaGrad has therefore competetive run-time performance compared to for example PyTorch autograd.
+For example the neural network showcase shows a simple neural network architecture classifing the MNIST dataset. One epoch of training (50'000 images) took ScalaGrad 6s compared to 1s with PyTorch.
+
+## Type-safe
+
+ScalaGrad tracks the type when deriving a function, for example the type of the derivative for the ```swap``` function is tracked:
+
+```scala mdoc
+@main
+def forwardExampleSwap = 
+    import scalagrad.api.matrixalgebra.MatrixAlgebraDSL
+    import scalagrad.auto.breeze.BreezeDoubleMatrixAlgebraDSL
+
+    def swap(alg: MatrixAlgebraDSL)(
+        x1: alg.Scalar,
+        x2: alg.Scalar,
+    ): (alg.Scalar, alg.Scalar) = (x2, x1)
+
+    import scalagrad.api.forward.ForwardMode.derive as d
+
+    // dSwap: (Double, Double) => ((Double, Double), (Double, Double))
+    val dSwap = d(swap)(BreezeDoubleMatrixAlgebraDSL)
+
+    assert(dSwap(1.0, 2.0) == ((0.0, 1.0), (1.0, 0.0)))
+```
+
+## ScalaGrad is Scala
+
+ScalaGrad builds the expression graph dynamically (like e.g PyTorch), which means one can use any Scala statement one pleases. If all numerical operations are implemented with the ```MatrixAlgebra``` ScalaGrad simply works.
+Here we show how a ```case class``` instance is used inside a function, we want to derive:
+
+```scala mdoc
+@main
+def complexExampleClass = 
+    import scalagrad.api.matrixalgebra.MatrixAlgebra
+    import scalagrad.api.matrixalgebra.MatrixAlgebraDSL
+    import scalagrad.auto.breeze.BreezeDoubleMatrixAlgebraDSL
+
+    case class Gaussian[S](alg: MatrixAlgebra[S, _, _, _], mu: S, std: S):
+        def pdf(x: S): S = 
+            import alg.*
+            val res = (x - mu) / std
+            val normalizationTerm = alg.num.sqrt(alg.lift(2 * Math.PI)) * std
+            alg.trig.exp(alg.lift(-0.5) * res * res) / normalizationTerm
+
+    def f(alg: MatrixAlgebraDSL)(mu: alg.Scalar): alg.Scalar = 
+        Gaussian(alg.innerAlgebra, mu, alg.lift(2.0)).pdf(alg.lift(1.0))
+
+    // import the reverse mode
+    import scalagrad.api.reverse.ReverseMode.derive as d
+
+    // derive the function
+    val dF = d(f)(BreezeDoubleMatrixAlgebraDSL)
+
+    // call the derived function
+    assert(dF(1.0) == 0.0) 
+```

@@ -6,7 +6,7 @@ def reverseModeExampleSquare =
     import scalagrad.api.matrixalgebra.MatrixAlgebraDSL
     import scalagrad.auto.breeze.BreezeDoubleMatrixAlgebraDSL
     
-    // define a function using the types inside algebraT  (algebraT is from reverse plan)
+    // define a function
     def square(alg: MatrixAlgebraDSL)(x: alg.Scalar): alg.Scalar = x * x
 
     // import the reverse mode
