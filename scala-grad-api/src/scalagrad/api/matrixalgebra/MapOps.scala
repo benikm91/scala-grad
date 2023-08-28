@@ -14,11 +14,9 @@ trait MapOps[Scalar, ColumnVector, RowVector, Matrix]:
     def elementWiseOpM(m: Matrix, op: Scalar => Scalar): Matrix = 
         createMatrixFromElements(m.nRows, m.nCols, m.elements.map(op))
 
-    def columnWiseOpM(m: Matrix, op: ColumnVector => ColumnVector): Matrix =
-        createMatrixFromElements(m.nRows, m.nCols, m.columns.map(op).flatMap(_.elements))
+    def columnWiseOpM(m: Matrix, op: ColumnVector => ColumnVector): Matrix = stackColumns(m.columns.map(op))
 
-    def rowWiseOpM(m: Matrix, op: RowVector => RowVector): Matrix = 
-        createMatrixFromElements(m.nCols, m.nRows, m.rows.map(op).flatMap(_.elements)).t
+    def rowWiseOpM(m: Matrix, op: RowVector => RowVector): Matrix = stackRows(m.rows.map(op))
 
     def elementWiseOpCV(cv: ColumnVector, op: Scalar => Scalar): ColumnVector = 
         createColumnVectorFromElements(cv.elements.map(op))
