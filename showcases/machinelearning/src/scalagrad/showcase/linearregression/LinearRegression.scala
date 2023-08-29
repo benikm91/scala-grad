@@ -26,6 +26,8 @@ import scala.io.Source
     val (ysScala, ysMean, ysStd) = StandardScaler.scaleColumn(ysUnscaled)
     val ys = DenseVector(ysScala.toArray)
     
+    // Define model, MSE metric and loss function.
+
     def linearModel(using alg: MatrixAlgebraDSL)(xs: alg.Matrix, w0: alg.Scalar, ws: alg.ColumnVector): alg.ColumnVector = 
         (xs * ws) + w0
 
@@ -36,6 +38,8 @@ import scala.io.Source
         given alg.type = alg
         val ysHat = linearModel(alg.lift(xs), w0, ws)
         meanSquaredError(alg.lift(ys), ysHat)
+
+    // Implement full-batch gradient descent
 
     def gradientDescent(
         xs: DenseMatrix[Double],
@@ -73,6 +77,7 @@ import scala.io.Source
     )
     println(f"${rootMeanSquaredError(DenseVector(ysUnscaled.toArray), DenseVector(initYsHat.toArray))}g  -- RMSE with initial weights")
 
+    // Apply gradient descent n times
     val (w0, ws) = gradientDescent(xs, ys, initW0, initWs, 0.01, 100)
 
     val ysHat = StandardScaler.inverseScaleColumn(
