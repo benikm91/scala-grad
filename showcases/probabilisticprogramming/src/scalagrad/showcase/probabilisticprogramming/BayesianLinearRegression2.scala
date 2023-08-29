@@ -23,8 +23,18 @@ import breeze.linalg.{DenseVector, DenseMatrix}
 import scalagrad.auto.breeze.BreezeDoubleMatrixAlgebraDSL
 import scalagrad.api.forward.ForwardDualMode
 
-object UseCase1b extends App:
+/**
+ * This example shows a more complex bayesian linear regression model with 11 parameters.
+ * We first formulate a posterior. 
+ * Then we sample it with three samplers
+ * - the non-gradient based metropolis hasting sampler 
+ * - the gradient-based metropolis djusted langevin algorithm sampler (MALA) 
+ * - the gradient-based hamiltonial monte carlo sampler
+ * For calculating the gradients ScalaGrad is used.
+ */
+object BayesianLinearRegression2 extends App:
     
+    // Helper function taking care of the types
     def d(
         f: (alg: MatrixAlgebraDSL) => (alg.ColumnVector, alg.Scalar, alg.Scalar) => alg.Scalar
     ): (alg: MatrixAlgebraDSL) => (alg.ColumnVector, alg.Scalar, alg.Scalar) => (alg.ColumnVector, alg.Scalar, alg.Scalar) = 
@@ -56,6 +66,7 @@ object UseCase1b extends App:
         (xs, ys)
     }
 
+    // Formulating the prior
     def logPrior(alg: MatrixAlgebraDSL)(a: alg.ColumnVector, b: alg.Scalar, sigma: alg.Scalar)
         (using num: Numeric[alg.Scalar], trig: Trig[alg.Scalar]): alg.Scalar =
         def logPriorDistA[T: Trig](x: T)(using num: Numeric[T]) = 
@@ -66,6 +77,7 @@ object UseCase1b extends App:
             logNormalLogPdf[T](num.zero, num.fromDouble(0.25))(trig.log(x))
         a.map(logPriorDistA(_)).sum + logPriorDistB(b) + logPriorDistSigma(sigma)
 
+    // Formulating the liklihood
     def logLikelihood(xs: DenseMatrix[Double], ys: DenseVector[Double])(alg: MatrixAlgebraDSL)(a: alg.ColumnVector, b: alg.Scalar, sigma: alg.Scalar): alg.Scalar =
         alg.lift(xs).rows.zip(alg.lift(ys).elements).map { case (x, y) =>
             val mu = (x * a) + b
@@ -75,13 +87,14 @@ object UseCase1b extends App:
             alg.trig.log(normalization) + exponent
         }.sum
 
+    // Combining prior and liklihood to the posterior
     def logPosterior(xs: DenseMatrix[Double], ys: DenseVector[Double])(alg: MatrixAlgebraDSL)(a: alg.ColumnVector, b: alg.Scalar, sigma: alg.Scalar): alg.Scalar =
         logPrior(alg)(a, b, sigma) + logLikelihood(xs, ys)(alg)(a, b, sigma)
 
     def paramsToVector(a: DenseVector[Double], b: Double, sigma: Double): Vector[Double] = a.toScalaVector ++ Seq(b, sigma)
     def vectorToParams(v: Vector[Double]): (DenseVector[Double], Double, Double) = (DenseVector(v.take(10).toArray), v(10), v(11))
 
-    // derive logPosterior for MALA and Hamiltonian Monte Carlo
+    // derive logPosterior for MALA and HMC
     val dLogPosterior = d(logPosterior(xs, ys))(BreezeDoubleMatrixAlgebraDSL)
     val dLogPosteriorVector = vectorToParams andThen dLogPosterior.tupled andThen paramsToVector
     
