@@ -6,8 +6,8 @@ object MNISTDataSet:
 
     val nLabels = 10
     val nFeatures = 28 * 28
-    val testSize = 10000
-    val trainSize = 60000
+    val testSize = 10_000
+    val trainSize = 60_000
 
     case class MNISTEntry(
         label: Int,

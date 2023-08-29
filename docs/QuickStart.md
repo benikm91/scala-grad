@@ -102,6 +102,8 @@ def forwardExampleSwap =
     assert(dSwap(1.0, 2.0) == ((0.0, 1.0), (1.0, 0.0)))
 ```
 
+Type-safety in ScalaGrad is discussed in more details [here](docs/TypeSafe.md)
+
 ## ScalaGrad is Scala
 
 ScalaGrad builds the expression graph dynamically (like e.g PyTorch), which means one can use any Scala statement one pleases. If all numerical operations are implemented with the ```MatrixAlgebra``` ScalaGrad simply works.

@@ -6,7 +6,9 @@
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/scala-grad-api.iml" filepath="$PROJECT_DIR$/.idea/modules/scala-grad-api.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/scala-grad-auto-breeze.iml" filepath="$PROJECT_DIR$/.idea/modules/scala-grad-auto-breeze.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/scala-grad-build.iml" filepath="$PROJECT_DIR$/.idea/modules/scala-grad-build.iml" />
-      <module fileurl="file://$PROJECT_DIR$/.idea/modules/scala-grad-showcase-deeplearning.iml" filepath="$PROJECT_DIR$/.idea/modules/scala-grad-showcase-deeplearning.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/scala-grad-showcase-machine-learning.iml" filepath="$PROJECT_DIR$/.idea/modules/scala-grad-showcase-machine-learning.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/scala-grad-showcase-probabilistic-programming.iml" filepath="$PROJECT_DIR$/.idea/modules/scala-grad-showcase-probabilistic-programming.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/scala-grad-showcase-samples.iml" filepath="$PROJECT_DIR$/.idea/modules/scala-grad-showcase-samples.iml" />
     </modules>
   </component>
 </project>

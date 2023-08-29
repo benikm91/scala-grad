@@ -3,7 +3,14 @@
 # ScalaGrad
 
 ScalaGrad is an automatic differentiation library for Scala.
-It is fast, type-safe, higher-order and can be combined with normal Scala statements. It is designed to be flexibel and can be used to different applications (see [Showcases](#showcases)).
+It is fast, type-safe, higher-order and can be combined with normal Scala statements. 
+It is designed to be flexibel and can be used to different applications (see [Showcases](#showcases)).
+
+## State of the project
+
+ScalaGrad got developed during my master thesis which ended on 31. september 2023.
+ScalaGrad is in a usable state and got applied successfully to a wide range of showcases.
+It will be maintained in my free time, therefore bugfixes and further development are not a given.
 
 ## QuickStart
 
@@ -19,3 +26,10 @@ As well as more complex applications:
 - Train a linear regression (see [Code](showcases/machinelearning/src/scalagrad/showcase/linearregression/LinearRegression.scala))
 - Use higher-order gradients for the newton method (see [Code](showcases/machinelearning/src/scalagrad/showcase/linearregression/newtonmethod/NewtonMethod.scala))
 - Sample a bayesian linear model with the Metropolis-adjusted Langevin algorithm (MALA) sampler as well as the Hamiltonian Monte Carlo sampler (see [Code](showcases/probabilisticprogramming/src/scalagrad/showcase/probabilisticprogramming/UseCase1b.scala))
+
+## Citation
+
+When citing the repository please use:
+
+When citing the original [master thesis](TODO) giving birth to ScalaGrad please use.
+

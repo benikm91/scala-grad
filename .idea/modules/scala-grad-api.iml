@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<module external.linked.project.id="scalaGradApi [file:/Users/mebr/IdeaProjects/scala-grad-final/]" external.linked.project.path="$MODULE_DIR$/../../scala-grad-api" external.root.project.path="$MODULE_DIR$/../.." external.system.id="SBT" type="JAVA_MODULE" version="4">
-  <component name="NewModuleRootManager" LANGUAGE_LEVEL="JDK_19">
-    <output url="file://$MODULE_DIR$/../../scala-grad-api/target/scala-3.2.2/classes" />
-    <output-test url="file://$MODULE_DIR$/../../scala-grad-api/target/scala-3.2.2/test-classes" />
+<module external.linked.project.id="scalaGradApi [file:/Users/maroimeyer/Beni/scala-grad/]" external.linked.project.path="$MODULE_DIR$/../../scala-grad-api" external.root.project.path="$MODULE_DIR$/../.." external.system.id="SBT" type="JAVA_MODULE" version="4">
+  <component name="NewModuleRootManager" LANGUAGE_LEVEL="JDK_20">
+    <output url="file://$MODULE_DIR$/../../scala-grad-api/target/scala-3.3.0/classes" />
+    <output-test url="file://$MODULE_DIR$/../../scala-grad-api/target/scala-3.3.0/test-classes" />
     <exclude-output />
     <content url="file://$MODULE_DIR$/../../scala-grad-api">
       <sourceFolder url="file://$MODULE_DIR$/../../scala-grad-api/src" isTestSource="false" />
@@ -11,6 +11,7 @@
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
+    <orderEntry type="library" name="sbt: scala-sdk-3.3.0" level="project" />
     <orderEntry type="library" name="sbt: com.github.wendykierp:JTransforms:3.1:jar" level="project" />
     <orderEntry type="library" name="sbt: dev.ludovic.netlib:arpack:3.0.1:jar" level="project" />
     <orderEntry type="library" name="sbt: dev.ludovic.netlib:blas:3.0.1:jar" level="project" />
@@ -21,7 +22,7 @@
     <orderEntry type="library" name="sbt: org.scala-lang.modules:scala-collection-compat_3:2.7.0:jar" level="project" />
     <orderEntry type="library" scope="TEST" name="sbt: org.scala-lang.modules:scala-xml_3:2.1.0:jar" level="project" />
     <orderEntry type="library" name="sbt: org.scala-lang:scala-library:2.13.10:jar" level="project" />
-    <orderEntry type="library" name="sbt: org.scala-lang:scala3-library_3:3.2.2:jar" level="project" />
+    <orderEntry type="library" name="sbt: org.scala-lang:scala3-library_3:3.3.0:jar" level="project" />
     <orderEntry type="library" scope="TEST" name="sbt: org.scala-sbt:test-interface:1.0:jar" level="project" />
     <orderEntry type="library" scope="TEST" name="sbt: org.scalacheck:scalacheck_3:1.17.0:jar" level="project" />
     <orderEntry type="library" scope="TEST" name="sbt: org.scalactic:scalactic_3:3.2.14:jar" level="project" />
