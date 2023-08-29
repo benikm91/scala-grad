@@ -27,7 +27,6 @@ import scala.annotation.tailrec
  * - We show how constants can be implemented by having a parameter group and using Scalas currying.
  * - We show how a wrapper function d can be made to support custom types (here Parameters).
  */
-
 object NeuralNetworkMNIST:
 
     /**
