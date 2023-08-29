@@ -2,6 +2,9 @@ package scalagrad.showcase.linearregression
 
 import scala.io.Source
 
+/**
+  * Well known toy dataset for linear regression.
+  */
 object FishDataSet:
 
     case class Fish(

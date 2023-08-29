@@ -11,6 +11,8 @@ import scala.io.Source
 
 @main def linearRegression() = 
 
+    // Load and scale data
+
     val fishs = FishDataSet.load
 
     var (xsScala, _, _) = 

@@ -9,6 +9,7 @@ import spire.syntax.all.partialOrderOps
 
 object Util:
 
+    /** Cycle seq infinitely. */
     def cycle[T](seq: Seq[T]): LazyList[T] =
         def inner(s: Seq[T]): LazyList[T] = s match {
             case head +: tail => head #:: inner(tail)
@@ -16,6 +17,13 @@ object Util:
         }
         inner(seq)
 
+    /**
+     * Preprocess an MNIST dataset.
+     * - Normalize pixels to be in [0, 1].
+     * - Convert labels to one-hot encoding.
+     * - Batch data into batches of size batchSize.
+     * @return (xsBatches, ysBatches) where xsBatches is a LazyList of batches of input data and ysBatches is a LazyList of batches of labels.
+     */
     def preprocess(data: Iterator[MNISTDataSet.MNISTEntry], batchSize: Int) = 
         def normalize(pixel: Double) = pixel / 255
         val dataL = LazyList.from(data)
