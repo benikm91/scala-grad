@@ -7,6 +7,9 @@ import scalagrad.auto.breeze.BreezeDoubleMatrixAlgebra
 
 import scala.reflect.{TypeTest, Typeable}
 
+/**
+  * Wraps [[BreezeFloatMatrixAlgebra]] in a [[scalagrad.api.matrixalgebra.MatrixAlgebraDSL]].
+  */
 object BreezeFloatMatrixAlgebraDSL extends MatrixAlgebraDSL:
  
     given scalarTest: TypeTest[Scalar | ColumnVector | RowVector | Matrix, Scalar] = summon[Typeable[Float]]

@@ -7,6 +7,11 @@ import spire.algebra.Trig
 import spire.math.Numeric
 import scala.annotation.targetName
 
+/**
+  * Implementation of [[scalagrad.api.matrixalgebra.MatrixAlgebra]] for [[breeze.linalg.DenseMatrix]] with [[Double]] elements.
+  * 
+  * Basically maps the MatrixAlgebra operations to the corresponding breeze operations.
+  */
 object BreezeDoubleMatrixAlgebra extends MatrixAlgebra[
     Double, DenseVector[Double], Transpose[DenseVector[Double]], DenseMatrix[Double],
 ]:
