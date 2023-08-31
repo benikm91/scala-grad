@@ -28,7 +28,7 @@ object DualScalarIsTrig:
         val pma = dualMa.primaryMatrixAlgebra
         val dma = dualMa.derivativeMatrixAlgebra
 
-        import dma.mapDual
+        import dualMa.mapDual
         import pma.*
 
         private def lift(v: PScalar) = dualMa.liftPrimary(v)

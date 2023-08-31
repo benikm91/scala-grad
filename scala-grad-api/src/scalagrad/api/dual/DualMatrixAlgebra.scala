@@ -502,6 +502,13 @@ with MapDualOps[
             List(cv.dv)
         )
 
+    override def applyOn(ds: DualScalar, f: PScalar => PScalar, df: PScalar => PScalar): DualScalar = 
+        createDualScalar(
+            f(ds.v), 
+            multiplySDS(df(ds.v), ds.dv),
+            List(ds.dv)
+        )
+
     def liftPrimary(xs: PMatrix): DualMatrix = 
         dma.createDualMatrix(
             xs,

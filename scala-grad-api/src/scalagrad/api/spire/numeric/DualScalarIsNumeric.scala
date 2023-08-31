@@ -31,7 +31,7 @@ object DualScalarIsNumeric:
         private val pma = dualMatrixAlgebra.primaryMatrixAlgebra
         private val dma = dualMatrixAlgebra.derivativeMatrixAlgebra
 
-        import dma.mapDual
+        import dualMa.mapDual
         import pma.*
 
         private def lift(v: PScalar) = dualMa.liftPrimary(v)

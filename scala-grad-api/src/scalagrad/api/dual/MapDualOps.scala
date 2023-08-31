@@ -39,6 +39,8 @@ trait MapDualOps[
     def elementWiseOpRV(rv: DualRowVector, op: PScalar => PScalar, dOp: PScalar => PScalar): DualRowVector = 
         elementWiseOpCV(rv.t, op, dOp).t
 
+    def applyOn(ds: DualScalar, f: PScalar => PScalar, df: PScalar => PScalar): DualScalar
+
     extension (m: DualMatrix)
         @targetName("elementWiseOpM_Op_map")
         def mapDual(op: PScalar => PScalar, dOp: PScalar => PScalar): DualMatrix = m.mapDualElements(op, dOp)
@@ -60,3 +62,7 @@ trait MapDualOps[
         def mapDual(op: PScalar => PScalar, dOp: PScalar => PScalar): DualRowVector = rv.mapDualElements(op, dOp)
         @targetName("elementWiseOpRV_Op2")
         def mapDualElements(op: PScalar => PScalar, dOp: PScalar => PScalar): DualRowVector = elementWiseOpRV(rv, op, dOp)
+
+    extension (ds: DualScalar)
+        def mapDual(f: PScalar => PScalar, df: PScalar => PScalar): DualScalar = 
+            applyOn(ds, f, df)
