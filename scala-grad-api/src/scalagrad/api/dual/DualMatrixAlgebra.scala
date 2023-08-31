@@ -36,7 +36,7 @@ trait DualMatrixAlgebraDSL extends MatrixAlgebraDSL:
     ]
 
     export innerAlgebra.primaryMatrixAlgebra
-    export innerAlgebra.mapDual
+    export innerAlgebra.{mapDual, mapDualRows, mapDualColumns}
 
 
 case class DualMatrixAlgebra[
