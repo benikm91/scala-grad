@@ -36,5 +36,4 @@ def mixtureSample =
    
     // call the derived function
     val res = df(new breeze.linalg.DenseMatrix(2, 2, Array(-1.0, 2.0, 3.0, 4.0)))
-    println(res.toArray.mkString(", "))
-    println(res.toArray == Array(0.0, 1.0, 1.0, 1.0))
+    assert(res.toArray.sameElements(Array(0.0, 1.0, 1.0, 1.0)))
