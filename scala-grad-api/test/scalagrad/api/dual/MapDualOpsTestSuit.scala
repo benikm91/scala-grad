@@ -82,18 +82,47 @@ trait MapDualOpsTestSuit extends AnyWordSpec:
             }
         }
 
+    def matrixGen(minDim: Int = 1, maxDim: Int = 25, mGen: (Gen[Int], Gen[Int]) => Gen[pma.Matrix] = mGen): Gen[pma.Matrix] =
+        for {
+            nRow <- Gen.choose(minDim, maxDim)
+            nCol <- Gen.choose(minDim, maxDim)
+            m <- mGen(nRow, nCol)
+        } yield m
+    
     f"${testName} Matrix mapDual operations" should {
-
-        def matrixGen(minDim: Int = 1, maxDim: Int = 25, mGen: (Gen[Int], Gen[Int]) => Gen[pma.Matrix] = mGen): Gen[pma.Matrix] =
-            for {
-                nRow <- Gen.choose(minDim, maxDim)
-                nCol <- Gen.choose(minDim, maxDim)
-                m <- mGen(nRow, nCol)
-            } yield m
-        
         "support deleting gradients" in {
             def f(alg: DualMatrixAlgebraDSL)(m: alg.Matrix): alg.Scalar = 
                 m.mapDual(x => x, x => alg.primaryMatrixAlgebra.zeroScalar).sum
+            val df = d(f)(pma)
+            forAll(matrixGen()) { (m) =>
+                compareElementsMM(
+                    df(m),
+                    // No gradients <=> gradients were deleted
+                    pma.zeroMatrix(m.nRows, m.nCols)
+                )
+            }
+        }
+    }
+
+    f"${testName} Matrix mapDualRows operations" should {
+        "support deleting gradients" in {
+            def f(alg: DualMatrixAlgebraDSL)(m: alg.Matrix): alg.Scalar = 
+                m.mapDualRows(x => x, x => alg.primaryMatrixAlgebra.zeroRowVector(alg.primaryMatrixAlgebra.lengthRowVector(x))).sum
+            val df = d(f)(pma)
+            forAll(matrixGen()) { (m) =>
+                compareElementsMM(
+                    df(m),
+                    // No gradients <=> gradients were deleted
+                    pma.zeroMatrix(m.nRows, m.nCols)
+                )
+            }
+        }
+    }
+
+    f"${testName} Matrix mapDualColumn operations" should {
+        "support deleting gradients" in {
+            def f(alg: DualMatrixAlgebraDSL)(m: alg.Matrix): alg.Scalar = 
+                m.mapDualColumns(x => x, x => alg.primaryMatrixAlgebra.zeroColumnVector(alg.primaryMatrixAlgebra.lengthColumnVector(x))).sum
             val df = d(f)(pma)
             forAll(matrixGen()) { (m) =>
                 compareElementsMM(
