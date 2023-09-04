@@ -1,6 +1,48 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ScalaCompilerConfiguration">
-    <profile name="sbt 1" modules="scala-grad,scala-grad-api,scala-grad-auto-breeze,scala-grad-final_1996,scala-grad-showcase-deeplearning,scala-grad-showcase-machine-learning,scala-grad-showcase-probabilistic-programming,scala-grad-showcase-samples" />
+    <profile name="sbt 1" modules="scala-grad-final_1996,scala-grad-showcase-deeplearning" />
+    <profile name="sbt 2" modules="scala-grad">
+      <parameters>
+        <parameter value="-Xsemanticdb" />
+        <parameter value="-semanticdb-target" />
+        <parameter value="$PROJECT_DIR$/target/scala-3.3.0/meta" />
+      </parameters>
+    </profile>
+    <profile name="sbt 3" modules="scala-grad-api">
+      <parameters>
+        <parameter value="-Xsemanticdb" />
+        <parameter value="-semanticdb-target" />
+        <parameter value="$PROJECT_DIR$/scala-grad-api/target/scala-3.3.0/meta" />
+      </parameters>
+    </profile>
+    <profile name="sbt 4" modules="scala-grad-auto-breeze">
+      <parameters>
+        <parameter value="-Xsemanticdb" />
+        <parameter value="-semanticdb-target" />
+        <parameter value="$PROJECT_DIR$/scala-grad-auto-breeze/target/scala-3.3.0/meta" />
+      </parameters>
+    </profile>
+    <profile name="sbt 5" modules="scala-grad-showcase-machine-learning">
+      <parameters>
+        <parameter value="-Xsemanticdb" />
+        <parameter value="-semanticdb-target" />
+        <parameter value="$PROJECT_DIR$/showcases/machinelearning/target/scala-3.3.0/meta" />
+      </parameters>
+    </profile>
+    <profile name="sbt 6" modules="scala-grad-showcase-probabilistic-programming">
+      <parameters>
+        <parameter value="-Xsemanticdb" />
+        <parameter value="-semanticdb-target" />
+        <parameter value="$PROJECT_DIR$/showcases/probabilisticprogramming/target/scala-3.3.0/meta" />
+      </parameters>
+    </profile>
+    <profile name="sbt 7" modules="scala-grad-showcase-samples">
+      <parameters>
+        <parameter value="-Xsemanticdb" />
+        <parameter value="-semanticdb-target" />
+        <parameter value="$PROJECT_DIR$/showcases/samples/target/scala-3.3.0/meta" />
+      </parameters>
+    </profile>
   </component>
 </project>

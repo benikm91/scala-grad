@@ -101,12 +101,26 @@
           <root url="jar://$USER_HOME$/.sbt/boot/scala-2.12.18/org.scala-sbt/sbt/1.9.0/zinc-persist-core-assembly-1.9.0.jar!/" />
           <root url="jar://$USER_HOME$/.sbt/boot/scala-2.12.18/org.scala-sbt/sbt/1.9.0/zinc-persist_2.12-1.9.0.jar!/" />
           <root url="jar://$USER_HOME$/.sbt/boot/scala-2.12.18/org.scala-sbt/sbt/1.9.0/zinc_2.12-1.9.0.jar!/" />
-          <root url="jar://$USER_HOME$/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/ch/epfl/scala/bloop-config_2.12/1.5.5/bloop-config_2.12-1.5.5.jar!/" />
-          <root url="jar://$USER_HOME$/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/ch/epfl/scala/sbt-bloop_2.12_1.0/1.5.8/sbt-bloop_2.12_1.0-1.5.8.jar!/" />
-          <root url="jar://$USER_HOME$/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/github/plokhotnyuk/jsoniter-scala/jsoniter-scala-core_2.12/2.4.0/jsoniter-scala-core_2.12-2.4.0.jar!/" />
+          <root url="jar://$USER_HOME$/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/ch/epfl/scala/com-microsoft-java-debug-core/0.34.0%2B20/com-microsoft-java-debug-core-0.34.0%2B20.jar!/" />
+          <root url="jar://$USER_HOME$/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/ch/epfl/scala/sbt-debug-adapter_2.12_1.0/3.1.4/sbt-debug-adapter-3.1.4.jar!/" />
+          <root url="jar://$USER_HOME$/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/ch/epfl/scala/scala-debug-adapter_2.12/3.1.4/scala-debug-adapter_2.12-3.1.4.jar!/" />
+          <root url="jar://$USER_HOME$/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/eed3si9n/sjson-new-core_2.12/0.9.0/sjson-new-core_2.12-0.9.0.jar!/" />
+          <root url="jar://$USER_HOME$/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/google/code/gson/gson/2.10.1/gson-2.10.1.jar!/" />
+          <root url="jar://$USER_HOME$/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/commons-io/commons-io/2.13.0/commons-io-2.13.0.jar!/" />
+          <root url="jar://$USER_HOME$/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/io/reactivex/rxjava2/rxjava/2.2.21/rxjava-2.2.21.jar!/" />
+          <root url="jar://$USER_HOME$/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/apache/commons/commons-lang3/3.13.0/commons-lang3-3.13.0.jar!/" />
           <root url="jar://$USER_HOME$/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/jsoup/jsoup/1.12.1/jsoup-1.12.1.jar!/" />
+          <root url="jar://$USER_HOME$/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/ow2/asm/asm-analysis/9.5/asm-analysis-9.5.jar!/" />
+          <root url="jar://$USER_HOME$/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/ow2/asm/asm-tree/9.5/asm-tree-9.5.jar!/" />
+          <root url="jar://$USER_HOME$/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/ow2/asm/asm-util/9.5/asm-util-9.5.jar!/" />
+          <root url="jar://$USER_HOME$/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/ow2/asm/asm/9.5/asm-9.5.jar!/" />
+          <root url="jar://$USER_HOME$/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/reactivestreams/reactive-streams/1.0.4/reactive-streams-1.0.4.jar!/" />
+          <root url="jar://$USER_HOME$/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-collection-compat_2.12/2.11.0/scala-collection-compat_2.12-2.11.0.jar!/" />
           <root url="jar://$USER_HOME$/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-xml_2.12/2.1.0/scala-xml_2.12-2.1.0.jar!/" />
+          <root url="jar://$USER_HOME$/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/scala-sbt/test-agent/1.8.3/test-agent-1.8.3.jar!/" />
+          <root url="jar://$USER_HOME$/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/scala-sbt/test-interface/1.0/test-interface-1.0.jar!/" />
           <root url="jar://$USER_HOME$/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/scalameta/sbt-mdoc_2.12_1.0/2.3.7/sbt-mdoc-2.3.7.jar!/" />
+          <root url="jar://$USER_HOME$/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/scalameta/sbt-metals_2.12_1.0/1.0.1/sbt-metals_2.12_1.0-1.0.1.jar!/" />
           <root url="jar://$USER_HOME$/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/scoverage/sbt-scoverage_2.12_1.0/2.0.8/sbt-scoverage_2.12_1.0-2.0.8.jar!/" />
           <root url="jar://$USER_HOME$/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/scoverage/scalac-scoverage-domain_2.12/2.0.10/scalac-scoverage-domain_2.12-2.0.10.jar!/" />
           <root url="jar://$USER_HOME$/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/scoverage/scalac-scoverage-plugin_2.12.15/2.0.10/scalac-scoverage-plugin_2.12.15-2.0.10.jar!/" />
@@ -120,7 +134,7 @@
   </component>
   <component name="SbtModule">
     <option name="buildForURI" value="file:$MODULE_DIR$/../../" />
-    <option name="imports" value="SUB:DOLLAR8ca0b9568727736120b2.`root`, SUB:DOLLAR8ca0b9568727736120b2.`scalaGradApi`, SUB:DOLLAR8ca0b9568727736120b2.`scalaGradAutoBreezeApi`, SUB:DOLLAR8ca0b9568727736120b2.`showcaseMachineLearning`, SUB:DOLLAR8ca0b9568727736120b2.`showcaseProbabilisticProgramming`, SUB:DOLLAR8ca0b9568727736120b2.`showcaseSamples`, _root_.sbt.Keys._, _root_.sbt.ScriptedPlugin.autoImport._, _root_.sbt.plugins.JUnitXmlReportPlugin.autoImport._, _root_.sbt.plugins.MiniDependencyTreePlugin.autoImport._, _root_.bloop.integrations.sbt.BloopPlugin.autoImport._, _root_.mdoc.DocusaurusPlugin.autoImport._, _root_.mdoc.MdocPlugin.autoImport._, _root_.scoverage.ScoverageSbtPlugin.autoImport._, _root_.sbt._, _root_.sbt.nio.Keys._, _root_.sbt.plugins.IvyPlugin, _root_.sbt.plugins.JvmPlugin, _root_.sbt.plugins.CorePlugin, _root_.sbt.ScriptedPlugin, _root_.sbt.plugins.SbtPlugin, _root_.sbt.plugins.SemanticdbPlugin, _root_.sbt.plugins.JUnitXmlReportPlugin, _root_.sbt.plugins.Giter8TemplatePlugin, _root_.sbt.plugins.MiniDependencyTreePlugin, _root_.bloop.integrations.sbt.BloopPlugin, _root_.mdoc.DocusaurusPlugin, _root_.mdoc.MdocPlugin, _root_.scoverage.ScoverageSbtPlugin, _root_.scala.xml.{TopScope=&gt;SUB:DOLLARscope}" />
+    <option name="imports" value="SUB:DOLLAR7b84bf32ef1111079e6b.`root`, SUB:DOLLAR7b84bf32ef1111079e6b.`scalaGradApi`, SUB:DOLLAR7b84bf32ef1111079e6b.`scalaGradAutoBreezeApi`, SUB:DOLLAR7b84bf32ef1111079e6b.`showcaseMachineLearning`, SUB:DOLLAR7b84bf32ef1111079e6b.`showcaseProbabilisticProgramming`, SUB:DOLLAR7b84bf32ef1111079e6b.`showcaseSamples`, _root_.sbt.Keys._, _root_.sbt.ScriptedPlugin.autoImport._, _root_.sbt.plugins.JUnitXmlReportPlugin.autoImport._, _root_.sbt.plugins.MiniDependencyTreePlugin.autoImport._, _root_.metals.MetalsPlugin.autoImport._, _root_.ch.epfl.scala.debugadapter.sbtplugin.DebugAdapterPlugin.autoImport._, _root_.mdoc.DocusaurusPlugin.autoImport._, _root_.mdoc.MdocPlugin.autoImport._, _root_.scoverage.ScoverageSbtPlugin.autoImport._, _root_.sbt._, _root_.sbt.nio.Keys._, _root_.sbt.plugins.IvyPlugin, _root_.sbt.plugins.JvmPlugin, _root_.sbt.plugins.CorePlugin, _root_.sbt.ScriptedPlugin, _root_.sbt.plugins.SbtPlugin, _root_.sbt.plugins.SemanticdbPlugin, _root_.sbt.plugins.JUnitXmlReportPlugin, _root_.sbt.plugins.Giter8TemplatePlugin, _root_.sbt.plugins.MiniDependencyTreePlugin, _root_.metals.MetalsPlugin, _root_.ch.epfl.scala.debugadapter.sbtplugin.DebugAdapterPlugin, _root_.mdoc.DocusaurusPlugin, _root_.mdoc.MdocPlugin, _root_.scoverage.ScoverageSbtPlugin, _root_.scala.xml.{TopScope=&gt;SUB:DOLLARscope}" />
     <option name="resolvers" value="$USER_HOME$/.ivy2/cache|ivy|true|Local cache, https://repo1.maven.org/maven2/|maven|public, https://oss.sonatype.org/content/repositories/snapshots|maven|sonatype-snapshots" />
   </component>
 </module>

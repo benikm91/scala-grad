@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<module external.linked.project.id="root [file:/Users/maroimeyer/Beni/scala-grad/]" external.linked.project.path="$MODULE_DIR$/../.." external.root.project.path="$MODULE_DIR$/../.." external.system.id="SBT" type="JAVA_MODULE" version="4">
+<module external.linked.project.id="root [file:/Users/mebr/Documents/UniBas/ScalaGrad/scala-grad/]" external.linked.project.path="$MODULE_DIR$/../.." external.root.project.path="$MODULE_DIR$/../.." external.system.id="SBT" type="JAVA_MODULE" version="4">
   <component name="NewModuleRootManager" LANGUAGE_LEVEL="JDK_20">
     <output url="file://$MODULE_DIR$/../../target/scala-3.3.0/classes" />
     <output-test url="file://$MODULE_DIR$/../../target/scala-3.3.0/test-classes" />
@@ -8,7 +8,7 @@
       <sourceFolder url="file://$MODULE_DIR$/../../target/scala-3.3.0/resource_managed/main" type="java-resource" />
       <excludeFolder url="file://$MODULE_DIR$/../../target" />
     </content>
-    <orderEntry type="inheritedJdk" />
+    <orderEntry type="jdk" jdkName="openjdk-19" jdkType="JavaSDK" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="library" name="sbt: scala-sdk-3.3.0" level="project" />
     <orderEntry type="library" name="sbt: com.geirsson:metaconfig-core_3:0.11.1:jar" level="project" />
@@ -24,6 +24,7 @@
     <orderEntry type="library" name="sbt: com.openhtmltopdf:openhtmltopdf-jsoup-dom-converter:1.0.0:jar" level="project" />
     <orderEntry type="library" name="sbt: com.openhtmltopdf:openhtmltopdf-pdfbox:1.0.0:jar" level="project" />
     <orderEntry type="library" name="sbt: com.openhtmltopdf:openhtmltopdf-rtl-support:1.0.0:jar" level="project" />
+    <orderEntry type="library" scope="PROVIDED" name="sbt: com.sourcegraph:semanticdb-javac:0.9.5:jar" level="project" />
     <orderEntry type="library" name="sbt: com.thesamet.scalapb:lenses_2.13:0.11.11:jar" level="project" />
     <orderEntry type="library" name="sbt: com.thesamet.scalapb:scalapb-runtime_2.13:0.11.11:jar" level="project" />
     <orderEntry type="library" name="sbt: com.typesafe:config:1.4.1:jar" level="project" />

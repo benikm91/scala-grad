@@ -49,6 +49,8 @@ trait DualMode[
         derivativeMatrixAlgebra,
     )
 
+    given algebraGiven: MatrixAlgebra[DualScalar, DualColumnVector, DualRowVector, DualMatrix] = algebra
+
     lazy val algebraDSL = new DualMatrixAlgebraDSL {
 
         given scalarTest: TypeTest[Scalar | ColumnVector | RowVector | Matrix, Scalar] = dualScalarTest
