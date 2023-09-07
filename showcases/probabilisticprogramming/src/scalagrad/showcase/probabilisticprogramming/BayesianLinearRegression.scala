@@ -9,7 +9,7 @@ import spire.compat.numeric
 
 import scalagrad.showcase.probabilisticprogramming.distribution.{UnnormalizedDistribution, UnnormalizedLogDistribution}
 import scalagrad.showcase.probabilisticprogramming.metropolisHastings.GaussianMetropolisSampler
-import scalagrad.showcase.probabilisticprogramming.metropolisHastings.MetropolisAdjustedLangevinAlgorithmSampler
+import scalagrad.showcase.probabilisticprogramming.metropolisHastings.HamiltonianMonteCarloSampler
 import scala.util.Random
 
 import scalagrad.api.forward.ForwardMode.derive as d
@@ -24,7 +24,7 @@ import scala.reflect.api.Mirror
 
 /**
  * This example shows a simple bayesian linear regression model with two parameters
- * We first formulate a posterior and then sample it with the gradient-based metropolis djusted langevin algorithm sampler (MALA).
+ * We first formulate a posterior and then sample it with the gradient-based hamiltonial monte carlo sampler (HMC).
  * For calculating the gradients ScalaGrad is used.
  */
 object BayesianLinearRegression extends App:
@@ -83,29 +83,27 @@ object BayesianLinearRegression extends App:
         val p = Parameters(a, b, sigma)
         logPrior(alg)(p) + logLikelihood(alg)(p)
 
-    // Derive the posterior for MALA
+    // Derive the posterior for HMC
     val dLogPosterior = d(logPosterior)(BreezeDoubleMatrixAlgebraDSL)
     
-    val stepSize = 0.1
-    
-    // Initialize MALA sampler and sample the posterior
+    // Initialize HMC sampler and sample the posterior
 
-    lazy val malaSamples = 
-        MetropolisAdjustedLangevinAlgorithmSampler(
+    lazy val hamiltonianSamples = 
+        HamiltonianMonteCarloSampler(
             new Random(),
             v => dLogPosterior(v(0), v(1), v(2)).toList.toVector,
-            stepSize = 1e-6,
-            sigma = 1.0
+            stepSize = 1e-3, 
+            l = 20,
         )
-            .apply(UnnormalizedLogDistribution(v => logPosterior(BreezeDoubleMatrixAlgebraDSL)(v(0), v(1), v(2))), Vector(0.0, 0.0, 1.0))
-            .drop(50_000)
-            .take(50_000).toSeq
+            .apply(UnnormalizedLogDistribution[Vector[Double]](v => logPosterior(BreezeDoubleMatrixAlgebraDSL)(v(0), v(1), v(2))), Vector(0.0, 0.0, 1.0))
+            .drop(1_000)
+            .take(1_000).toSeq
 
-    val samples = malaSamples.map(Parameters.fromVector(_))
+    val samples = hamiltonianSamples.map(Parameters.fromVector(_))
 
     // Output results
 
-    println("MALA")
+    println("Hamiltonian Monte Carlo")
     val meanAndVarianceA = meanAndVariance(samples.map(_.a))
     println(s"Estimates for parameter a: mean = ${meanAndVarianceA.mean}, var = ${meanAndVarianceA.variance}")
     val meanAndVarianceB = meanAndVariance(samples.map(_.b))
