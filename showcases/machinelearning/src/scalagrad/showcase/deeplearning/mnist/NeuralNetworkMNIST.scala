@@ -48,8 +48,8 @@ object NeuralNetworkMNIST:
                 f(alg)(Parameters(firstW0, firstWs, lastW0, lastWs))
             val mode = ReverseMode.dualMode(alg)
             val df = mode.derive(fWrapper(mode.algebraDSL).tupled)
-            val (firstW0, firstWs, lastW0, lastWs) = df(p.firstW0, p.firstWs, p.lastW0, p.lastWs)
-            Parameters(firstW0, firstWs, lastW0, lastWs)
+            val (dFirstW0, dFirstWs, dLastW0, dLastWs) = df(p.firstW0, p.firstWs, p.lastW0, p.lastWs)
+            Parameters(dFirstW0, dFirstWs, dLastW0, dLastWs)
 
     def neuralNetwork(alg: MatrixAlgebraDSL)(xs: alg.Matrix, p: Parameters[alg.ColumnVector, alg.Matrix]): alg.Matrix =
         def relu[P](x: P)(using num: Numeric[P]): P = if x < num.zero then num.zero else x
