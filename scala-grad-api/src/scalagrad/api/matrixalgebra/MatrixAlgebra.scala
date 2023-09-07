@@ -21,8 +21,17 @@ trait MatrixAlgebraDSL:
     given matrixTest: TypeTest[Scalar | ColumnVector | RowVector | Matrix, Matrix]
 
     val innerAlgebra: MatrixAlgebra[Scalar, ColumnVector, RowVector, Matrix]
+    given innerAlgebraGiven: MatrixAlgebra[Scalar, ColumnVector, RowVector, Matrix] = innerAlgebra
 
-    export innerAlgebra.*
+    // Export methods (but not extension methods, as extension methods are provided by innerAlgebraGiven already...)
+    // TODO maybe move extension method into own class MatrixAlgebraSyntax (then innerAlgebra.* can be used again)
+    export innerAlgebra.{lift, unlift}
+    export innerAlgebra.{createColumnVectorFromElements, createRowVectorFromElements, createMatrixFromElements}
+    export innerAlgebra.{stackRows, stackColumns}
+    export innerAlgebra.{transpose, inverse, determinant, transposeColumVector, transposeRowVector}
+    export innerAlgebra.{one, oneHotColumnVector, oneHotMatrix, oneHotRowVector}
+    export innerAlgebra.{zeroScalar, zeroColumnVector, zeroRowVector, zeroMatrix}
+
     export innerAlgebra.given
 
 
