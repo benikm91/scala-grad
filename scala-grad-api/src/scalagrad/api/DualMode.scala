@@ -9,26 +9,42 @@ import scala.annotation.targetName
 
 
 trait DualMode[
-    PScalar, PColumnVector, PRowVector, PMatrix,
-]:
+    PScalarT, PColumnVectorT, PRowVectorT, PMatrixT,
+    DScalarT, DColumnVectorT, DRowVectorT, DMatrixT, 
+    DualScalarT <: dual.DualScalar[PScalarT, DScalarT],
+    DualColumnVectorT <: dual.DualColumnVector[PColumnVectorT, DColumnVectorT],
+    DualRowVectorT <: dual.DualRowVector[PRowVectorT, DRowVectorT],
+    DualMatrixT <: dual.DualMatrix[PMatrixT, DMatrixT],
+](
+    val algebra: DualMatrixAlgebra[
+        PScalarT, PColumnVectorT, PRowVectorT, PMatrixT, 
+        DScalarT, DColumnVectorT, DRowVectorT, DMatrixT, 
+        DualScalarT, DualColumnVectorT, DualRowVectorT, DualMatrixT
+    ]
+):
 
-    val primaryMatrixAlgebra: MatrixAlgebra[PScalar, PColumnVector, PRowVector, PMatrix]
+    type PScalar = PScalarT
+    type PColumnVector = PColumnVectorT
+    type PRowVector = PRowVectorT
+    type PMatrix = PMatrixT
+
+    type DScalar = DScalarT
+    type DColumnVector = DColumnVectorT
+    type DRowVector = DRowVectorT
+    type DMatrix = DMatrixT
+
+    type DualScalar = DualScalarT
+    type DualColumnVector = DualColumnVectorT
+    type DualRowVector = DualRowVectorT
+    type DualMatrix = DualMatrixT
     
-    type DScalar
-    type DColumnVector
-    type DRowVector
-    type DMatrix
-
-    type DualScalar <: dual.DualScalar[PScalar, DScalar]
-    type DualColumnVector <: dual.DualColumnVector[PColumnVector, DColumnVector]
-    type DualRowVector <: dual.DualRowVector[PRowVector, DRowVector]
-    type DualMatrix <: dual.DualMatrix[PMatrix, DMatrix]
+    val primaryMatrixAlgebra: MatrixAlgebra[PScalar, PColumnVector, PRowVector, PMatrix] = algebra.primaryMatrixAlgebra
 
     val derivativeMatrixAlgebra: DerivativeMatrixAlgebra[
         PScalar, PColumnVector, PRowVector, PMatrix, 
         DScalar, DColumnVector, DRowVector, DMatrix, 
         DualScalar, DualColumnVector, DualRowVector, DualMatrix
-    ]
+    ] = algebra.derivativeMatrixAlgebra
 
     import primaryMatrixAlgebra.given
 
@@ -40,18 +56,9 @@ trait DualMode[
     
     given dualMatrixTest: TypeTest[DualScalar | DualColumnVector | DualRowVector | DualMatrix, DualMatrix]
 
-    lazy val algebra = DualMatrixAlgebra[
-        PScalar, PColumnVector, PRowVector, PMatrix, 
-        DScalar, DColumnVector, DRowVector, DMatrix, 
-        DualScalar, DualColumnVector, DualRowVector, DualMatrix
-    ](
-        primaryMatrixAlgebra,
-        derivativeMatrixAlgebra,
-    )
-
     given algebraGiven: MatrixAlgebra[DualScalar, DualColumnVector, DualRowVector, DualMatrix] = algebra
 
-    lazy val algebraDSL = new DualMatrixAlgebraDSL {
+    val algebraDSL = new DualMatrixAlgebraDSL {
 
         given scalarTest: TypeTest[Scalar | ColumnVector | RowVector | Matrix, Scalar] = dualScalarTest
         given columnVectorTest: TypeTest[Scalar | ColumnVector | RowVector | Matrix, ColumnVector] = dualColumnVectorTest

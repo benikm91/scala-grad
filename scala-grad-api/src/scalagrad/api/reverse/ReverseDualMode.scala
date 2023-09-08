@@ -11,6 +11,7 @@ import scalagrad.api.reverse.eval.Eval
 
 import scala.annotation.targetName
 import scala.reflect.TypeTest
+import scalagrad.api.dual.DualMatrixAlgebra
 
 class ReverseDualMode[
     PScalar, PColumnVector, PRowVector, PMatrix,
@@ -23,19 +24,23 @@ class ReverseDualMode[
     TypeTest[PScalar | PColumnVector | PRowVector | PMatrix, PColumnVector],
     TypeTest[PScalar | PColumnVector | PRowVector | PMatrix, PRowVector],
     TypeTest[PScalar | PColumnVector | PRowVector | PMatrix, PMatrix],
-)  extends DualMode[PScalar, PColumnVector, PRowVector, PMatrix]:
-
-    override type DScalar = DeltaScalar[PScalar, PColumnVector, PRowVector, PMatrix]
-    override type DColumnVector = DeltaColumnVector[PScalar, PColumnVector, PRowVector, PMatrix]
-    override type DRowVector = DeltaRowVector[PScalar, PColumnVector, PRowVector, PMatrix]
-    override type DMatrix = DeltaMatrix[PScalar, PColumnVector, PRowVector, PMatrix]
-
-    override type DualScalar = DualDeltaScalar[PScalar, PColumnVector, PRowVector, PMatrix]
-    override type DualColumnVector = DualDeltaColumnVector[PScalar, PColumnVector, PRowVector, PMatrix]
-    override type DualRowVector = DualDeltaRowVector[PScalar, PColumnVector, PRowVector, PMatrix]
-    override type DualMatrix = DualDeltaMatrix[PScalar, PColumnVector, PRowVector, PMatrix]
-
-    override val derivativeMatrixAlgebra = DualDeltaDerivativeMatrixAlgebra()
+)  extends DualMode(
+    DualMatrixAlgebra[
+        PScalar, PColumnVector, PRowVector, PMatrix, 
+        DeltaScalar[PScalar, PColumnVector, PRowVector, PMatrix], 
+        DeltaColumnVector[PScalar, PColumnVector, PRowVector, PMatrix], 
+        DeltaRowVector[PScalar, PColumnVector, PRowVector, PMatrix], 
+        DeltaMatrix[PScalar, PColumnVector, PRowVector, PMatrix], 
+        DualDeltaScalar[PScalar, PColumnVector, PRowVector, PMatrix], 
+        DualDeltaColumnVector[PScalar, PColumnVector, PRowVector, PMatrix], 
+        DualDeltaRowVector[PScalar, PColumnVector, PRowVector, PMatrix], 
+        DualDeltaMatrix[PScalar, PColumnVector, PRowVector, PMatrix]
+ 
+    ](
+        primaryMatrixAlgebra,
+        DualDeltaDerivativeMatrixAlgebra(),
+    )
+):
 
     override given dualScalarTest: TypeTest[DualScalar | DualColumnVector | DualRowVector | DualMatrix, DualScalar] = 
         new TypeTest {

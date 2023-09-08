@@ -54,9 +54,6 @@ case class DualMatrixAlgebra[
         DualScalar, DualColumnVector, DualRowVector, DualMatrix,
     ]
 )(using
-    Numeric[PScalar],
-    Trig[PScalar],
-    NRoot[PScalar],
     TypeTest[DualScalar | DualColumnVector | DualRowVector | DualMatrix, DualScalar],
     TypeTest[DualScalar | DualColumnVector | DualRowVector | DualMatrix, DualColumnVector],
     TypeTest[DualScalar | DualColumnVector | DualRowVector | DualMatrix, DualRowVector],
@@ -74,13 +71,13 @@ with MapDualOps[
     import scalagrad.api.spire.trig.DualScalarIsTrig
 
     override given num: Numeric[DualScalar] = DualScalarIsNumeric.dualNum(using
-        summon[Numeric[PScalar]],
-        summon[Trig[PScalar]],
+        primaryMatrixAlgebra.num,
+        primaryMatrixAlgebra.trig,
         this
     )
     override given trig: Trig[DualScalar] = DualScalarIsTrig.dualTrig(using
-        summon[Trig[PScalar]],
-        summon[NRoot[PScalar]],
+        primaryMatrixAlgebra.trig,
+        primaryMatrixAlgebra.num,
         this
     )
 

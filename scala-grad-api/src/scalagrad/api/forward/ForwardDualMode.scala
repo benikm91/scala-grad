@@ -8,6 +8,7 @@ import scalagrad.api.{DualMode, dual}
 
 import scala.annotation.{nowarn, targetName}
 import scala.reflect.TypeTest
+import scalagrad.api.dual.DualMatrixAlgebra
 
 class ForwardDualMode[
     PScalar, PColumnVector, PRowVector, PMatrix,
@@ -20,17 +21,20 @@ class ForwardDualMode[
     TypeTest[PScalar | PColumnVector | PRowVector | PMatrix, PColumnVector],
     TypeTest[PScalar | PColumnVector | PRowVector | PMatrix, PRowVector],
     TypeTest[PScalar | PColumnVector | PRowVector | PMatrix, PMatrix],
-) extends DualMode[PScalar, PColumnVector, PRowVector, PMatrix]:
+) extends DualMode(
+    DualMatrixAlgebra[
+        PScalar, PColumnVector, PRowVector, PMatrix, 
+        PScalar, PColumnVector, PRowVector, PMatrix,  
+        DualNumberScalar[PScalar],
+        DualNumberColumnVector[PColumnVector],
+        DualNumberRowVector[PRowVector],
+        DualNumberMatrix[PMatrix],
+    ](
+        primaryMatrixAlgebra,
+        new DualNumberDerivativeMatrixAlgebra(primaryMatrixAlgebra),
+    )
+):
     
-    override type  DScalar = PScalar
-    override type  DColumnVector = PColumnVector
-    override type  DRowVector = PRowVector
-    override type  DMatrix = PMatrix
-
-    override type DualScalar = DualNumberScalar[PScalar]
-    override type DualColumnVector = DualNumberColumnVector[PColumnVector]
-    override type DualRowVector = DualNumberRowVector[PRowVector]
-    override type DualMatrix = DualNumberMatrix[PMatrix]
     override given dualScalarTest: TypeTest[DualScalar | DualColumnVector | DualRowVector | DualMatrix, DualScalar] = 
         new TypeTest {
             def unapply(x: DualScalar | DualColumnVector | DualRowVector | DualMatrix): Option[x.type & DualScalar] = 
@@ -66,12 +70,6 @@ class ForwardDualMode[
                     case _ => None
                 }
         }
-
-    override val derivativeMatrixAlgebra: DerivativeMatrixAlgebra[
-        PScalar, PColumnVector, PRowVector, PMatrix, 
-        DScalar, DColumnVector, DRowVector, DMatrix, 
-        DualScalar, DualColumnVector, DualRowVector, DualMatrix
-    ] = new DualNumberDerivativeMatrixAlgebra(primaryMatrixAlgebra)
 
     val indices = (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22)
     val zeroIndices = (0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22)
