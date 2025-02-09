@@ -27,9 +27,10 @@ As well as more complex applications:
 - Use higher-order gradients for the newton method (see [Code](showcases/machinelearning/src/scalagrad/showcase/linearregression/newtonmethod/NewtonMethod.scala))
 - Sample a bayesian linear model with the Metropolis-adjusted Langevin algorithm (MALA) sampler as well as the Hamiltonian Monte Carlo sampler (see [Code](showcases/probabilisticprogramming/src/scalagrad/showcase/probabilisticprogramming/UseCase1b.scala))
 
-## Citation
+## Extra
 
-When citing the repository please use:
+Original master thesis: [ScalaGrad - Automatic Differentiation for Scala](https://github.com/benikm91/scala-grad-thesis/blob/main/thesis-v1.pdf)
 
-When citing the original [master thesis](TODO) giving birth to ScalaGrad please use.
+Derived publication: [ScalaGrad: A Statically Typed Automatic
+Differentiation Library for Safer Data Science](https://digitalcollection.zhaw.ch/server/api/core/bitstreams/3d260a58-e3b0-4555-8750-875176e48ec5/content)
 
